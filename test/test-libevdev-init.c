@@ -683,7 +683,7 @@ START_TEST(test_clock_id_events)
 }
 END_TEST
 
-TEST_SUITE(libevdev_init_test)
+TEST_SUITE_ROOT_PRIVILEGES(libevdev_init_test)
 {
 	Suite *s = suite_create("libevdev init tests");
 

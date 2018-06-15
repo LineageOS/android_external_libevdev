@@ -22,6 +22,7 @@
 
 #include <config.h>
 #include <libevdev/libevdev.h>
+#include <stdbool.h>
 
 #include <check.h>
 
@@ -31,16 +32,23 @@
 struct libevdev_test {
 	const char *name;
 	Suite* (*setup)(void);
+	bool needs_root_privileges;
 } __attribute__((aligned(16)));
 
-#define TEST_SUITE(name) \
+#define _TEST_SUITE(name, root_privs) \
 	static Suite* (name##_setup)(void); \
 	static const struct libevdev_test _test \
 	__attribute__((used)) \
 	__attribute__((section ("test_section"))) = { \
-		#name, name##_setup \
+		#name, name##_setup, root_privs \
 	}; \
 	static Suite* (name##_setup)(void)
+
+#define TEST_SUITE(name) \
+	_TEST_SUITE(name, false)
+
+#define TEST_SUITE_ROOT_PRIVILEGES(name) \
+	_TEST_SUITE(name, true)
 
 #define TEST_DEVICE_NAME "libevdev test device"
 

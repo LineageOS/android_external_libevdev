@@ -368,7 +368,7 @@ START_TEST(test_uinput_properties)
 }
 END_TEST
 
-TEST_SUITE(uinput_suite)
+TEST_SUITE_ROOT_PRIVILEGES(uinput_suite)
 {
 	Suite *s = suite_create("libevdev uinput device tests");
 

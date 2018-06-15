@@ -68,9 +68,14 @@ int main(void)
 	const struct rlimit corelimit = {0, 0};
 	int failed;
 
-	if (getuid() != 0) {
-		fprintf(stderr, "This test needs to run as root\n");
-		return 77;
+	for (t = &__start_test_section; t < &__stop_test_section; t++) {
+		if (t->needs_root_privileges) {
+			if (getuid() != 0) {
+				fprintf(stderr, "This test needs to run as root\n");
+				return 77;
+			}
+			break;
+		}
 	}
 
 	if (is_debugger_attached())

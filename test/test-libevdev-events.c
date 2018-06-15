@@ -2140,7 +2140,7 @@ START_TEST(test_event_mt_value_setters_current_slot)
 }
 END_TEST
 
-TEST_SUITE(libevdev_events)
+TEST_SUITE_ROOT_PRIVILEGES(libevdev_events)
 {
 	Suite *s = suite_create("libevdev event tests");
 

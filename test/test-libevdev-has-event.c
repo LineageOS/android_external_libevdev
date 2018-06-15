@@ -1142,7 +1142,7 @@ START_TEST(test_led_same)
 }
 END_TEST
 
-TEST_SUITE(has_events)
+TEST_SUITE_ROOT_PRIVILEGES(has_events)
 {
 	Suite *s = suite_create("libevdev_has_event tests");
 
