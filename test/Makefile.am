@@ -36,9 +36,7 @@ run_tests = \
 
 noinst_PROGRAMS += $(run_tests)
 
-if RUN_TESTS
 TESTS = $(run_tests)
-endif
 
 common_sources = \
 		 test-common-uinput.c \
