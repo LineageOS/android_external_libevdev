@@ -32,14 +32,6 @@
 
 #include "test-common.h"
 
-extern Suite *event_name_suite(void);
-extern Suite *event_code_suite(void);
-extern Suite *libevdev_init_test(void);
-extern Suite *queue_suite(void);
-extern Suite *libevdev_has_event_test(void);
-extern Suite *libevdev_events(void);
-extern Suite *uinput_suite(void);
-
 static int
 is_debugger_attached(void)
 {
@@ -68,8 +60,11 @@ is_debugger_attached(void)
 	return rc;
 }
 
+extern const struct libevdev_test __start_test_section, __stop_test_section;
+
 int main(void)
 {
+	const struct libevdev_test *t;
 	const struct rlimit corelimit = {0, 0};
 	int failed;
 
@@ -86,14 +81,11 @@ int main(void)
 
 	libevdev_set_log_function(test_logfunc_abort_on_error, NULL);
 
-	Suite *s = libevdev_has_event_test();
-	SRunner *sr = srunner_create(s);
-	srunner_add_suite(sr, libevdev_events());
-	srunner_add_suite(sr, libevdev_init_test());
-	srunner_add_suite(sr, queue_suite());
-	srunner_add_suite(sr, event_name_suite());
-	srunner_add_suite(sr, event_code_suite());
-	srunner_add_suite(sr, uinput_suite());
+	SRunner *sr = srunner_create(NULL);
+	for (t = &__start_test_section; t < &__stop_test_section; t++) {
+		srunner_add_suite(sr, t->setup());
+	}
+
 	srunner_run_all(sr, CK_NORMAL);
 
 	failed = srunner_ntests_failed(sr);

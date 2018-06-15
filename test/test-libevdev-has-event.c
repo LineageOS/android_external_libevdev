@@ -1142,8 +1142,7 @@ START_TEST(test_led_same)
 }
 END_TEST
 
-Suite *
-libevdev_has_event_test(void)
+TEST_SUITE(has_events)
 {
 	Suite *s = suite_create("libevdev_has_event tests");
 

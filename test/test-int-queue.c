@@ -326,8 +326,7 @@ START_TEST(test_queue_set_num_elements)
 }
 END_TEST
 
-Suite *
-queue_suite(void)
+TEST_SUITE(queue_suite)
 {
 	Suite *s = suite_create("Event queue");
 

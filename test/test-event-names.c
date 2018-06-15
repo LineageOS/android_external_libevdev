@@ -271,8 +271,7 @@ START_TEST(test_event_code)
 }
 END_TEST
 
-Suite *
-event_name_suite(void)
+TEST_SUITE(event_name_suite)
 {
 	Suite *s = suite_create("Event names");
 

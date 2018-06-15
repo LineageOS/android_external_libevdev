@@ -131,8 +131,7 @@ START_TEST(test_properties_invalid)
 }
 END_TEST
 
-Suite *
-event_code_suite(void)
+TEST_SUITE(event_code_suite)
 {
 	Suite *s = suite_create("Event codes");
 

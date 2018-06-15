@@ -2140,8 +2140,7 @@ START_TEST(test_event_mt_value_setters_current_slot)
 }
 END_TEST
 
-Suite *
-libevdev_events(void)
+TEST_SUITE(libevdev_events)
 {
 	Suite *s = suite_create("libevdev event tests");
 

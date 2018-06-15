@@ -28,6 +28,20 @@
 #ifndef _TEST_COMMON_H_
 #define _TEST_COMMON_H_
 
+struct libevdev_test {
+	const char *name;
+	Suite* (*setup)(void);
+} __attribute__((aligned(16)));
+
+#define TEST_SUITE(name) \
+	static Suite* (name##_setup)(void); \
+	static const struct libevdev_test _test \
+	__attribute__((used)) \
+	__attribute__((section ("test_section"))) = { \
+		#name, name##_setup \
+	}; \
+	static Suite* (name##_setup)(void)
+
 #define TEST_DEVICE_NAME "libevdev test device"
 
 #include "test-common-uinput.h"
