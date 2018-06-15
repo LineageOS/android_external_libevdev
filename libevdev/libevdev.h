@@ -2022,6 +2022,29 @@ const char * libevdev_event_code_get_name(unsigned int type, unsigned int code);
 /**
  * @ingroup misc
  *
+ * This function resolves the event value for a code.
+ *
+ * For almost all event codes this will return NULL as the value is just a
+ * numerical value. As of kernel 4.17, the only event code that will return
+ * a non-NULL value is EV_ABS/ABS_MT_TOOL_TYPE.
+ *
+ * @param type The event type for the value to query (EV_ABS, etc.)
+ * @param code The event code for the value to query (e.g. ABS_MT_TOOL_TYPE)
+ * @param value The event value to return the name for (e.g. MT_TOOL_PALM)
+ *
+ * @return The name of the given event value (e.g. MT_TOOL_PALM) or NULL for
+ * an invalid type or code or NULL for an axis that has numerical values
+ * only.
+ *
+ * @note The list of names is compiled into libevdev. If the kernel adds new
+ * defines for new event values, libevdev will not automatically pick these up.
+ */
+const char * libevdev_event_value_get_name(unsigned int type,
+					   unsigned int code,
+					   int value);
+/**
+ * @ingroup misc
+ *
  * @param prop The input prop to return the name for (e.g. INPUT_PROP_BUTTONPAD)
  *
  * @return The name of the given input prop (e.g. INPUT_PROP_BUTTONPAD) or NULL for an
@@ -2126,6 +2149,56 @@ int libevdev_event_code_from_name(unsigned int type, const char *name);
  */
 int libevdev_event_code_from_name_n(unsigned int type, const char *name,
 				    size_t len);
+
+/**
+ * @ingroup misc
+ *
+ * Look up an event value by its type, code and name. Event values start
+ * with a fixed prefix followed by their name (eg., "MT_TOOL_PALM"). The
+ * prefix must be included in the name. It returns the constant assigned
+ * to the event code or -1 if not found.
+ *
+ * You have to pass the event type and code where to look for the name. For
+ * instance, to resolve "MT_TOOL_PALM" you need to pass EV_ABS as type,
+ * ABS_MT_TOOL_TYPE as code and "MT_TOOL_PALM" as string.
+ *
+ * As of kernel 4.17, only EV_ABS/ABS_MT_TOOL_TYPE support name resolution.
+ *
+ * @param type The event type (EV_* constant) where to look for the name.
+ * @param code The event code (ABS_* constant) where to look for the name.
+ * @param name A non-NULL string describing an input-event value
+ * ("MT_TOOL_TYPE", ...)
+ *
+ * @return The given value constant for the name or -1 if not found.
+ */
+int libevdev_event_value_from_name(unsigned int type, unsigned int code,
+				   const char *name);
+
+/**
+ * @ingroup misc
+ *
+ * Look up an event value by its type, code and name. Event values start
+ * with a fixed prefix followed by their name (eg., "MT_TOOL_PALM"). The
+ * prefix must be included in the name. It returns the constant assigned
+ * to the event code or -1 if not found.
+ *
+ * You have to pass the event type and code where to look for the name. For
+ * instance, to resolve "MT_TOOL_PALM" you need to pass EV_ABS as type,
+ * ABS_MT_TOOL_TYPE as code and "MT_TOOL_PALM" as string.
+ *
+ * As of kernel 4.17, only EV_ABS/ABS_MT_TOOL_TYPE support name resolution.
+ *
+ * @param type The event type (EV_* constant) where to look for the name.
+ * @param code The event code (ABS_* constant) where to look for the name.
+ * @param name A non-NULL string describing an input-event value
+ * ("MT_TOOL_TYPE", ...)
+ * @param len The length of the string in @p name excluding any terminating 0
+ * character.
+ *
+ * @return The given value constant for the name or -1 if not found.
+ */
+int libevdev_event_value_from_name_n(unsigned int type, unsigned int code,
+				     const char *name, size_t len);
 
 /**
  * @ingroup misc

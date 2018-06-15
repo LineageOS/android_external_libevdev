@@ -143,6 +143,29 @@ libevdev_event_code_from_name_n(unsigned int type, const char *name, size_t len)
 }
 
 LIBEVDEV_EXPORT int
+libevdev_event_value_from_name(unsigned int type, unsigned int code, const char *name)
+{
+	return libevdev_event_value_from_name_n(type, code, name, strlen(name));
+}
+
+LIBEVDEV_EXPORT int
+libevdev_event_value_from_name_n(unsigned int type, unsigned int code, const char *name, size_t len)
+{
+	struct name_lookup lookup;
+	const struct name_entry *entry;
+
+	if (type != EV_ABS || code != ABS_MT_TOOL_TYPE)
+		return -1;
+
+	lookup.name = name;
+	lookup.len = len;
+
+	entry = lookup_name(tool_type_names, ARRAY_LENGTH(tool_type_names), &lookup);
+
+	return entry ? (int)entry->value : -1;
+}
+
+LIBEVDEV_EXPORT int
 libevdev_property_from_name(const char *name)
 {
 	return libevdev_property_from_name_n(name, strlen(name));

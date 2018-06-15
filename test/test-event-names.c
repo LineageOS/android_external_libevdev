@@ -36,6 +36,7 @@ START_TEST(test_limits)
 	ck_assert(libevdev_event_code_get_name(EV_REP, REP_MAX + 1) == NULL);
 	ck_assert(libevdev_event_code_get_name(EV_FF, FF_MAX + 1) == NULL);
 	ck_assert(libevdev_event_code_get_name(EV_MAX + 1, 0) == NULL);
+	ck_assert(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_MAX + 1) == NULL);
 }
 END_TEST
 
@@ -201,6 +202,35 @@ START_TEST(test_code_syn_name)
 }
 END_TEST
 
+START_TEST(test_value_name)
+{
+	unsigned int type, code;
+	int value;
+
+	for (type = 0; type < EV_MAX; type++) {
+		int max = libevdev_event_type_get_max(type);
+
+		if (max == -1)
+			continue;
+
+		for (code = 0; code < (unsigned int)max; code++) {
+			if (type == EV_ABS && code == ABS_MT_TOOL_TYPE)
+				continue;
+
+			for (value = 0; value < 0xff; value++) {
+				ck_assert(libevdev_event_value_get_name(type, code, value) == NULL);
+			}
+		}
+	}
+
+	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER), "MT_TOOL_FINGER");
+	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PALM), "MT_TOOL_PALM");
+	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PEN), "MT_TOOL_PEN");
+	/* overlapping value */
+	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_MAX), "MT_TOOL_PALM");
+}
+END_TEST
+
 START_TEST(test_prop_name)
 {
 	ck_assert_str_eq(libevdev_property_get_name(INPUT_PROP_POINTER), "INPUT_PROP_POINTER");
@@ -295,6 +325,10 @@ TEST_SUITE(event_name_suite)
 	tcase_add_test(tc, test_code_sw_name);
 	tcase_add_test(tc, test_code_ff_name);
 	tcase_add_test(tc, test_code_syn_name);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("value names");
+	tcase_add_test(tc, test_value_name);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("prop names");

@@ -114,6 +114,28 @@ START_TEST(test_code_names_max)
 }
 END_TEST
 
+START_TEST(test_value_names)
+{
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_PALM"), MT_TOOL_PALM);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_FINGER"), MT_TOOL_FINGER);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_PEN"), MT_TOOL_PEN);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_MAX"), MT_TOOL_MAX);
+}
+END_TEST
+
+START_TEST(test_value_names_invalid)
+{
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_SYN, REL_X, "MT_TOOL_PALM"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_REL, REL_X, "MT_TOOL_PALM"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_X, "MT_TOOL_PALM"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "MT_TOOL_PALMA"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, ""), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "EV_ABS"), -1);
+	ck_assert_int_eq(libevdev_event_value_from_name(EV_ABS, ABS_MT_TOOL_TYPE, "ABS_X"), -1);
+}
+END_TEST
+
 START_TEST(test_properties)
 {
 	struct prop {
@@ -159,6 +181,11 @@ TEST_SUITE(event_code_suite)
 	tcase_add_test(tc, test_code_names);
 	tcase_add_test(tc, test_code_names_invalid);
 	tcase_add_test(tc, test_code_names_max);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("value tests");
+	tcase_add_test(tc, test_value_names);
+	tcase_add_test(tc, test_value_names_invalid);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("property tests");

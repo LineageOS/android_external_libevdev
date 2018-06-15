@@ -112,3 +112,12 @@ global:
 local:
 	*;
 } LIBEVDEV_1;
+
+LIBEVDEV_1_6 {
+global:
+	libevdev_event_value_get_name;
+	libevdev_event_value_from_name;
+	libevdev_event_value_from_name_n;
+local:
+	*;
+} LIBEVDEV_1_3;

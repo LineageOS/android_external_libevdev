@@ -26,6 +26,7 @@ prefixes = [
 		"SYN_",
 		"REP_",
 		"INPUT_PROP_",
+		"MT_TOOL_",
 ]
 
 duplicates = [
@@ -39,6 +40,7 @@ duplicates = [
 		"BTN_TRIGGER_HAPPY",
 		"SW_MAX",
 		"REP_MAX",
+		"MT_TOOL_MAX",
 ]
 
 btn_additional = [
@@ -78,7 +80,7 @@ def print_map(bits):
 	print("static const char * const * const event_type_map[EV_MAX + 1] = {")
 
 	for prefix in prefixes:
-		if prefix in ["BTN_", "EV_", "INPUT_PROP_"]:
+		if prefix in ["BTN_", "EV_", "INPUT_PROP_", "MT_TOOL_"]:
 			continue
 		print("	[EV_%s] = %s_map," % (prefix[:-1], prefix[:-1].lower()))
 
@@ -95,7 +97,7 @@ def print_map(bits):
 	print("static const int ev_max[EV_MAX + 1] = {")
 	print("	[0 ... EV_MAX] = -1,")
 	for prefix in prefixes:
-		if prefix in ["BTN_", "EV_", "INPUT_PROP_"]:
+		if prefix in ["BTN_", "EV_", "INPUT_PROP_", "MT_TOOL_"]:
 			continue
 		print("	[EV_%s] = %s_MAX," % (prefix[:-1], prefix[:-1]))
 	print("};")
@@ -127,6 +129,10 @@ def print_lookup_table(bits):
 	print("struct name_entry {")
 	print("	const char *name;")
 	print("	unsigned int value;")
+	print("};")
+	print("")
+	print("static const struct name_entry tool_type_names[] = {")
+	print_lookup(bits, "mt_tool")
 	print("};")
 	print("")
 	print("static const struct name_entry ev_names[] = {")

@@ -1613,6 +1613,23 @@ libevdev_event_code_get_name(unsigned int type, unsigned int code)
 	return event_type_map[type][code];
 }
 
+LIBEVDEV_EXPORT const char *
+libevdev_event_value_get_name(unsigned int type,
+			      unsigned int code,
+			      int value)
+{
+	/* This is a simplified version because nothing else
+	   is an enum like ABS_MT_TOOL_TYPE so we don't need
+	   a generic lookup */
+	if (type != EV_ABS || code != ABS_MT_TOOL_TYPE)
+		return NULL;
+
+	if (value > MT_TOOL_MAX)
+		return NULL;
+
+	return mt_tool_map[value];
+}
+
 LIBEVDEV_EXPORT const char*
 libevdev_property_get_name(unsigned int prop)
 {
