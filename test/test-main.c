@@ -22,12 +22,15 @@
 
 #include <config.h>
 #include <check.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/ptrace.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <libevdev/libevdev.h>
 
 #include "test-common.h"
@@ -60,6 +63,24 @@ is_debugger_attached(void)
 	return rc;
 }
 
+static bool
+device_nodes_exist(void)
+{
+	struct stat st;
+	int rc;
+
+	rc = stat("/dev/uinput", &st);
+	if (rc == -1 && errno == ENOENT)
+		return false;
+
+	rc = stat("/dev/input", &st);
+	if (rc == -1 && errno == ENOENT)
+		return false;
+
+	/* Any issues but ENOENT we just let the test suite blow up later */
+	return true;
+}
+
 extern const struct libevdev_test __start_test_section, __stop_test_section;
 
 int main(void)
@@ -70,10 +91,16 @@ int main(void)
 
 	for (t = &__start_test_section; t < &__stop_test_section; t++) {
 		if (t->needs_root_privileges) {
+
 			if (getuid() != 0) {
 				fprintf(stderr, "This test needs to run as root\n");
 				return 77;
 			}
+			if (!device_nodes_exist()) {
+				fprintf(stderr, "This test needs /dev/input and /dev/uinput to exist\n");
+				return 77;
+			}
+
 			break;
 		}
 	}
