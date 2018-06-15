@@ -1,0 +1,53 @@
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
+
+variables:
+  FEDORA_RPMS: 'gcc gcc-c++ automake libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
+  CENTOS_RPMS: $FEDORA_RPMS
+  UBUNTU_DEBS: 'gcc g++     automake libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
+  DEBIAN_DEBS: $UBUNTU_DEBS
+  LIBEVDEV_SKIP_ROOT_TESTS: 1
+
+.default_artifacts: &default_artifacts
+  artifacts:
+    paths:
+      - test/test-suite.log
+    expire_in: 1 week
+    when: on_failure
+
+.default_build_distcheck: &default_build_distcheck
+  script:
+    - autoreconf -ivf
+    - ./configure --disable-silent-rules
+    - make
+    - make check
+    - make distcheck
+
+fedora:28:
+  image: fedora:28
+  before_script:
+    - dnf upgrade -y
+    - dnf install -y $FEDORA_RPMS
+  <<: *default_build_distcheck
+
+centos:7:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+  <<: *default_build_distcheck
+
+ubuntu:18.04:
+  image: ubuntu:18.04
+  before_script:
+    - apt-get update
+    - apt-get upgrade -y
+    - apt-get install -y $UBUNTU_DEBS
+  <<: *default_build_distcheck
+
+debian:stable:
+  image: debian:stable
+  before_script:
+    - apt-get update
+    - apt-get upgrade -y
+    - apt-get install -y $DEBIAN_DEBS
+  <<: *default_build_distcheck
