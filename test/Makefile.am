@@ -83,8 +83,10 @@ test_libevdev_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
 test_libevdev_LDFLAGS = -no-install
 
 test_kernel_SOURCES = \
+		      test-main.c \
 		      test-kernel.c \
 		      $(common_sources)
+
 test_kernel_CFLAGS = -I$(top_srcdir)
 test_kernel_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
 

@@ -160,31 +160,15 @@ out:
 }
 END_TEST
 
-int main(int argc, char **argv)
+TEST_SUITE_ROOT_PRIVILEGES(kernel)
 {
-	SRunner *sr;
-	Suite *s;
-	TCase *tc;
-	int failed;
+	Suite *s = suite_create("kernel");
 
-	if (getuid() != 0) {
-		fprintf(stderr, "This test needs to run as root\n");
-		return 77;
-	}
-
-	s = suite_create("kernel tests");
-
-	tc = tcase_create("EVIOCREVOKE");
+	TCase *tc = tcase_create("EVIOCREVOKE");
 	tcase_add_test(tc, test_revoke);
 	tcase_add_test(tc, test_revoke_invalid);
 	tcase_add_test(tc, test_revoke_fail_after);
 	suite_add_tcase(s, tc);
 
-	sr = srunner_create(s);
-	srunner_run_all(sr, CK_NORMAL);
-
-	failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-
-	return failed;
+	return s;
 }
