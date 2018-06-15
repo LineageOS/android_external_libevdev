@@ -24,7 +24,13 @@ test_static_link_LDFLAGS = $(AM_LDFLAGS) -static
 check_local_deps =
 
 if ENABLE_RUNTIME_TESTS
-run_tests = test-libevdev test-kernel
+run_tests = \
+	    test-libevdev \
+	    test-kernel \
+	    test-uinput \
+	    test-event-codes \
+	    test-libevdev-internals \
+	    $(NULL)
 
 .NOTPARALLEL:
 
@@ -44,15 +50,33 @@ common_sources = \
 AM_CPPFLAGS += $(CHECK_CFLAGS) $(GCOV_CFLAGS)
 AM_LDFLAGS += $(GCOV_LDFLAGS)
 
+test_event_codes_SOURCES = \
+			test-main.c \
+			test-event-codes.c \
+			test-event-names.c \
+			$(common_sources)
+test_event_codes_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
+test_event_codes_LDFLAGS = -no-install
+
+test_libevdev_internals_SOURCES = \
+			test-main.c \
+			test-int-queue.c \
+			$(common_sources)
+test_libevdev_internals_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
+test_libevdev_internals_LDFLAGS = -no-install
+
+test_uinput_SOURCES = \
+			test-main.c \
+			test-uinput.c \
+			$(common_sources)
+test_uinput_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
+test_uinput_LDFLAGS = -no-install
+
 test_libevdev_SOURCES = \
 			test-main.c \
-			test-event-names.c \
-			test-event-codes.c \
 			test-libevdev-init.c \
 			test-libevdev-has-event.c \
-			test-int-queue.c \
 			test-libevdev-events.c \
-			test-uinput.c \
 			$(common_sources)
 
 test_libevdev_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
