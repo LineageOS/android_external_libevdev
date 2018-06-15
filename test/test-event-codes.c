@@ -23,7 +23,7 @@
 #include <config.h>
 #include "test-common.h"
 
-START_TEST(test_type_codes)
+START_TEST(test_type_names)
 {
 	ck_assert_int_eq(libevdev_event_type_from_name("EV_SYN"), EV_SYN);
 	ck_assert_int_eq(libevdev_event_type_from_name("EV_KEY"), EV_KEY);
@@ -43,7 +43,7 @@ START_TEST(test_type_codes)
 }
 END_TEST
 
-START_TEST(test_type_invalid)
+START_TEST(test_type_names_invalid)
 {
 	ck_assert_int_eq(libevdev_event_type_from_name("EV_Syn"), -1);
 	ck_assert_int_eq(libevdev_event_type_from_name("ev_SYN"), -1);
@@ -55,7 +55,7 @@ START_TEST(test_type_invalid)
 }
 END_TEST
 
-START_TEST(test_key_codes)
+START_TEST(test_code_names)
 {
 	ck_assert_int_eq(libevdev_event_code_from_name(EV_SYN, "SYN_REPORT"), SYN_REPORT);
 	ck_assert_int_eq(libevdev_event_code_from_name(EV_ABS, "ABS_X"), ABS_X);
@@ -78,7 +78,7 @@ START_TEST(test_key_codes)
 }
 END_TEST
 
-START_TEST(test_key_invalid)
+START_TEST(test_code_names_invalid)
 {
 	ck_assert_int_eq(libevdev_event_code_from_name(EV_MAX, "MAX_FAKE"), -1);
 	ck_assert_int_eq(libevdev_event_code_from_name(EV_CNT, "CNT_FAKE"), -1);
@@ -137,13 +137,13 @@ event_code_suite(void)
 	Suite *s = suite_create("Event codes");
 
 	TCase *tc = tcase_create("type tests");
-	tcase_add_test(tc, test_type_codes);
-	tcase_add_test(tc, test_type_invalid);
+	tcase_add_test(tc, test_type_names);
+	tcase_add_test(tc, test_type_names_invalid);
 	suite_add_tcase(s, tc);
 
-	tc = tcase_create("key tests");
-	tcase_add_test(tc, test_key_codes);
-	tcase_add_test(tc, test_key_invalid);
+	tc = tcase_create("code tests");
+	tcase_add_test(tc, test_code_names);
+	tcase_add_test(tc, test_code_names_invalid);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("property tests");
