@@ -99,6 +99,21 @@ START_TEST(test_code_names_invalid)
 }
 END_TEST
 
+START_TEST(test_code_names_max)
+{
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_SYN, "SYN_MAX"), SYN_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_KEY, "KEY_MAX"), KEY_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_REL, "REL_MAX"), REL_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_ABS, "ABS_MAX"), ABS_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_MSC, "MSC_MAX"), MSC_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_SW, "SW_MAX"), SW_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_LED, "LED_MAX"), LED_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_SND, "SND_MAX"), SND_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_REP, "REP_MAX"), REP_MAX);
+	ck_assert_int_eq(libevdev_event_code_from_name(EV_FF, "FF_MAX"), FF_MAX);
+}
+END_TEST
+
 START_TEST(test_properties)
 {
 	struct prop {
@@ -143,6 +158,7 @@ TEST_SUITE(event_code_suite)
 	tc = tcase_create("code tests");
 	tcase_add_test(tc, test_code_names);
 	tcase_add_test(tc, test_code_names_invalid);
+	tcase_add_test(tc, test_code_names_max);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("property tests");

@@ -9,7 +9,8 @@ import re
 import sys
 
 class Bits(object):
-	pass
+	def __init__(self):
+		self.max_codes = {}
 
 prefixes = [
 		"EV_",
@@ -113,6 +114,12 @@ def print_lookup(bits, prefix):
 	if prefix == "btn":
 		names = names + btn_additional;
 
+	# We need to manually add the _MAX codes because some are
+	# duplicates
+	maxname = "%s_MAX" % (prefix.upper())
+	if maxname in duplicates:
+		names.append((bits.max_codes[maxname], maxname))
+
 	for val, name in sorted(names, key=lambda e: e[1]):
 		print("	{ .name = \"%s\", .value = %s }," % (name, name))
 
@@ -161,9 +168,6 @@ def parse_define(bits, line):
 
 	name = m.group(1)
 
-	if name in duplicates:
-		return
-
 	try:
 		value = int(m.group(2), 0)
 	except ValueError:
@@ -172,6 +176,12 @@ def parse_define(bits, line):
 	for prefix in prefixes:
 		if not name.startswith(prefix):
 			continue
+
+		if name.endswith("_MAX"):
+			bits.max_codes[name] = value
+
+		if name in duplicates:
+			return
 
 		attrname = prefix[:-1].lower()
 
