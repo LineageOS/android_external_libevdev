@@ -27,7 +27,7 @@ prefixes = [
 		"INPUT_PROP_",
 ]
 
-blacklist = [
+duplicates = [
 		"EV_VERSION",
 		"BTN_MISC",
 		"BTN_MOUSE",
@@ -47,7 +47,7 @@ btn_additional = [
 		[0, "BTN_Y"],
 ]
 
-names = [
+code_prefixes = [
 		"REL_",
 		"ABS_",
 		"KEY_",
@@ -77,7 +77,7 @@ def print_map(bits):
 	print("static const char * const * const event_type_map[EV_MAX + 1] = {")
 
 	for prefix in prefixes:
-		if prefix == "BTN_" or prefix == "EV_" or prefix == "INPUT_PROP_":
+		if prefix in ["BTN_", "EV_", "INPUT_PROP_"]:
 			continue
 		print("	[EV_%s] = %s_map," % (prefix[:-1], prefix[:-1].lower()))
 
@@ -94,7 +94,7 @@ def print_map(bits):
 	print("static const int ev_max[EV_MAX + 1] = {")
 	print("	[0 ... EV_MAX] = -1,")
 	for prefix in prefixes:
-		if prefix == "BTN_" or prefix == "EV_" or prefix == "INPUT_PROP_":
+		if prefix in ["BTN_", "EV_", "INPUT_PROP_"]:
 			continue
 		print("	[EV_%s] = %s_MAX," % (prefix[:-1], prefix[:-1]))
 	print("};")
@@ -128,7 +128,7 @@ def print_lookup_table(bits):
 	print("")
 
 	print("static const struct name_entry code_names[] = {")
-	for prefix in sorted(names, key=lambda e: e):
+	for prefix in sorted(code_prefixes, key=lambda e: e):
 		print_lookup(bits, prefix[:-1].lower())
 	print("};")
 	print("")
@@ -161,7 +161,7 @@ def parse_define(bits, line):
 
 	name = m.group(1)
 
-	if name in blacklist:
+	if name in duplicates:
 		return
 
 	try:
