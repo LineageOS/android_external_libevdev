@@ -122,7 +122,7 @@ AC_ARG_ENABLE([gcov],
 AS_IF([test "x$enable_gcov" != "xno"],
       [
        GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-       GCOV_LDFLAGS="-fprofile-arcs -ftest-coverage"
+       GCOV_LDFLAGS="-lgcov"
        enable_gcov=yes
        ],
 )
