@@ -14,6 +14,13 @@ variables:
     expire_in: 1 week
     when: on_failure
 
+.default_build: &default_build
+  script:
+    - autoreconf -ivf
+    - ./configure --disable-silent-rules
+    - make
+    - make check
+
 .default_build_distcheck: &default_build_distcheck
   script:
     - autoreconf -ivf
@@ -51,3 +58,61 @@ debian:stable:
     - apt-get upgrade -y
     - apt-get install -y $DEBIAN_DEBS
   <<: *default_build_distcheck
+
+# Build argument tests
+#
+# We run the build option combinations on the Centos image
+# because it's the fastest one to yum update.
+centos:7:no-valgrind:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+    - yum remove -y valgrind
+  <<: *default_build_distcheck
+
+centos:7:no-check:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+    - yum remove -y check check-devel
+  <<: *default_build_distcheck
+
+# doxygen is required for distcheck
+centos:7:no-doxygen:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+    - yum remove -y doxygen
+  <<: *default_build
+
+# doxygen is required for distcheck
+centos:7:no-doxygen-check-valgrind:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+    - yum remove -y doxygen valgrind check check-devel
+  <<: *default_build
+
+centos:7:no-nm:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+    - mv /usr/bin/nm /usr/bin/nm.moved
+  <<: *default_build_distcheck
+
+centos:7:enable-gcov:
+  image: centos:7
+  before_script:
+    - yum update -y
+    - yum install -y $CENTOS_RPMS
+  script:
+    - autoreconf -ivf
+    - ./configure --disable-silent-rules --enable-gcov
+    - make
+    - make check
+    - make distcheck
