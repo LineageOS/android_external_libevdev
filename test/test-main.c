@@ -91,6 +91,8 @@ int main(void)
 
 	for (t = &__start_test_section; t < &__stop_test_section; t++) {
 		if (t->needs_root_privileges) {
+			if (getenv("LIBEVDEV_SKIP_ROOT_TESTS"))
+				return 77;
 
 			if (getuid() != 0) {
 				fprintf(stderr, "This test needs to run as root\n");
