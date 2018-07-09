@@ -20,6 +20,7 @@ variables:
     - ./configure --disable-silent-rules
     - make
     - make check
+  <<: *default_artifacts
 
 .default_build_distcheck: &default_build_distcheck
   script:
@@ -28,6 +29,7 @@ variables:
     - make
     - make check
     - make distcheck
+  <<: *default_artifacts
 
 fedora:28:
   image: fedora:28
@@ -116,3 +118,4 @@ centos:7:enable-gcov:
     - make
     - make check
     - make distcheck
+  <<: *default_artifacts
