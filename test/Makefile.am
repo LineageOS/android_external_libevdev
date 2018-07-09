@@ -95,7 +95,7 @@ VALGRIND_FLAGS=--leak-check=full \
 		--suppressions=$(srcdir)/valgrind.suppressions
 
 valgrind:
-	        $(MAKE) check-TESTS LOG_COMPILER="$(VALGRIND)" LOG_FLAGS="$(VALGRIND_FLAGS)"
+	        $(MAKE) check-TESTS CK_TIMEOUT_MULTIPLIER=10 LOG_COMPILER="$(VALGRIND)" LOG_FLAGS="$(VALGRIND_FLAGS)"
 
 check_local_deps += valgrind
 
