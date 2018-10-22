@@ -40,7 +40,6 @@ duplicates = [
 		"BTN_TRIGGER_HAPPY",
 		"SW_MAX",
 		"REP_MAX",
-		"MT_TOOL_MAX",
 ]
 
 btn_additional = [

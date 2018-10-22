@@ -226,8 +226,7 @@ START_TEST(test_value_name)
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER), "MT_TOOL_FINGER");
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PALM), "MT_TOOL_PALM");
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PEN), "MT_TOOL_PEN");
-	/* overlapping value */
-	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_MAX), "MT_TOOL_PALM");
+	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_MAX), "MT_TOOL_MAX");
 }
 END_TEST
 
