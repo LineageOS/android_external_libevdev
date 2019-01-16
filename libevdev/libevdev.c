@@ -1068,8 +1068,7 @@ libevdev_next_event(struct libevdev *dev, unsigned int flags, struct input_event
 	   read in any more.
 	 */
 	do {
-		if (!(flags & LIBEVDEV_READ_FLAG_BLOCKING) ||
-		    queue_num_elements(dev) == 0) {
+		if (queue_num_elements(dev) == 0) {
 			rc = read_more_events(dev);
 			if (rc < 0 && rc != -EAGAIN)
 				goto out;
@@ -1101,15 +1100,8 @@ libevdev_next_event(struct libevdev *dev, unsigned int flags, struct input_event
 	if (flags & LIBEVDEV_READ_FLAG_SYNC && dev->queue_nsync > 0) {
 		dev->queue_nsync--;
 		rc = LIBEVDEV_READ_STATUS_SYNC;
-		if (dev->queue_nsync == 0) {
-			struct input_event next;
+		if (dev->queue_nsync == 0)
 			dev->sync_state = SYNC_NONE;
-
-			if (queue_peek(dev, 0, &next) == 0 &&
-			    next.type == EV_SYN && next.code == SYN_DROPPED)
-				log_info(dev, "SYN_DROPPED received after finished "
-					 "sync - you're not keeping up\n");
-		}
 	}
 
 out:

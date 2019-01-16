@@ -61,15 +61,17 @@ START_TEST(test_revoke)
 	uinput_device_event(uidev, EV_REL, REL_X, 1);
 	uinput_device_event(uidev, EV_SYN, SYN_REPORT, 0);
 
-	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev1);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	for (int i = 0; i < 2; i++) {
+		rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev1);
+		ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
 
-	rc = libevdev_next_event(dev2, LIBEVDEV_READ_FLAG_NORMAL, &ev2);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+		rc = libevdev_next_event(dev2, LIBEVDEV_READ_FLAG_NORMAL, &ev2);
+		ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
 
-	ck_assert_int_eq(ev1.type, ev2.type);
-	ck_assert_int_eq(ev1.code, ev2.code);
-	ck_assert_int_eq(ev1.value, ev2.value);
+		ck_assert_int_eq(ev1.type, ev2.type);
+		ck_assert_int_eq(ev1.code, ev2.code);
+		ck_assert_int_eq(ev1.value, ev2.value);
+	}
 
 	/* revoke first device, expect it closed, second device still open */
 	dev_fd = libevdev_get_fd(dev);
@@ -80,6 +82,9 @@ START_TEST(test_revoke)
 		goto out;
 	}
 	ck_assert_msg(rc == 0, "Failed to revoke device: %s", strerror(errno));
+
+	uinput_device_event(uidev, EV_REL, REL_X, 1);
+	uinput_device_event(uidev, EV_SYN, SYN_REPORT, 0);
 
 	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev1);
 	ck_assert_int_eq(rc, -ENODEV);
