@@ -461,10 +461,10 @@ libevdev_set_fd(struct libevdev* dev, int fd)
 
 	dev->fd = fd;
 
-	/* devices with ABS_MT_SLOT - 1 aren't MT devices,
+	/* devices with ABS_RESERVED aren't MT devices,
 	   see the documentation for multitouch-related
 	   functions for more details */
-	if (!libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT - 1) &&
+	if (!libevdev_has_event_code(dev, EV_ABS, ABS_RESERVED) &&
 	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
 		const struct input_absinfo *abs_info;
 

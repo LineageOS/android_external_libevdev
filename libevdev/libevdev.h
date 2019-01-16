@@ -688,7 +688,7 @@ extern "C" {
  * meaning, matching the axis names in linux/input.h. Some devices merely
  * export a number of axes beyond the available axis list. For those
  * devices, the multitouch information is invalid. Specifically, if a device
- * provides the ABS_MT_SLOT axis AND also the (ABS_MT_SLOT - 1) axis, the
+ * provides the ABS_MT_SLOT axis AND also the ABS_RESERVED axis, the
  * device is not treated as multitouch device. No slot information is
  * available and the ABS_MT axis range for these devices is treated as all
  * other EV_ABS axes.
