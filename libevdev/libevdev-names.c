@@ -184,3 +184,46 @@ libevdev_property_from_name_n(const char *name, size_t len)
 
 	return entry ? (int)entry->value : -1;
 }
+
+LIBEVDEV_EXPORT int
+libevdev_event_code_from_code_name(const char *name)
+{
+	return libevdev_event_code_from_code_name_n(name, strlen(name));
+}
+
+LIBEVDEV_EXPORT int
+libevdev_event_code_from_code_name_n(const char *name, size_t len)
+{
+	const struct name_entry *entry;
+	struct name_lookup lookup;
+
+	/* now look up the name @name and return the constant */
+	lookup.name = name;
+	lookup.len = len;
+
+	entry = lookup_name(code_names, ARRAY_LENGTH(code_names), &lookup);
+
+	return entry ? (int)entry->value : -1;
+}
+
+LIBEVDEV_EXPORT int
+libevdev_event_type_from_code_name(const char *name)
+{
+	return libevdev_event_type_from_code_name_n(name, strlen(name));
+}
+
+LIBEVDEV_EXPORT int
+libevdev_event_type_from_code_name_n(const char *name, size_t len)
+{
+	const struct name_entry *entry;
+	struct name_lookup lookup;
+
+	/* First look up if the name exists, we dont' want to return a valid
+	 * type for an invalid code name */
+	lookup.name = name;
+	lookup.len = len;
+
+	entry = lookup_name(code_names, ARRAY_LENGTH(code_names), &lookup);
+
+	return entry ? type_from_prefix(name, len) : -1;
+}

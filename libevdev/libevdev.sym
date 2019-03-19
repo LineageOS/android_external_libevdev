@@ -121,3 +121,13 @@ global:
 local:
 	*;
 } LIBEVDEV_1_3;
+
+LIBEVDEV_1_7 {
+global:
+	libevdev_event_code_from_code_name;
+	libevdev_event_code_from_code_name_n;
+	libevdev_event_type_from_code_name;
+	libevdev_event_type_from_code_name_n;
+local:
+	*;
+} LIBEVDEV_1_6;

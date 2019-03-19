@@ -2177,6 +2177,84 @@ int libevdev_event_value_from_name(unsigned int type, unsigned int code,
 /**
  * @ingroup misc
  *
+ * Look up an event type for a  event code name. For example, the name
+ * "ABS_Y" returns EV_ABS. For the lookup to succeed, the name must be
+ * unique, which is the case for all #defines as of kernel 5.0 and likely to
+ * be the case in the future.
+ *
+ * This is equivalent to libevdev_event_type_from_name() but takes the code
+ * name instead of the type name.
+ *
+ * @param name A non-NULL string describing an input-event value
+ * ("ABS_X", "REL_Y", "KEY_A", ...)
+ *
+ * @return The given event code for the name or -1 if not found.
+ */
+int
+libevdev_event_type_from_code_name(const char *name);
+
+/**
+ * @ingroup misc
+ *
+ * Look up an event type for a  event code name. For example, the name
+ * "ABS_Y" returns EV_ABS. For the lookup to succeed, the name must be
+ * unique, which is the case for all #defines as of kernel 5.0 and likely to
+ * be the case in the future.
+ *
+ * This is equivalent to libevdev_event_type_from_name_n() but takes the code
+ * name instead of the type name.
+ *
+ * @param name A non-NULL string describing an input-event value
+ * ("ABS_X", "REL_Y", "KEY_A", ...)
+ * @param len The length of the passed string excluding any terminating 0
+ * character.
+ *
+ * @return The given event code for the name or -1 if not found.
+ */
+int
+libevdev_event_type_from_code_name_n(const char *name, size_t len);
+
+/**
+ * @ingroup misc
+ *
+ * Look up an event code by its name. For example, the name "ABS_Y" returns
+ * 1. For the lookup to succeed, the name must be unique, which is the case
+ * for all #defines as of kernel 5.0 and likely to be the case in the future.
+ *
+ * This is equivalent to libevdev_event_code_from_name() without the need
+ * for knowing the event type.
+ *
+ * @param name A non-NULL string describing an input-event value
+ * ("ABS_X", "REL_Y", "KEY_A", ...)
+ *
+ * @return The given event code for the name or -1 if not found.
+ */
+int
+libevdev_event_code_from_code_name(const char *name);
+
+/**
+ * @ingroup misc
+ *
+ * Look up an event code by its name. For example, the name "ABS_Y" returns
+ * 1. For the lookup to succeed, the name must be unique, which is the case
+ * for all #defines as of kernel 5.0 and likely to be the case in the future.
+ *
+ * This is equivalent to libevdev_event_code_from_name_n() without the need
+ * for knowing the event type.
+ *
+ * @param name A non-NULL string describing an input-event value
+ * ("ABS_X", "REL_Y", "KEY_A", ...)
+ * @param len The length of the passed string excluding any terminating 0
+ * character.
+ *
+ * @return The given event code for the name or -1 if not found.
+ */
+int
+libevdev_event_code_from_code_name_n(const char *name, size_t len);
+
+/**
+ * @ingroup misc
+ *
  * Look up an event value by its type, code and name. Event values start
  * with a fixed prefix followed by their name (eg., "MT_TOOL_PALM"). The
  * prefix must be included in the name. It returns the constant assigned
