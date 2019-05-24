@@ -21,7 +21,7 @@
 AC_PREREQ([2.62])
 
 AC_INIT([libevdev],
-        [1.6.0],
+        [1.6.901],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=libevdev],
         [libevdev],
         [http://freedesktop.org/wiki/Software/libevdev/])
@@ -42,7 +42,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz subdir-objects])
 # - If binary compatibility has been broken (eg removed or changed interfaces)
 #   change to C+1:0:0
 # - If the interface is the same as the previous version, change to C:R+1:A
-LIBEVDEV_LT_VERSION=4:0:2
+LIBEVDEV_LT_VERSION=5:0:3
 AC_SUBST(LIBEVDEV_LT_VERSION)
 
 
