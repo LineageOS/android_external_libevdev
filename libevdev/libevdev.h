@@ -2179,7 +2179,7 @@ int libevdev_event_value_from_name(unsigned int type, unsigned int code,
  *
  * Look up an event type for a  event code name. For example, the name
  * "ABS_Y" returns EV_ABS. For the lookup to succeed, the name must be
- * unique, which is the case for all #defines as of kernel 5.0 and likely to
+ * unique, which is the case for all defines as of kernel 5.0 and likely to
  * be the case in the future.
  *
  * This is equivalent to libevdev_event_type_from_name() but takes the code
@@ -2198,7 +2198,7 @@ libevdev_event_type_from_code_name(const char *name);
  *
  * Look up an event type for a  event code name. For example, the name
  * "ABS_Y" returns EV_ABS. For the lookup to succeed, the name must be
- * unique, which is the case for all #defines as of kernel 5.0 and likely to
+ * unique, which is the case for all defines as of kernel 5.0 and likely to
  * be the case in the future.
  *
  * This is equivalent to libevdev_event_type_from_name_n() but takes the code
@@ -2219,7 +2219,7 @@ libevdev_event_type_from_code_name_n(const char *name, size_t len);
  *
  * Look up an event code by its name. For example, the name "ABS_Y" returns
  * 1. For the lookup to succeed, the name must be unique, which is the case
- * for all #defines as of kernel 5.0 and likely to be the case in the future.
+ * for all defines as of kernel 5.0 and likely to be the case in the future.
  *
  * This is equivalent to libevdev_event_code_from_name() without the need
  * for knowing the event type.
@@ -2237,7 +2237,7 @@ libevdev_event_code_from_code_name(const char *name);
  *
  * Look up an event code by its name. For example, the name "ABS_Y" returns
  * 1. For the lookup to succeed, the name must be unique, which is the case
- * for all #defines as of kernel 5.0 and likely to be the case in the future.
+ * for all defines as of kernel 5.0 and likely to be the case in the future.
  *
  * This is equivalent to libevdev_event_code_from_name_n() without the need
  * for knowing the event type.
