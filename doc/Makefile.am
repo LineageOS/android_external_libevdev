@@ -8,7 +8,7 @@ header_files = \
 	$(top_srcdir)/libevdev/libevdev.h \
 	$(top_srcdir)/libevdev/libevdev-uinput.h
 
-html/index.html: libevdev.doxygen $(header_files)
+html/index.html: libevdev.doxygen libevdev.css $(header_files)
 	$(AM_V_GEN)$(DOXYGEN) $<
 
 clean-local:
