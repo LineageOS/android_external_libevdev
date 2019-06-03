@@ -1531,9 +1531,12 @@ int libevdev_get_event_value(const struct libevdev *dev, unsigned int type, unsi
  * @param value The new value to set
  *
  * @return 0 on success, or -1 on failure.
- * @retval -1 the device does not have the event type or code enabled, or the code is outside the
- * allowed limits for the given type, or the type cannot be set, or the
- * value is not permitted for the given code.
+ * @retval -1
+ * - the device does not have the event type or
+ * - code enabled, or the code is outside the, or
+ * - the code is outside the allowed limits for the given type, or
+ * - the type cannot be set, or
+ * - the value is not permitted for the given code.
  *
  * @see libevdev_set_slot_value
  * @see libevdev_get_event_value
@@ -1608,9 +1611,11 @@ int libevdev_get_slot_value(const struct libevdev *dev, unsigned int slot, unsig
  * @param value The new value to set
  *
  * @return 0 on success, or -1 on failure.
- * @retval -1 the device does not have the event code enabled, or the code is
- * outside the allowed limits for multitouch events, or the slot number is outside
- * the limits for this device, or the device does not support multitouch events.
+ * @retval -1
+ * - the device does not have the event code enabled, or
+ * - the code is outside the allowed limits for multitouch events, or
+ * - the slot number is outside the limits for this device, or
+ * - the device does not support multitouch events.
  *
  * @see libevdev_set_event_value
  * @see libevdev_get_slot_value
