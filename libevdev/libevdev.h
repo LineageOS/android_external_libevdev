@@ -101,9 +101,10 @@ extern "C" {
  *
  *      kernel → libevdev → xf86-input-evdev → X server → X client
  *
- * For Weston/Wayland, the stack would look like this:
+ * For anything using libinput (e.g. most Wayland compositors), the stack
+ * the stack would look like this:
  *
- *      kernel → libevdev → Weston → Wayland client
+ *      kernel → libevdev → libinput → Compositor → Wayland client
  *
  * libevdev does **not** have knowledge of X clients or Wayland clients, it is
  * too low in the stack.
@@ -161,9 +162,13 @@ extern "C" {
  * libevdev is licensed under the
  * [X11 license](http://cgit.freedesktop.org/libevdev/tree/COPYING).
  *
+ * Bindings
+ * ===================
+ * - Python: https://gitlab.freedesktop.org/libevdev/python-libevdev
+ *
  * Reporting bugs
  * ==============
- * Please report bugs in the freedesktop.org GitLab:
+ * Please report bugs in the freedesktop.org GitLab instance:
  * https://gitlab.freedesktop.org/libevdev/libevdev/issues/
  */
 
