@@ -15,3 +15,8 @@ GENERATE_LATEX         = NO
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 PREDEFINED             = LIBEVDEV_ATTRIBUTE_PRINTF(f,a)=
+HTML_HEADER = "@srcdir@/style/header.html"
+HTML_FOOTER = "@srcdir@/style/footer.html"
+HTML_EXTRA_STYLESHEET = "@srcdir@/style/bootstrap.css" \
+                        "@srcdir@/style/customdoxygen.css" \
+                        "@srcdir@/style/libevdevdoxygen.css"
