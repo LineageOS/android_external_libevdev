@@ -15,7 +15,20 @@ clean-local:
 	$(AM_V_at)rm -rf html
 
 doc_src= $(shell find html -type f -printf "html/%P\n" 2>/dev/null)
-EXTRA_DIST = html/index.html $(doc_src) libevdev.css
+style_src = \
+	style/bootstrap.css \
+	style/customdoxygen.css \
+	style/doxy-boot.js \
+	style/dynsections.js \
+	style/footer.html \
+	style/header.html \
+	style/layout.xml \
+	style/libevdevdoxygen.css \
+	style/LICENSE \
+	style/README.md \
+	style/style.css
+
+EXTRA_DIST = html/index.html $(doc_src) $(style_src)
 
 endif
 
