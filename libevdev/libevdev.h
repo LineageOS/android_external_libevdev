@@ -807,7 +807,7 @@ int libevdev_new_from_fd(int fd, struct libevdev **dev);
  * libevdev</code> is invalid and must not be used.
  *
  * Note that calling libevdev_free() does not close the file descriptor
- * currently asssociated with this instance.
+ * currently associated with this instance.
  *
  * @param dev The evdev device
  *
