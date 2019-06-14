@@ -315,6 +315,90 @@ libevdev_change_fd(struct libevdev *dev, int fd)
 	return 0;
 }
 
+static void
+reset_tracking_ids(struct libevdev *dev)
+{
+	if (dev->num_slots == -1 ||
+	    !libevdev_has_event_code(dev, EV_ABS, ABS_MT_TRACKING_ID))
+		return;
+
+	for (int slot = 0; slot < dev->num_slots; slot++)
+		libevdev_set_slot_value(dev, slot, ABS_MT_TRACKING_ID, -1);
+}
+
+static inline void
+free_slots(struct libevdev *dev)
+{
+	dev->num_slots = -1;
+	free(dev->mt_slot_vals);
+	free(dev->mt_sync.tracking_id_changes);
+	free(dev->mt_sync.slot_update);
+	free(dev->mt_sync.mt_state);
+	dev->mt_slot_vals = NULL;
+	dev->mt_sync.tracking_id_changes = NULL;
+	dev->mt_sync.slot_update = NULL;
+	dev->mt_sync.mt_state = NULL;
+}
+
+static int
+init_slots(struct libevdev *dev)
+{
+	const struct input_absinfo *abs_info;
+	int rc = 0;
+
+	free(dev->mt_slot_vals);
+	free(dev->mt_sync.tracking_id_changes);
+	free(dev->mt_sync.slot_update);
+	free(dev->mt_sync.mt_state);
+	dev->mt_slot_vals = NULL;
+	dev->mt_sync.tracking_id_changes = NULL;
+	dev->mt_sync.slot_update = NULL;
+	dev->mt_sync.mt_state = NULL;
+
+	/* devices with ABS_RESERVED aren't MT devices,
+	   see the documentation for multitouch-related
+	   functions for more details */
+	if (libevdev_has_event_code(dev, EV_ABS, ABS_RESERVED) ||
+	    !libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
+		if (dev->num_slots != -1) {
+			free_slots(dev);
+		}
+		return rc;
+	}
+
+	abs_info = libevdev_get_abs_info(dev, ABS_MT_SLOT);
+
+	free_slots(dev);
+	dev->num_slots = abs_info->maximum + 1;
+	dev->mt_slot_vals = calloc(dev->num_slots * ABS_MT_CNT, sizeof(int));
+	if (!dev->mt_slot_vals) {
+		rc = -ENOMEM;
+		goto out;
+	}
+	dev->current_slot = abs_info->value;
+
+	dev->mt_sync.mt_state_sz = sizeof(*dev->mt_sync.mt_state) +
+				   (dev->num_slots) * sizeof(int);
+	dev->mt_sync.mt_state = calloc(1, dev->mt_sync.mt_state_sz);
+
+	dev->mt_sync.tracking_id_changes_sz = NLONGS(dev->num_slots) * sizeof(long);
+	dev->mt_sync.tracking_id_changes = malloc(dev->mt_sync.tracking_id_changes_sz);
+
+	dev->mt_sync.slot_update_sz = NLONGS(dev->num_slots * ABS_MT_CNT) * sizeof(long);
+	dev->mt_sync.slot_update = malloc(dev->mt_sync.slot_update_sz);
+
+	if (!dev->mt_sync.tracking_id_changes ||
+	    !dev->mt_sync.slot_update ||
+	    !dev->mt_sync.mt_state) {
+		rc = -ENOMEM;
+		goto out;
+	}
+
+	reset_tracking_ids(dev);
+out:
+	return rc;
+}
+
 LIBEVDEV_EXPORT int
 libevdev_set_fd(struct libevdev* dev, int fd)
 {
@@ -461,42 +545,12 @@ libevdev_set_fd(struct libevdev* dev, int fd)
 
 	dev->fd = fd;
 
-	/* devices with ABS_RESERVED aren't MT devices,
-	   see the documentation for multitouch-related
-	   functions for more details */
-	if (!libevdev_has_event_code(dev, EV_ABS, ABS_RESERVED) &&
-	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
-		const struct input_absinfo *abs_info;
+	rc = init_slots(dev);
+	if (rc != 0)
+		goto out;
 
-		abs_info = libevdev_get_abs_info(dev, ABS_MT_SLOT);
-
-		dev->num_slots = abs_info->maximum + 1;
-		dev->mt_slot_vals = calloc(dev->num_slots * ABS_MT_CNT, sizeof(int));
-		if (!dev->mt_slot_vals) {
-			rc = -ENOMEM;
-			goto out;
-		}
-		dev->current_slot = abs_info->value;
-
-		dev->mt_sync.mt_state_sz = sizeof(*dev->mt_sync.mt_state) +
-					   (dev->num_slots) * sizeof(int);
-		dev->mt_sync.mt_state = calloc(1, dev->mt_sync.mt_state_sz);
-
-		dev->mt_sync.tracking_id_changes_sz = NLONGS(dev->num_slots) * sizeof(long);
-		dev->mt_sync.tracking_id_changes = malloc(dev->mt_sync.tracking_id_changes_sz);
-
-		dev->mt_sync.slot_update_sz = NLONGS(dev->num_slots * ABS_MT_CNT) * sizeof(long);
-		dev->mt_sync.slot_update = malloc(dev->mt_sync.slot_update_sz);
-
-		if (!dev->mt_sync.tracking_id_changes ||
-		    !dev->mt_sync.slot_update ||
-		    !dev->mt_sync.mt_state) {
-			rc = -ENOMEM;
-			goto out;
-		}
-
+	if (dev->num_slots != -1)
 		sync_mt_state(dev, 0);
-	}
 
 	rc = init_event_queue(dev);
 	if (rc < 0) {
@@ -1487,6 +1541,12 @@ libevdev_enable_event_code(struct libevdev *dev, unsigned int type,
 	if (type == EV_ABS) {
 		const struct input_absinfo *abs = data;
 		dev->abs_info[code] = *abs;
+		if (code == ABS_MT_SLOT) {
+			if (init_slots(dev) != 0)
+				return -1;
+		} else if (code == ABS_MT_TRACKING_ID) {
+			reset_tracking_ids(dev);
+		}
 	} else if (type == EV_REP) {
 		const int *value = data;
 		dev->rep_values[code] = *value;
@@ -1510,6 +1570,15 @@ libevdev_disable_event_code(struct libevdev *dev, unsigned int type, unsigned in
 		return -1;
 
 	clear_bit(mask, code);
+
+	if (type == EV_ABS) {
+		if (code == ABS_MT_SLOT) {
+			if (init_slots(dev) != 0)
+				return -1;
+		} else if (code == ABS_MT_TRACKING_ID) {
+			reset_tracking_ids(dev);
+		}
+	}
 
 	return 0;
 }

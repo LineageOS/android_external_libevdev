@@ -52,6 +52,7 @@ test_event_codes_SOURCES = \
 			test-main.c \
 			test-event-codes.c \
 			test-event-names.c \
+			test-context.c \
 			$(common_sources)
 test_event_codes_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
 test_event_codes_LDFLAGS = -no-install
