@@ -89,7 +89,7 @@ def print_map(bits):
 	print("#if __clang__")
 	print("#pragma clang diagnostic push")
 	print("#pragma clang diagnostic ignored \"-Winitializer-overrides\"")
-	print("#else")
+	print("#elif __GNUC__")
 	print("#pragma GCC diagnostic push")
 	print("#pragma GCC diagnostic ignored \"-Woverride-init\"")
 	print("#endif")
@@ -104,7 +104,7 @@ def print_map(bits):
 	print("};")
 	print("#if __clang__")
 	print("#pragma clang diagnostic pop /* \"-Winitializer-overrides\" */")
-	print("#else")
+	print("#elif __GNUC__")
 	print("#pragma GCC diagnostic pop /* \"-Woverride-init\" */")
 	print("#endif");
 	print("")
