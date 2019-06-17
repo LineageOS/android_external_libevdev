@@ -94,11 +94,13 @@ def print_map(bits):
 	print("#pragma GCC diagnostic ignored \"-Woverride-init\"")
 	print("#endif")
 	print("static const int ev_max[EV_MAX + 1] = {")
-	print("	[0 ... EV_MAX] = -1,")
-	for prefix in prefixes:
-		if prefix in ["BTN_", "EV_", "INPUT_PROP_", "MT_TOOL_"]:
-			continue
-		print("	[EV_%s] = %s_MAX," % (prefix[:-1], prefix[:-1]))
+	for val in range(bits.max_codes["EV_MAX"] + 1):
+		if val in bits.ev:
+			prefix = bits.ev[val][3:]
+			if prefix + "_" in prefixes:
+				print("	%s_MAX," % prefix)
+				continue
+		print("	-1,")
 	print("};")
 	print("#if __clang__")
 	print("#pragma clang diagnostic pop /* \"-Winitializer-overrides\" */")
