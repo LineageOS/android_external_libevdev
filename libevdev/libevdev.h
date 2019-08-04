@@ -1272,7 +1272,9 @@ int libevdev_get_id_product(const struct libevdev *dev);
  * @param product_id The product ID to assign to this device
  *
  * @note This function may be called before libevdev_set_fd(). A call to
- * libevdev_set_fd() will overwrite any previously set value.
+ * libevdev_set_fd() will overwrite any previously set value. Even though
+ * the function accepts an int for product_id the value is truncated at 16
+ * bits.
  */
 void libevdev_set_id_product(struct libevdev *dev, int product_id);
 
@@ -1294,7 +1296,9 @@ int libevdev_get_id_vendor(const struct libevdev *dev);
  * @param vendor_id The vendor ID to assign to this device
  *
  * @note This function may be called before libevdev_set_fd(). A call to
- * libevdev_set_fd() will overwrite any previously set value.
+ * libevdev_set_fd() will overwrite any previously set value. Even though
+ * the function accepts an int for vendor_id the value is truncated at 16
+ * bits.
  */
 void libevdev_set_id_vendor(struct libevdev *dev, int vendor_id);
 
@@ -1316,7 +1320,9 @@ int libevdev_get_id_bustype(const struct libevdev *dev);
  * @param bustype The bustype to assign to this device
  *
  * @note This function may be called before libevdev_set_fd(). A call to
- * libevdev_set_fd() will overwrite any previously set value.
+ * libevdev_set_fd() will overwrite any previously set value. Even though
+ * the function accepts an int for bustype the value is truncated at 16
+ * bits.
  */
 void libevdev_set_id_bustype(struct libevdev *dev, int bustype);
 
@@ -1338,7 +1344,9 @@ int libevdev_get_id_version(const struct libevdev *dev);
  * @param version The version to assign to this device
  *
  * @note This function may be called before libevdev_set_fd(). A call to
- * libevdev_set_fd() will overwrite any previously set value.
+ * libevdev_set_fd() will overwrite any previously set value. Even though
+ * the function accepts an int for version the value is truncated at 16
+ * bits.
  */
 void libevdev_set_id_version(struct libevdev *dev, int version);
 
