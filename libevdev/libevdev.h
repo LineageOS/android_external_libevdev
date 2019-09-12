@@ -142,8 +142,8 @@ extern "C" {
  *              rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
  *              if (rc == 0)
  *                      printf("Event: %s %s %d\n",
- *                             libevdev_get_event_type_name(ev.type),
- *                             libevdev_get_event_code_name(ev.type, ev.code),
+ *                             libevdev_event_type_get_name(ev.type),
+ *                             libevdev_event_code_get_name(ev.type, ev.code),
  *                             ev.value);
  *      } while (rc == 1 || rc == 0 || rc == -EAGAIN);
  * @endcode
