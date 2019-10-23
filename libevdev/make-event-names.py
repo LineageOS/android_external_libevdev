@@ -195,10 +195,8 @@ def parse_define(bits, line):
 		b = getattr(bits, attrname)
 		b[value] = name
 
-def parse(fp):
+def parse(lines):
 	bits = Bits()
-
-	lines = fp.readlines()
 	for line in lines:
 		if not line.startswith("#define"):
 			continue
@@ -207,12 +205,14 @@ def parse(fp):
 	return bits
 
 def usage(prog):
-	print("Usage: cat <files> | %s" % prog)
+	print("Usage: %s <files>".format(prog))
 
 if __name__ == "__main__":
-	if len(sys.argv) != 1:
+	if len(sys.argv) <= 1:
 		usage(sys.argv[0])
 		sys.exit(2)
 
-	bits = parse(sys.stdin)
+	from itertools import chain
+	lines = chain(*[open(f).readlines() for f in sys.argv[1:]])
+	bits = parse(lines)
 	print_mapping_table(bits)
