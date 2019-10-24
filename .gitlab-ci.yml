@@ -44,7 +44,7 @@ variables:
   # distribution                                                                #
   ###############################################################################
   FEDORA_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
-  CENTOS_RPMS: $FEDORA_RPMS
+  CENTOS_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
   UBUNTU_DEBS: 'git gcc g++     automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
   DEBIAN_DEBS: $UBUNTU_DEBS
   ARCH_PKGS:   'git gcc         automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
@@ -188,6 +188,17 @@ centos:7@container-prep:
   variables:
     GIT_STRATEGY: none
     CENTOS_VERSION: 7
+    DISTRIB_FLAVOR: centos
+    DISTRIB_VERSION: $CENTOS_VERSION
+    TAG: $CENTOS_TAG
+  <<: *pull_upstream_or_rebuild
+
+centos:8@container-prep:
+  extends: .centos@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    CENTOS_VERSION: 8
     DISTRIB_FLAVOR: centos
     DISTRIB_VERSION: $CENTOS_VERSION
     TAG: $CENTOS_TAG
@@ -344,6 +355,13 @@ centos:7@container-clean:
     CENTOS_VERSION: 7
     CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
 
+centos:8@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CENTOS_VERSION: 8
+    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
+
 arch:rolling@container-clean:
   extends: .container-clean
   variables:
@@ -399,6 +417,13 @@ centos:7@default-build:
   variables:
     CENTOS_VERSION: 7
   needs: ['centos:7@container-prep']
+
+centos:8@default-build:
+  extends: .centos-build@template
+  variables:
+    CENTOS_VERSION: 8
+    MAKE_ARGS: ''  # disable distcheck, requires doxygen
+  needs: ['centos:8@container-prep']
 
 .ubuntu@template:
   stage: distro
