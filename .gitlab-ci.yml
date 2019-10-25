@@ -1,11 +1,77 @@
 # vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
 
+.templates_sha: &template_sha 01f2a6a8ab5cd31000c1c14a1acfff68ea98b59e # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+
+include:
+  # Alpine container builder template
+  - project: 'wayland/ci-templates'
+    file: '/templates/alpine.yml'
+  # Arch container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/arch.yml'
+  # Fedora container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/fedora.yml'
+  # Ubuntu container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/ubuntu.yml'
+  # Debian container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
+  # CentOS container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/centos.yml'
+
+stages:
+  - container_prep   # rebuild the container images if there is a change
+  - build            # for actually building and testing things in a container
+  - VM               # for running the test suite in a VM
+  - distro           # distribs test
+  - deploy           # trigger wayland's website generation
+  - container_clean  # clean up unused container images
+
 variables:
-  FEDORA_RPMS: 'gcc gcc-c++ automake libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
+  ###############################################################################
+  # This is the list of packages required to build libevdev with the default    #
+  # configuration.                                                              #
+  #                                                                             #
+  # Run dnf install/apt-get install/.. with the list of packages for your       #
+  # distribution                                                                #
+  ###############################################################################
+  FEDORA_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
   CENTOS_RPMS: $FEDORA_RPMS
-  UBUNTU_DEBS: 'gcc g++     automake libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
+  UBUNTU_DEBS: 'git gcc g++     automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
   DEBIAN_DEBS: $UBUNTU_DEBS
+  ARCH_PKGS:   'git gcc         automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
+  ALPINE_PKGS: 'git gcc g++     automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
+  ############################ end of package lists #############################
+  # these tags should be updated each time the list of packages is updated
+  # changing these will force rebuilding the associated image
+  # Note: these tags have no meaning and are not tied to a particular
+  # libevdev version
+  FEDORA_TAG: '2019-10-24.0'
+  CENTOS_TAG: '2019-10-24.0'
+  DEBIAN_TAG: '2019-10-24.0'
+  UBUNTU_TAG: '2019-10-24.0'
+  ARCH_TAG: '2019-10-24.0'
+  ALPINE_TAG: '2019-10-24.0'
+
+  UPSTREAM_REPO: libevdev/libevdev
+  BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
+  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$FEDORA_TAG
+  CENTOS_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/centos/$CENTOS_VERSION:$CENTOS_TAG
+  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
+  DEBIAN_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$DEBIAN_VERSION:$DEBIAN_TAG
+  ARCH_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/archlinux/rolling:$ARCH_TAG
+  ALPINE_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/alpine/latest:$ALPINE_TAG
+
   LIBEVDEV_SKIP_ROOT_TESTS: 1
+  GIT_DEPTH: 1
 
 .default_artifacts: &default_artifacts
   artifacts:
@@ -31,87 +97,409 @@ variables:
     - make distcheck
   <<: *default_artifacts
 
-fedora:28:
-  image: fedora:28
-  before_script:
-    - dnf upgrade -y
-    - dnf install -y $FEDORA_RPMS
-  <<: *default_build_distcheck
+#################################################################
+#                                                               #
+#                    container prep stage                       #
+#                                                               #
+#################################################################
 
-centos:7:
-  image: centos:7
+.pull_upstream_or_rebuild: &pull_upstream_or_rebuild
   before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
-  <<: *default_build_distcheck
+    # log in to the registry
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
-ubuntu:18.04:
-  image: ubuntu:18.04
-  before_script:
-    - apt-get update
-    - apt-get upgrade -y
-    - apt-get install -y $UBUNTU_DEBS
-  <<: *default_build_distcheck
+    # get the full container image name (DISTRIB_VERSION still has indirections)
+    - IMAGE=$(eval echo "$DISTRIB_FLAVOR/$DISTRIB_VERSION:$TAG")
 
-debian:stable:
-  image: debian:stable
-  before_script:
-    - apt-get update
-    - apt-get upgrade -y
-    - apt-get install -y $DEBIAN_DEBS
+    - |
+      # force rebuild if schedule, reuse otherwise
+      if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
+      then
+        # pull the latest upstream image if it exists
+        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE \
+                    docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
+
+        # check if our image is already in the current registry
+        skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
+      fi
+
+fedora:30@container-prep:
+  extends: .fedora@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    FEDORA_VERSION: 30
+    DISTRIB_FLAVOR: fedora
+    DISTRIB_VERSION: $FEDORA_VERSION
+    TAG: $FEDORA_TAG
+  <<: *pull_upstream_or_rebuild
+
+fedora:31@container-prep:
+  extends: .fedora@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    FEDORA_VERSION: 31
+    DISTRIB_FLAVOR: fedora
+    DISTRIB_VERSION: $FEDORA_VERSION
+    TAG: $FEDORA_TAG
+  <<: *pull_upstream_or_rebuild
+
+
+ubuntu:19.10@container-prep:
+  extends: .ubuntu@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    UBUNTU_VERSION: "19.10"
+    DISTRIB_FLAVOR: ubuntu
+    DISTRIB_VERSION: $UBUNTU_VERSION
+    TAG: $UBUNTU_TAG
+  <<: *pull_upstream_or_rebuild
+
+ubuntu:19.04@container-prep:
+  extends: .ubuntu@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    UBUNTU_VERSION: "19.04"
+    DISTRIB_FLAVOR: ubuntu
+    DISTRIB_VERSION: $UBUNTU_VERSION
+    TAG: $UBUNTU_TAG
+  <<: *pull_upstream_or_rebuild
+
+debian:stable@container-prep:
+  extends: .debian@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    DEBIAN_VERSION: stable
+    DISTRIB_FLAVOR: debian
+    DISTRIB_VERSION: $DEBIAN_VERSION
+    TAG: $DEBIAN_TAG
+  <<: *pull_upstream_or_rebuild
+
+debian:sid@container-prep:
+  extends: .debian@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    DEBIAN_VERSION: sid
+    DISTRIB_FLAVOR: debian
+    DISTRIB_VERSION: $DEBIAN_VERSION
+    TAG: $DEBIAN_TAG
+  <<: *pull_upstream_or_rebuild
+
+centos:7@container-prep:
+  extends: .centos@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    CENTOS_VERSION: 7
+    DISTRIB_FLAVOR: centos
+    DISTRIB_VERSION: $CENTOS_VERSION
+    TAG: $CENTOS_TAG
+  <<: *pull_upstream_or_rebuild
+
+arch:rolling@container-prep:
+  extends: .arch@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    ARCH_VERSION: rolling
+    DISTRIB_FLAVOR: archlinux
+    DISTRIB_VERSION: $ARCH_VERSION
+    TAG: $ARCH_TAG
+  <<: *pull_upstream_or_rebuild
+
+alpine:latest@container-prep:
+  extends: .alpine@container-build
+  stage: container_prep
+  variables:
+    GIT_STRATEGY: none
+    ALPINE_VERSION: latest
+    DISTRIB_FLAVOR: alpine
+    DISTRIB_VERSION: $ALPINE_VERSION
+    TAG: $ALPINE_TAG
+  <<: *pull_upstream_or_rebuild
+
+#################################################################
+#                                                               #
+#                   container clean stage                       #
+#                 run during the clean stage                    #
+#                                                               #
+#################################################################
+
+#
+# This stage will look for the container images we currently have in
+# the registry and will remove any that are not tagged with the provided
+# $container_image:$tag
+#
+.container-clean:
+  stage: container_clean
+  image: $BUILDAH_IMAGE
+  script:
+    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
+    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
+    - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
+    - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
+    - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
+    - LATEST_TAG=$(echo $CONTAINER_IMAGE | cut -f2 -d:)
+
+    # log in to the registry (read only)
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+    # get the r/w token from the settings to access the registry
+    #
+    # each developer needs to register a secret variable that contains
+    # a personal token with api access. The token
+    # - must be named PERSONAL_TOKEN_$USER (for example PERSONAL_TOKEN_bentiss)
+    # - must be registered in the CI/CD Variables section as type file
+    # - value must be a netrc file as a single-line string:
+    #   default login <user> password <token value>
+    #   e.g. "default login bentiss password 1235abcde"
+    - tokenname="PERSONAL_TOKEN_$GITLAB_USER_LOGIN"
+    - netrcfile=$(eval echo "\$$tokenname")
+    - if [[ ! -f "$netrcfile" ]]; then
+         echo "No netrc file found or token is missing, skipping job" && false;
+      fi
+
+    # request a token for the registry API
+    - REGISTRY_TOKEN=$(curl https://$GITLAB/jwt/auth --get
+                             --silent --show-error
+                             -d client_id=docker
+                             -d offline_token=true
+                             -d service=container_registry
+                             -d "scope=repository:$REPOSITORY:pull,*"
+                             --fail
+                             --netrc-file "$netrcfile"
+                             | sed -r 's/(\{"token":"|"\})//g')
+
+    # get the digest of the latest image
+    - LATEST_MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.Digest')
+
+    # get the list of tags
+    - TAGS=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.RepoTags[]')
+    # FIXME: is the above command working properly? If not, use below:
+    # - TAGS=$(curl -X GET -H "accept:application/vnd.docker.distribution.manifest.v2+json"
+    #                      -H "authorization:Bearer $REGISTRY_TOKEN"
+    #                      https://$CI_REGISTRY/v2/$REPOSITORY/tags/list | jq -r '.tags[]')
+
+    # iterate over the tags
+    - for tag in $TAGS;
+      do
+        MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$tag | jq -r '.Digest');
+        if test x"$MANIFEST" != x"$LATEST_MANIFEST";
+          then
+            echo removing $tag as $MANIFEST;
+            curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/$MANIFEST --silent
+                 -H "accept:application/vnd.docker.distribution.manifest.v2+json"
+                 -H "authorization:Bearer $REGISTRY_TOKEN"
+                 --fail --show-error -X DELETE || true
+          ;fi
+      ;done
+  dependencies: []
+  allow_failure: true
+  only:
+    - schedules
+
+fedora:30@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    FEDORA_VERSION: 30
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+
+fedora:31@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    FEDORA_VERSION: 31
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+
+ubuntu:19.10@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    UBUNTU_VERSION: "19.10"
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
+
+ubuntu:19.04@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    UBUNTU_VERSION: "19.04"
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
+
+debian:stable@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    DEBIAN_VERSION: stable
+    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
+
+debian:sid@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    DEBIAN_VERSION: sid
+    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
+
+centos:7@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CENTOS_VERSION: 7
+    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
+
+arch:rolling@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
+
+alpine:latest@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
+
+#################################################################
+#                                                               #
+#                       build stage                             #
+#                                                               #
+#################################################################
+
+.build@template:
+  stage: build
+  <<: *default_artifacts
   <<: *default_build_distcheck
+  dependencies: []
+
+.fedora-build@template:
+  stage: distro
+  extends: .build@template
+  image: $FEDORA_CONTAINER_IMAGE
+
+fedora:31@default-build:
+  stage: distro
+  extends: .fedora-build@template
+  variables:
+    FEDORA_VERSION: 31
+  needs: ['fedora:31@container-prep']
+
+fedora:30@default-build:
+  stage: distro
+  extends: .fedora-build@template
+  variables:
+    FEDORA_VERSION: 30
+  needs: ['fedora:30@container-prep']
+
+.centos-build@template:
+  stage: distro
+  extends: .build@template
+  image: $CENTOS_CONTAINER_IMAGE
+
+centos:7@default-build:
+  extends: .centos-build@template
+  variables:
+    CENTOS_VERSION: 7
+  needs: ['centos:7@container-prep']
+
+.ubuntu@template:
+  stage: distro
+  extends: .build@template
+  image: $UBUNTU_CONTAINER_IMAGE
+
+ubuntu:19.10@default-build:
+  extends: .ubuntu@template
+  variables:
+    UBUNTU_VERSION: "19.10"
+  needs: ['ubuntu:19.10@container-prep']
+
+ubuntu:19.04@default-build:
+  extends: .ubuntu@template
+  variables:
+    UBUNTU_VERSION: "19.04"
+  needs: ['ubuntu:19.04@container-prep']
+
+.debian@template:
+  stage: distro
+  extends: .build@template
+  image: $DEBIAN_CONTAINER_IMAGE
+
+debian:stable@default-build:
+  extends: .debian@template
+  variables:
+    DEBIAN_VERSION: stable
+  needs: ['debian:stable@container-prep']
+
+debian:sid@default-build:
+  extends: .debian@template
+  variables:
+    DEBIAN_VERSION: sid
+  needs: ['debian:sid@container-prep']
+
+.arch@template:
+  stage: distro
+  extends: .build@template
+  image: $ARCH_CONTAINER_IMAGE
+
+arch:rolling@default-build:
+  extends: .arch@template
+  needs: ['arch:rolling@container-prep']
+
+.alpine@template:
+  stage: distro
+  extends: .build@template
+  image: $ALPINE_CONTAINER_IMAGE
+
+alpine:latest@default-build:
+  extends: .alpine@template
+  needs: ['alpine:latest@container-prep']
 
 # Build argument tests
 #
-# We run the build option combinations on the Centos image
-# because it's the fastest one to yum update.
-centos:7:no-valgrind:
-  image: centos:7
-  before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
-    - yum remove -y valgrind
-  <<: *default_build_distcheck
+# We only run the build option combinations on one image
+# because they're supposed to fail equally on all
+.centos-custom-build@template:
+  stage: build
+  extends: .centos-build@template
+  variables:
+    CENTOS_VERSION: 7
+  needs: ['centos:7@container-prep']
 
-centos:7:no-check:
-  image: centos:7
+centos:7@no-valgrind:
+  extends: .centos-custom-build@template
   before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
+    - yum remove -y valgrind
+
+centos:7@no-check:
+  extends: .centos-custom-build@template
+  before_script:
     - yum remove -y check check-devel
-  <<: *default_build_distcheck
 
 # doxygen is required for distcheck
-centos:7:no-doxygen:
-  image: centos:7
+centos:7@no-doxygen:
+  extends: .centos-custom-build@template
   before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
     - yum remove -y doxygen
   <<: *default_build
 
 # doxygen is required for distcheck
-centos:7:no-doxygen-check-valgrind:
-  image: centos:7
+centos:7@no-doxygen-check-valgrind:
+  extends: .centos-custom-build@template
   before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
     - yum remove -y doxygen valgrind check check-devel
   <<: *default_build
 
-centos:7:no-nm:
-  image: centos:7
+centos:7@no-nm:
+  extends: .centos-custom-build@template
   before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
     - mv /usr/bin/nm /usr/bin/nm.moved
-  <<: *default_build_distcheck
 
-centos:7:enable-gcov:
-  image: centos:7
-  before_script:
-    - yum update -y
-    - yum install -y $CENTOS_RPMS
+centos:7@enable-gcov:
+  extends: .centos-custom-build@template
   script:
     - autoreconf -ivf
     - ./configure --disable-silent-rules --enable-gcov
