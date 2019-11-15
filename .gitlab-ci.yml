@@ -83,7 +83,7 @@ variables:
 .default_build: &default_build
   script:
     - autoreconf -ivf
-    - ./configure --disable-silent-rules
+    - ./configure --disable-silent-rules $CONFIGURE_FLAGS
     - make
     - make check
   <<: *default_artifacts
@@ -91,7 +91,7 @@ variables:
 .default_build_distcheck: &default_build_distcheck
   script:
     - autoreconf -ivf
-    - ./configure --disable-silent-rules
+    - ./configure --disable-silent-rules $CONFIGURE_FLAGS
     - make
     - make check
     - make distcheck
@@ -500,10 +500,6 @@ centos:7@no-nm:
 
 centos:7@enable-gcov:
   extends: .centos-custom-build@template
-  script:
-    - autoreconf -ivf
-    - ./configure --disable-silent-rules --enable-gcov
-    - make
-    - make check
-    - make distcheck
   <<: *default_artifacts
+  variables:
+    CONFIGURE_FLAGS: "--enable-gcov"
