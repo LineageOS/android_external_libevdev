@@ -86,15 +86,7 @@ variables:
     - ./configure --disable-silent-rules $CONFIGURE_FLAGS
     - make
     - make check
-  <<: *default_artifacts
-
-.default_build_distcheck: &default_build_distcheck
-  script:
-    - autoreconf -ivf
-    - ./configure --disable-silent-rules $CONFIGURE_FLAGS
-    - make
-    - make check
-    - make distcheck
+    - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
   <<: *default_artifacts
 
 #################################################################
@@ -373,8 +365,10 @@ alpine:latest@container-clean:
 .build@template:
   stage: build
   <<: *default_artifacts
-  <<: *default_build_distcheck
+  <<: *default_build
   dependencies: []
+  variables:
+    MAKE_ARGS: "distcheck"
 
 .fedora-build@template:
   stage: distro
@@ -479,12 +473,13 @@ centos:7@no-check:
   before_script:
     - yum remove -y check check-devel
 
-# doxygen is required for distcheck
 centos:7@no-doxygen:
   extends: .centos-custom-build@template
   before_script:
     - yum remove -y doxygen
   <<: *default_build
+  variables:
+    MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
 # doxygen is required for distcheck
 centos:7@no-doxygen-check-valgrind:
@@ -492,6 +487,8 @@ centos:7@no-doxygen-check-valgrind:
   before_script:
     - yum remove -y doxygen valgrind check check-devel
   <<: *default_build
+  variables:
+    MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
 centos:7@no-nm:
   extends: .centos-custom-build@template
