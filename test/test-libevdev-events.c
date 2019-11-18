@@ -702,12 +702,12 @@ START_TEST(test_syn_delta_sw)
 	test_create_device(&uidev, &dev,
 			   EV_SYN, SYN_REPORT,
 			   EV_SYN, SYN_DROPPED,
-			   EV_SW, SW_LID,
+			   EV_SW, SW_HEADPHONE_INSERT,
 			   EV_SW, SW_MICROPHONE_INSERT,
 			   EV_SW, SW_MAX,
 			   -1);
 
-	uinput_device_event(uidev, EV_SW, SW_LID, 1);
+	uinput_device_event(uidev, EV_SW, SW_HEADPHONE_INSERT, 1);
 	uinput_device_event(uidev, EV_SW, SW_MICROPHONE_INSERT, 1);
 	uinput_device_event(uidev, EV_SW, SW_MAX, 1);
 	uinput_device_event(uidev, EV_SYN, SYN_REPORT, 0);
@@ -717,7 +717,7 @@ START_TEST(test_syn_delta_sw)
 	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
 	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SYNC);
 	ck_assert_int_eq(ev.type, EV_SW);
-	ck_assert_int_eq(ev.code, SW_LID);
+	ck_assert_int_eq(ev.code, SW_HEADPHONE_INSERT);
 	ck_assert_int_eq(ev.value, 1);
 	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
 	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SYNC);
@@ -736,7 +736,7 @@ START_TEST(test_syn_delta_sw)
 	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
 	ck_assert_int_eq(rc, -EAGAIN);
 
-	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_LID), 1);
+	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_HEADPHONE_INSERT), 1);
 	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_MICROPHONE_INSERT), 1);
 	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_MAX), 1);
 
@@ -1826,7 +1826,7 @@ START_TEST(test_event_value_setters)
 			       EV_KEY, BTN_RIGHT,
 			       EV_LED, LED_NUML,
 			       EV_LED, LED_CAPSL,
-			       EV_SW, SW_LID,
+			       EV_SW, SW_HEADPHONE_INSERT,
 			       EV_SW, SW_TABLET_MODE,
 			       -1);
 
@@ -1854,10 +1854,10 @@ START_TEST(test_event_value_setters)
 	ck_assert_int_eq(libevdev_get_event_value(dev, EV_LED, LED_NUML), 1);
 	ck_assert_int_eq(libevdev_get_event_value(dev, EV_LED, LED_CAPSL), 1);
 
-	ck_assert_int_eq(libevdev_set_event_value(dev, EV_SW, SW_LID, 1), 0);
+	ck_assert_int_eq(libevdev_set_event_value(dev, EV_SW, SW_HEADPHONE_INSERT, 1), 0);
 	ck_assert_int_eq(libevdev_set_event_value(dev, EV_SW, SW_TABLET_MODE, 1), 0);
 
-	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_LID), 1);
+	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_HEADPHONE_INSERT), 1);
 	ck_assert_int_eq(libevdev_get_event_value(dev, EV_SW, SW_TABLET_MODE), 1);
 
 	uinput_device_free(uidev);
