@@ -54,12 +54,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2019-10-24.0'
-  CENTOS_TAG: '2019-10-24.0'
-  DEBIAN_TAG: '2019-10-24.0'
-  UBUNTU_TAG: '2019-10-24.0'
-  ARCH_TAG: '2019-10-24.0'
-  ALPINE_TAG: '2019-10-24.0'
+  FEDORA_TAG: '2020-02-03.0'
+  CENTOS_TAG: '2020-02-03.0'
+  DEBIAN_TAG: '2020-02-03.0'
+  UBUNTU_TAG: '2020-02-03.0'
+  ARCH_TAG: '2020-02-03.0'
+  ALPINE_TAG: '2020-02-03.0'
 
   UPSTREAM_REPO: libevdev/libevdev
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
