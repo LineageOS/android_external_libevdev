@@ -481,47 +481,47 @@ alpine:latest@default-build:
 #
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
-.centos-custom-build@template:
+.fedora-custom-build@template:
   stage: build
-  extends: .centos-build@template
+  extends: .fedora-build@template
   variables:
-    CENTOS_VERSION: 7
-  needs: ['centos:7@container-prep']
+    FEDORA_VERSION: 31
+  needs: ['fedora:31@container-prep']
 
-centos:7@no-valgrind:
-  extends: .centos-custom-build@template
+fedora:31@no-valgrind:
+  extends: .fedora-custom-build@template
   before_script:
-    - yum remove -y valgrind
+    - dnf remove -y valgrind
 
-centos:7@no-check:
-  extends: .centos-custom-build@template
+fedora:31@no-check:
+  extends: .fedora-custom-build@template
   before_script:
-    - yum remove -y check check-devel
+    - dnf remove -y check check-devel
 
-centos:7@no-doxygen:
-  extends: .centos-custom-build@template
+fedora:31@no-doxygen:
+  extends: .fedora-custom-build@template
   before_script:
-    - yum remove -y doxygen
+    - dnf remove -y doxygen
   <<: *default_build
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
 # doxygen is required for distcheck
-centos:7@no-doxygen-check-valgrind:
-  extends: .centos-custom-build@template
+fedora:31@no-doxygen-check-valgrind:
+  extends: .fedora-custom-build@template
   before_script:
-    - yum remove -y doxygen valgrind check check-devel
+    - dnf remove -y doxygen valgrind check check-devel
   <<: *default_build
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
-centos:7@no-nm:
-  extends: .centos-custom-build@template
+fedora:31@no-nm:
+  extends: .fedora-custom-build@template
   before_script:
     - mv /usr/bin/nm /usr/bin/nm.moved
 
-centos:7@enable-gcov:
-  extends: .centos-custom-build@template
+fedora:31@enable-gcov:
+  extends: .fedora-custom-build@template
   <<: *default_artifacts
   variables:
     CONFIGURE_FLAGS: "--enable-gcov"
