@@ -182,7 +182,7 @@ debian:sid@container-prep:
     TAG: $DEBIAN_TAG
   <<: *pull_upstream_or_rebuild
 
-centos:7@container-prep:
+.centos@container-prep:
   extends: .centos@container-build
   stage: container_prep
   variables:
@@ -193,16 +193,15 @@ centos:7@container-prep:
     TAG: $CENTOS_TAG
   <<: *pull_upstream_or_rebuild
 
-centos:8@container-prep:
-  extends: .centos@container-build
-  stage: container_prep
+centos:7@container-prep:
+  extends: .centos@container-prep
   variables:
-    GIT_STRATEGY: none
+    CENTOS_VERSION: 7
+
+centos:8@container-prep:
+  extends: .centos@container-prep
+  variables:
     CENTOS_VERSION: 8
-    DISTRIB_FLAVOR: centos
-    DISTRIB_VERSION: $CENTOS_VERSION
-    TAG: $CENTOS_TAG
-  <<: *pull_upstream_or_rebuild
 
 arch:rolling@container-prep:
   extends: .arch@container-build
@@ -348,19 +347,21 @@ debian:sid@container-clean:
     DEBIAN_VERSION: sid
     CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
 
-centos:7@container-clean:
+.centos@container-clean:
   extends: .container-clean
   variables:
     GIT_STRATEGY: none
-    CENTOS_VERSION: 7
     CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
 
-centos:8@container-clean:
-  extends: .container-clean
+centos:7@container-clean:
+  extends: .centos@container-clean
   variables:
-    GIT_STRATEGY: none
+    CENTOS_VERSION: 7
+
+centos:8@container-clean:
+  extends: .centos@container-clean
+  variables:
     CENTOS_VERSION: 8
-    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
 
 arch:rolling@container-clean:
   extends: .container-clean
