@@ -142,6 +142,7 @@ static-symbol-leaks: test-static-link
 			grep -o -e " T .*" | \
 			grep -v -e " main$$" \
 				-e " atexit" \
+				-e " mangle_path" \
 				-e " *gcov.*" \
 				-e " _.*" \
 				-e " libevdev_*" && \
