@@ -54,6 +54,14 @@ struct libevdev_test {
 
 #include "test-common-uinput.h"
 
+#define assert_event(e_, t, c, v) \
+do { \
+	const struct input_event *e = (e_); \
+	ck_assert_int_eq(e->type, (t)); \
+	ck_assert_int_eq(e->code, (c)); \
+	ck_assert_int_eq(e->value, (v)); \
+} while(0)
+
 void test_create_device(struct uinput_device **uidev,
 			struct libevdev **dev,
 			...);
