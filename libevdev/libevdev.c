@@ -576,16 +576,6 @@ libevdev_get_fd(const struct libevdev* dev)
 	return dev->fd;
 }
 
-static inline void
-init_event(struct libevdev *dev, struct input_event *ev, int type, int code, int value)
-{
-	ev->input_event_sec = dev->last_event_time.tv_sec;
-	ev->input_event_usec = dev->last_event_time.tv_usec;
-	ev->type = type;
-	ev->code = code;
-	ev->value = value;
-}
-
 static int
 sync_key_state(struct libevdev *dev)
 {
@@ -601,10 +591,8 @@ sync_key_state(struct libevdev *dev)
 		int old, new;
 		old = bit_is_set(dev->key_values, i);
 		new = bit_is_set(keystate, i);
-		if (old ^ new) {
-			struct input_event *ev = queue_push(dev);
-			init_event(dev, ev, EV_KEY, i, new ? 1 : 0);
-		}
+		if (old ^ new)
+			queue_push_event(dev, EV_KEY, i, new ? 1 : 0);
 	}
 
 	memcpy(dev->key_values, keystate, rc);
@@ -629,10 +617,8 @@ sync_sw_state(struct libevdev *dev)
 		int old, new;
 		old = bit_is_set(dev->sw_values, i);
 		new = bit_is_set(swstate, i);
-		if (old ^ new) {
-			struct input_event *ev = queue_push(dev);
-			init_event(dev, ev, EV_SW, i, new ? 1 : 0);
-		}
+		if (old ^ new)
+			queue_push_event(dev, EV_SW, i, new ? 1 : 0);
 	}
 
 	memcpy(dev->sw_values, swstate, rc);
@@ -658,8 +644,7 @@ sync_led_state(struct libevdev *dev)
 		old = bit_is_set(dev->led_values, i);
 		new = bit_is_set(ledstate, i);
 		if (old ^ new) {
-			struct input_event *ev = queue_push(dev);
-			init_event(dev, ev, EV_LED, i, new ? 1 : 0);
+			queue_push_event(dev, EV_LED, i, new ? 1 : 0);
 		}
 	}
 
@@ -689,9 +674,7 @@ sync_abs_state(struct libevdev *dev)
 			goto out;
 
 		if (dev->abs_info[i].value != abs_info.value) {
-			struct input_event *ev = queue_push(dev);
-
-			init_event(dev, ev, EV_ABS, i, abs_info.value);
+			queue_push_event(dev, EV_ABS, i, abs_info.value);
 			dev->abs_info[i].value = abs_info.value;
 		}
 	}
@@ -704,7 +687,6 @@ out:
 static int
 sync_mt_state(struct libevdev *dev, int create_events)
 {
-	struct input_event *ev;
 	struct input_absinfo abs_info;
 	int rc;
 	int axis, slot;
@@ -762,24 +744,20 @@ sync_mt_state(struct libevdev *dev, int create_events)
 			if (!bit_is_set(tracking_id_changes, slot))
 				continue;
 
-			ev = queue_push(dev);
-			init_event(dev, ev, EV_ABS, ABS_MT_SLOT, slot);
-			ev = queue_push(dev);
-			init_event(dev, ev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+			queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
+			queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
 
 			last_reported_slot = slot;
 		}
 
-		ev = queue_push(dev);
-		init_event(dev, ev, EV_SYN, SYN_REPORT, 0);
+		queue_push_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
 
 	for (slot = 0; slot < dev->num_slots;  slot++) {
 		if (!bit_is_set(slot_update, AXISBIT(slot, ABS_MT_SLOT)))
 			continue;
 
-		ev = queue_push(dev);
-		init_event(dev, ev, EV_ABS, ABS_MT_SLOT, slot);
+		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
 		last_reported_slot = slot;
 
 		for (axis = ABS_MT_MIN; axis <= ABS_MT_MAX; axis++) {
@@ -787,10 +765,9 @@ sync_mt_state(struct libevdev *dev, int create_events)
 			    !libevdev_has_event_code(dev, EV_ABS, axis))
 				continue;
 
-			if (bit_is_set(slot_update, AXISBIT(slot, axis))) {
-				ev = queue_push(dev);
-				init_event(dev, ev, EV_ABS, axis, *slot_value(dev, slot, axis));
-			}
+			if (bit_is_set(slot_update, AXISBIT(slot, axis)))
+				queue_push_event(dev, EV_ABS, axis,
+						 *slot_value(dev, slot, axis));
 		}
 	}
 
@@ -803,10 +780,8 @@ sync_mt_state(struct libevdev *dev, int create_events)
 
 	dev->current_slot = abs_info.value;
 
-	if (dev->current_slot != last_reported_slot) {
-		ev = queue_push(dev);
-		init_event(dev, ev, EV_ABS, ABS_MT_SLOT, dev->current_slot);
-	}
+	if (dev->current_slot != last_reported_slot)
+		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, dev->current_slot);
 
 #undef AXISBIT
 
@@ -879,7 +854,6 @@ static int
 sync_state(struct libevdev *dev)
 {
 	int rc = 0;
-	struct input_event *ev;
 
 	 /* see section "Discarding events before synchronizing" in
 	  * libevdev/libevdev.h */
@@ -900,8 +874,7 @@ sync_state(struct libevdev *dev)
 	dev->queue_nsync = queue_num_elements(dev);
 
 	if (dev->queue_nsync > 0) {
-		ev = queue_push(dev);
-		init_event(dev, ev, EV_SYN, SYN_REPORT, 0);
+		queue_push_event(dev, EV_SYN, SYN_REPORT, 0);
 		dev->queue_nsync++;
 	}
 

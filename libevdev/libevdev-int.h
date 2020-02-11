@@ -143,6 +143,16 @@ _libevdev_log_msg(const struct libevdev *dev,
 extern enum libevdev_log_priority
 _libevdev_log_priority(const struct libevdev *dev);
 
+static inline void
+init_event(struct libevdev *dev, struct input_event *ev, int type, int code, int value)
+{
+	ev->input_event_sec = dev->last_event_time.tv_sec;
+	ev->input_event_usec = dev->last_event_time.tv_usec;
+	ev->type = type;
+	ev->code = code;
+	ev->value = value;
+}
+
 /**
  * @return a pointer to the next element in the queue, or NULL if the queue
  * is full.
@@ -154,6 +164,18 @@ queue_push(struct libevdev *dev)
 		return NULL;
 
 	return &dev->queue[dev->queue_next++];
+}
+
+static inline bool
+queue_push_event(struct libevdev *dev, unsigned int type,
+		 unsigned int code, int value)
+{
+	struct input_event *ev = queue_push(dev);
+
+	if (ev)
+		init_event(dev, ev, type, code, value);
+
+	return ev != NULL;
 }
 
 /**
