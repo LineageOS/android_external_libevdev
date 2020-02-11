@@ -23,6 +23,7 @@
 #include <config.h>
 #include <libevdev/libevdev.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <check.h>
 
@@ -87,4 +88,23 @@ void test_logfunc_ignore_error(enum libevdev_log_priority priority,
 			       const char *file, int line,
 			       const char *func,
 			       const char *format, va_list args);
+
+static inline void
+print_event(const struct input_event *ev)
+{
+	if (ev->type == EV_SYN)
+		printf("Event: time %ld.%06ld, ++++++++++++++++++++ %s +++++++++++++++\n",
+			ev->input_event_sec,
+			ev->input_event_usec,
+			libevdev_event_type_get_name(ev->type));
+	else
+		printf("Event: time %ld.%06ld, type %d (%s), code %d (%s), value %d\n",
+			ev->input_event_sec,
+			ev->input_event_usec,
+			ev->type,
+			libevdev_event_type_get_name(ev->type),
+			ev->code,
+			libevdev_event_code_get_name(ev->type, ev->code),
+			ev->value);
+}
 #endif /* _TEST_COMMON_H_ */
