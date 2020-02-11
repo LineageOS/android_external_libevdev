@@ -169,11 +169,9 @@ TEST_SUITE_ROOT_PRIVILEGES(kernel)
 {
 	Suite *s = suite_create("kernel");
 
-	TCase *tc = tcase_create("EVIOCREVOKE");
-	tcase_add_test(tc, test_revoke);
-	tcase_add_test(tc, test_revoke_invalid);
-	tcase_add_test(tc, test_revoke_fail_after);
-	suite_add_tcase(s, tc);
+	add_test(s, test_revoke);
+	add_test(s, test_revoke_invalid);
+	add_test(s, test_revoke_fail_after);
 
 	return s;
 }

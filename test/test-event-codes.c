@@ -264,30 +264,22 @@ TEST_SUITE(event_code_suite)
 {
 	Suite *s = suite_create("Event codes");
 
-	TCase *tc = tcase_create("type tests");
-	tcase_add_test(tc, test_type_names);
-	tcase_add_test(tc, test_type_names_invalid);
-	tcase_add_test(tc, test_type_name_lookup);
-	tcase_add_test(tc, test_type_name_lookup_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_type_names);
+	add_test(s, test_type_names_invalid);
+	add_test(s, test_type_name_lookup);
+	add_test(s, test_type_name_lookup_invalid);
 
-	tc = tcase_create("code tests");
-	tcase_add_test(tc, test_code_names);
-	tcase_add_test(tc, test_code_name_lookup);
-	tcase_add_test(tc, test_code_names_invalid);
-	tcase_add_test(tc, test_code_name_lookup_invalid);
-	tcase_add_test(tc, test_code_names_max);
-	suite_add_tcase(s, tc);
+	add_test(s, test_code_names);
+	add_test(s, test_code_name_lookup);
+	add_test(s, test_code_names_invalid);
+	add_test(s, test_code_name_lookup_invalid);
+	add_test(s, test_code_names_max);
 
-	tc = tcase_create("value tests");
-	tcase_add_test(tc, test_value_names);
-	tcase_add_test(tc, test_value_names_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_value_names);
+	add_test(s, test_value_names_invalid);
 
-	tc = tcase_create("property tests");
-	tcase_add_test(tc, test_properties);
-	tcase_add_test(tc, test_properties_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_properties);
+	add_test(s, test_properties_invalid);
 
 	return s;
 }

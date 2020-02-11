@@ -1966,53 +1966,43 @@ TEST_SUITE_ROOT_PRIVILEGES(libevdev_events)
 {
 	Suite *s = suite_create("libevdev event tests");
 
-	TCase *tc = tcase_create("event polling");
-	tcase_add_test(tc, test_next_event);
-	tcase_add_test(tc, test_next_event_invalid_fd);
-	tcase_add_test(tc, test_next_event_blocking);
-	tcase_add_test(tc, test_syn_dropped_event);
-	tcase_add_test(tc, test_event_type_filtered);
-	tcase_add_test(tc, test_event_code_filtered);
-	tcase_add_test(tc, test_has_event_pending);
-	tcase_add_test(tc, test_has_event_pending_invalid_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_next_event);
+	add_test(s, test_next_event_invalid_fd);
+	add_test(s, test_next_event_blocking);
+	add_test(s, test_syn_dropped_event);
+	add_test(s, test_event_type_filtered);
+	add_test(s, test_event_code_filtered);
+	add_test(s, test_has_event_pending);
+	add_test(s, test_has_event_pending_invalid_fd);
 
-	tc = tcase_create("SYN_DROPPED deltas");
-	tcase_add_test(tc, test_syn_delta_button);
-	tcase_add_test(tc, test_syn_delta_abs);
-	tcase_add_test(tc, test_syn_delta_mt);
-	tcase_add_test(tc, test_syn_delta_mt_reset_slot);
-	tcase_add_test(tc, test_syn_delta_led);
-	tcase_add_test(tc, test_syn_delta_sw);
-	tcase_add_test(tc, test_syn_delta_fake_mt);
-	tcase_add_test(tc, test_syn_delta_tracking_ids);
-	tcase_add_test(tc, test_syn_delta_late_sync);
-	suite_add_tcase(s, tc);
+	add_test(s, test_syn_delta_button);
+	add_test(s, test_syn_delta_abs);
+	add_test(s, test_syn_delta_mt);
+	add_test(s, test_syn_delta_mt_reset_slot);
+	add_test(s, test_syn_delta_led);
+	add_test(s, test_syn_delta_sw);
+	add_test(s, test_syn_delta_fake_mt);
+	add_test(s, test_syn_delta_late_sync);
+	add_test(s, test_syn_delta_tracking_ids);
 
-	tc = tcase_create("skipped syncs");
-	tcase_add_test(tc, test_skipped_sync);
-	tcase_add_test(tc, test_incomplete_sync);
-	tcase_add_test(tc, test_empty_sync);
-	suite_add_tcase(s, tc);
+	add_test(s, test_skipped_sync);
+	add_test(s, test_incomplete_sync);
+	add_test(s, test_empty_sync);
 
-	tc = tcase_create("event values");
-	tcase_add_test(tc, test_event_values);
-	tcase_add_test(tc, test_event_values_invalid);
-	tcase_add_test(tc, test_mt_event_values);
-	tcase_add_test(tc, test_mt_event_values_invalid);
-	tcase_add_test(tc, test_mt_slot_ranges_invalid);
-	tcase_add_test(tc, test_mt_tracking_id_discard);
-	tcase_add_test(tc, test_mt_tracking_id_discard_neg_1);
-	tcase_add_test(tc, test_ev_rep_values);
-	suite_add_tcase(s, tc);
+	add_test(s, test_event_values);
+	add_test(s, test_event_values_invalid);
+	add_test(s, test_mt_event_values);
+	add_test(s, test_mt_event_values_invalid);
+	add_test(s, test_mt_slot_ranges_invalid);
+	add_test(s, test_mt_tracking_id_discard);
+	add_test(s, test_mt_tracking_id_discard_neg_1);
+	add_test(s, test_ev_rep_values);
 
-	tc = tcase_create("event value setters");
-	tcase_add_test(tc, test_event_value_setters);
-	tcase_add_test(tc, test_event_value_setters_invalid);
-	tcase_add_test(tc, test_event_mt_value_setters);
-	tcase_add_test(tc, test_event_mt_value_setters_invalid);
-	tcase_add_test(tc, test_event_mt_value_setters_current_slot);
-	suite_add_tcase(s, tc);
+	add_test(s, test_event_value_setters);
+	add_test(s, test_event_value_setters_invalid);
+	add_test(s, test_event_mt_value_setters);
+	add_test(s, test_event_mt_value_setters_invalid);
+	add_test(s, test_event_mt_value_setters_current_slot);
 
 	return s;
 }

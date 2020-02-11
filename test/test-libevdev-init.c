@@ -687,38 +687,28 @@ TEST_SUITE_ROOT_PRIVILEGES(libevdev_init_test)
 {
 	Suite *s = suite_create("libevdev init tests");
 
-	TCase *tc = tcase_create("device init");
-	tcase_add_test(tc, test_new_device);
-	tcase_add_test(tc, test_free_device);
-	tcase_add_test(tc, test_init_from_invalid_fd);
-	tcase_add_test(tc, test_init_and_change_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_new_device);
+	add_test(s, test_free_device);
+	add_test(s, test_init_from_invalid_fd);
+	add_test(s, test_init_and_change_fd);
 
-	tc = tcase_create("log init");
-	tcase_add_test(tc, test_log_init);
-	tcase_add_test(tc, test_log_priority);
-	tcase_add_test(tc, test_log_set_get_priority);
-	tcase_add_test(tc, test_log_default_priority);
-	tcase_add_test(tc, test_log_data);
-	tcase_add_test(tc, test_device_log_init);
-	suite_add_tcase(s, tc);
+	add_test(s, test_log_init);
+	add_test(s, test_log_priority);
+	add_test(s, test_log_set_get_priority);
+	add_test(s, test_log_default_priority);
+	add_test(s, test_log_data);
+	add_test(s, test_device_log_init);
 
-	tc = tcase_create("device fd init");
-	tcase_add_test(tc, test_device_init);
-	tcase_add_test(tc, test_device_init_from_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_init);
+	add_test(s, test_device_init_from_fd);
 
-	tc = tcase_create("device grab");
-	tcase_add_test(tc, test_device_grab);
-	tcase_add_test(tc, test_device_grab_invalid_fd);
-	tcase_add_test(tc, test_device_grab_change_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_grab);
+	add_test(s, test_device_grab_invalid_fd);
+	add_test(s, test_device_grab_change_fd);
 
-	tc = tcase_create("clock id");
-	tcase_add_test(tc, test_set_clock_id);
-	tcase_add_test(tc, test_set_clock_id_invalid_fd);
-	tcase_add_test(tc, test_clock_id_events);
-	suite_add_tcase(s, tc);
+	add_test(s, test_set_clock_id);
+	add_test(s, test_set_clock_id_invalid_fd);
+	add_test(s, test_clock_id_events);
 
 	return s;
 }

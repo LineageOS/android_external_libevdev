@@ -372,21 +372,15 @@ TEST_SUITE_ROOT_PRIVILEGES(uinput_suite)
 {
 	Suite *s = suite_create("libevdev uinput device tests");
 
-	TCase *tc = tcase_create("device creation");
-	tcase_add_test(tc, test_uinput_create_device);
-	tcase_add_test(tc, test_uinput_create_device_invalid);
-	tcase_add_test(tc, test_uinput_create_device_from_fd);
-	tcase_add_test(tc, test_uinput_check_syspath_time);
-	tcase_add_test(tc, test_uinput_check_syspath_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_create_device);
+	add_test(s, test_uinput_create_device_invalid);
+	add_test(s, test_uinput_create_device_from_fd);
+	add_test(s, test_uinput_check_syspath_time);
+	add_test(s, test_uinput_check_syspath_name);
 
-	tc = tcase_create("device events");
-	tcase_add_test(tc, test_uinput_events);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_events);
 
-	tc = tcase_create("device properties");
-	tcase_add_test(tc, test_uinput_properties);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_properties);
 
 	return s;
 }

@@ -52,6 +52,12 @@ struct libevdev_test {
 
 #define TEST_DEVICE_NAME "libevdev test device"
 
+#define add_test(suite, func) do { \
+	TCase *tc = tcase_create(#func); \
+	tcase_add_test(tc, func); \
+	suite_add_tcase(suite, tc); \
+} while(0)
+
 #include "test-common-uinput.h"
 
 #define assert_event(e_, t, c, v) \

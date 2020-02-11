@@ -304,40 +304,27 @@ TEST_SUITE(event_name_suite)
 {
 	Suite *s = suite_create("Event names");
 
-	TCase *tc = tcase_create("type limits");
-	tcase_add_test(tc, test_limits);
-	tcase_add_test(tc, test_event_type_max);
-	suite_add_tcase(s, tc);
+	add_test(s, test_limits);
+	add_test(s, test_event_type_max);
 
-	tc = tcase_create("type names");
-	tcase_add_test(tc, test_type_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_type_name);
 
-	tc = tcase_create("code names");
-	tcase_add_test(tc, test_code_abs_name);
-	tcase_add_test(tc, test_code_rel_name);
-	tcase_add_test(tc, test_code_key_name);
-	tcase_add_test(tc, test_code_led_name);
-	tcase_add_test(tc, test_code_snd_name);
-	tcase_add_test(tc, test_code_rep_name);
-	tcase_add_test(tc, test_code_msc_name);
-	tcase_add_test(tc, test_code_sw_name);
-	tcase_add_test(tc, test_code_ff_name);
-	tcase_add_test(tc, test_code_syn_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_code_abs_name);
+	add_test(s, test_code_rel_name);
+	add_test(s, test_code_key_name);
+	add_test(s, test_code_led_name);
+	add_test(s, test_code_snd_name);
+	add_test(s, test_code_rep_name);
+	add_test(s, test_code_msc_name);
+	add_test(s, test_code_sw_name);
+	add_test(s, test_code_ff_name);
+	add_test(s, test_code_syn_name);
 
-	tc = tcase_create("value names");
-	tcase_add_test(tc, test_value_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_value_name);
+	add_test(s, test_prop_name);
 
-	tc = tcase_create("prop names");
-	tcase_add_test(tc, test_prop_name);
-	suite_add_tcase(s, tc);
-
-	tc = tcase_create("event values");
-	tcase_add_test(tc, test_event_type);
-	tcase_add_test(tc, test_event_code);
-	suite_add_tcase(s, tc);
+	add_test(s, test_event_type);
+	add_test(s, test_event_code);
 
 	return s;
 }

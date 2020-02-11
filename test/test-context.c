@@ -162,16 +162,13 @@ END_TEST
 TEST_SUITE(event_name_suite)
 {
 	Suite *s = suite_create("Context manipulation");
-	TCase *tc;
 
-	tc = tcase_create("Device info");
-	tcase_add_test(tc, test_info);
-	tcase_add_test(tc, test_properties);
-	tcase_add_test(tc, test_bits);
-	tcase_add_test(tc, test_mt_slots_enable_disable);
-	tcase_add_test(tc, test_mt_slots_increase_decrease);
-	tcase_add_test(tc, test_mt_tracking_id);
-	suite_add_tcase(s, tc);
+	add_test(s, test_info);
+	add_test(s, test_properties);
+	add_test(s, test_bits);
+	add_test(s, test_mt_slots_enable_disable);
+	add_test(s, test_mt_slots_increase_decrease);
+	add_test(s, test_mt_tracking_id);
 
 	return s;
 }
