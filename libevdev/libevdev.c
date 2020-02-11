@@ -708,7 +708,6 @@ sync_mt_state(struct libevdev *dev, int create_events)
 	struct input_absinfo abs_info;
 	int rc;
 	int axis, slot;
-	int ioctl_success = 0;
 	int last_reported_slot = 0;
 	struct mt_sync_state *mt_state = dev->mt_sync.mt_state;
 	unsigned long *slot_update = dev->mt_sync.slot_update;
@@ -730,36 +729,26 @@ sync_mt_state(struct libevdev *dev, int create_events)
 
 		mt_state->code = axis;
 		rc = ioctl(dev->fd, EVIOCGMTSLOTS(dev->mt_sync.mt_state_sz), mt_state);
-		if (rc < 0) {
-			/* if the first ioctl fails with -EINVAL, chances are the kernel
-			   doesn't support the ioctl. Simply continue */
-			if (errno == -EINVAL && !ioctl_success) {
-				rc = 0;
-			} else /* if the second, ... ioctl fails, really fail */
-				goto out;
-		} else {
-			if (ioctl_success == 0)
-				ioctl_success = 1;
+		if (rc < 0)
+			goto out;
 
-			for (slot = 0; slot < dev->num_slots; slot++) {
+		for (slot = 0; slot < dev->num_slots; slot++) {
 
-				if (*slot_value(dev, slot, axis) == mt_state->val[slot])
-					continue;
+			if (*slot_value(dev, slot, axis) == mt_state->val[slot])
+				continue;
 
-				if (axis == ABS_MT_TRACKING_ID &&
-				    *slot_value(dev, slot, axis) != -1 &&
-				    mt_state->val[slot] != -1) {
-					set_bit(tracking_id_changes, slot);
-					need_tracking_id_changes = 1;
-				}
-
-				*slot_value(dev, slot, axis) = mt_state->val[slot];
-
-				set_bit(slot_update, AXISBIT(slot, axis));
-				/* note that this slot has updates */
-				set_bit(slot_update, AXISBIT(slot, ABS_MT_SLOT));
+			if (axis == ABS_MT_TRACKING_ID &&
+			    *slot_value(dev, slot, axis) != -1 &&
+			    mt_state->val[slot] != -1) {
+				set_bit(tracking_id_changes, slot);
+				need_tracking_id_changes = 1;
 			}
 
+			*slot_value(dev, slot, axis) = mt_state->val[slot];
+
+			set_bit(slot_update, AXISBIT(slot, axis));
+			/* note that this slot has updates */
+			set_bit(slot_update, AXISBIT(slot, ABS_MT_SLOT));
 		}
 	}
 
