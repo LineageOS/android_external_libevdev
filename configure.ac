@@ -126,6 +126,26 @@ AC_SUBST([GCOV_CFLAGS])
 AC_SUBST([GCOV_LDFLAGS])
 AC_MSG_RESULT([$enable_gcov])
 
+AC_MSG_CHECKING([whether to build with coverity support])
+AC_ARG_ENABLE([coverity],
+	      [AS_HELP_STRING([--enable-coverity],
+			      [Whether to build with coverity support (default: disabled)])],
+	      [],
+	      [enable_coverity=no],
+	      )
+AS_IF([test "x$enable_coverity" != "xno"],
+      [
+       AC_DEFINE([_Float128], [__uint128_t], [Override for coverity])
+       AC_DEFINE([_Float32], [int], [Override for coverity])
+       AC_DEFINE([_Float32x], [int], [Override for coverity])
+       AC_DEFINE([_Float64], [long], [Override for coverity])
+       AC_DEFINE([_Float64x], [long], [Override for coverity])
+       enable_coverity=yes
+       ],
+)
+AC_MSG_RESULT([$enable_coverity])
+
+
 AM_PATH_PYTHON([2.6])
 
 # nm to check for leaking symbols in the static library
@@ -163,5 +183,6 @@ AC_MSG_RESULT([
 	       Build documentation		${have_doxygen}
 	       Enable unit-tests		${HAVE_CHECK}
 	       Enable profiling			${enable_gcov}
+	       Enable coverity support		${enable_coverity}
 	       Static library symbol check	${static_symbol_leaks_test}
 	       ])
