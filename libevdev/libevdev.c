@@ -660,15 +660,13 @@ sync_mt_state(struct libevdev *dev, int create_events)
 	int rc;
 	int axis, slot;
 	int last_reported_slot = 0;
-	unsigned long slot_update[NLONGS(dev->num_slots * ABS_MT_CNT)];
+	unsigned long slot_update[dev->num_slots][NLONGS(ABS_CNT)];
 	unsigned long tracking_id_changes[NLONGS(dev->num_slots)];
 
 	int need_tracking_id_changes = 0;
 
 	memset(slot_update, 0, sizeof(slot_update));
 	memset(tracking_id_changes, 0, sizeof(tracking_id_changes));
-
-#define AXISBIT(_slot, _axis) (_slot * ABS_MT_CNT + _axis - ABS_MT_MIN)
 
 	for (axis = ABS_MT_MIN; axis <= ABS_MT_MAX; axis++) {
 		/* EVIOCGMTSLOTS required format */
@@ -701,9 +699,9 @@ sync_mt_state(struct libevdev *dev, int create_events)
 
 			*slot_value(dev, slot, axis) = mt_state.val[slot];
 
-			set_bit(slot_update, AXISBIT(slot, axis));
+			set_bit(slot_update[slot], axis);
 			/* note that this slot has updates */
-			set_bit(slot_update, AXISBIT(slot, ABS_MT_SLOT));
+			set_bit(slot_update[slot], ABS_MT_SLOT);
 		}
 	}
 
@@ -727,7 +725,7 @@ sync_mt_state(struct libevdev *dev, int create_events)
 	}
 
 	for (slot = 0; slot < dev->num_slots;  slot++) {
-		if (!bit_is_set(slot_update, AXISBIT(slot, ABS_MT_SLOT)))
+		if (!bit_is_set(slot_update[slot], ABS_MT_SLOT))
 			continue;
 
 		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
@@ -738,7 +736,7 @@ sync_mt_state(struct libevdev *dev, int create_events)
 			    !libevdev_has_event_code(dev, EV_ABS, axis))
 				continue;
 
-			if (bit_is_set(slot_update, AXISBIT(slot, axis)))
+			if (bit_is_set(slot_update[slot], axis))
 				queue_push_event(dev, EV_ABS, axis,
 						 *slot_value(dev, slot, axis));
 		}
@@ -755,8 +753,6 @@ sync_mt_state(struct libevdev *dev, int create_events)
 
 	if (dev->current_slot != last_reported_slot)
 		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, dev->current_slot);
-
-#undef AXISBIT
 
 	rc = 0;
 out:
