@@ -55,11 +55,6 @@ enum SyncState {
 	SYNC_IN_PROGRESS,
 };
 
-struct mt_sync_state {
-	int code;
-	int val[];
-};
-
 /**
  * Internal only: log data used to send messages to the respective log
  * handler. We re-use the same struct for a global and inside
@@ -113,8 +108,6 @@ struct libevdev {
 	struct timeval last_event_time;
 
 	struct {
-		struct mt_sync_state *mt_state;
-		size_t mt_state_sz;		 /* in bytes */
 		unsigned long *slot_update;
 		size_t slot_update_sz;		 /* in bytes */
 		unsigned long *tracking_id_changes;

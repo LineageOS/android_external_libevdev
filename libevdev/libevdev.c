@@ -28,6 +28,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "libevdev.h"
@@ -199,7 +200,6 @@ libevdev_reset(struct libevdev *dev)
 	free(dev->phys);
 	free(dev->uniq);
 	free(dev->mt_slot_vals);
-	free(dev->mt_sync.mt_state);
 	free(dev->mt_sync.tracking_id_changes);
 	free(dev->mt_sync.slot_update);
 	memset(dev, 0, sizeof(*dev));
@@ -333,11 +333,9 @@ free_slots(struct libevdev *dev)
 	free(dev->mt_slot_vals);
 	free(dev->mt_sync.tracking_id_changes);
 	free(dev->mt_sync.slot_update);
-	free(dev->mt_sync.mt_state);
 	dev->mt_slot_vals = NULL;
 	dev->mt_sync.tracking_id_changes = NULL;
 	dev->mt_sync.slot_update = NULL;
-	dev->mt_sync.mt_state = NULL;
 }
 
 static int
@@ -349,11 +347,9 @@ init_slots(struct libevdev *dev)
 	free(dev->mt_slot_vals);
 	free(dev->mt_sync.tracking_id_changes);
 	free(dev->mt_sync.slot_update);
-	free(dev->mt_sync.mt_state);
 	dev->mt_slot_vals = NULL;
 	dev->mt_sync.tracking_id_changes = NULL;
 	dev->mt_sync.slot_update = NULL;
-	dev->mt_sync.mt_state = NULL;
 
 	/* devices with ABS_RESERVED aren't MT devices,
 	   see the documentation for multitouch-related
@@ -377,10 +373,6 @@ init_slots(struct libevdev *dev)
 	}
 	dev->current_slot = abs_info->value;
 
-	dev->mt_sync.mt_state_sz = sizeof(*dev->mt_sync.mt_state) +
-				   (dev->num_slots) * sizeof(int);
-	dev->mt_sync.mt_state = calloc(1, dev->mt_sync.mt_state_sz);
-
 	dev->mt_sync.tracking_id_changes_sz = NLONGS(dev->num_slots) * sizeof(long);
 	dev->mt_sync.tracking_id_changes = malloc(dev->mt_sync.tracking_id_changes_sz);
 
@@ -388,8 +380,7 @@ init_slots(struct libevdev *dev)
 	dev->mt_sync.slot_update = malloc(dev->mt_sync.slot_update_sz);
 
 	if (!dev->mt_sync.tracking_id_changes ||
-	    !dev->mt_sync.slot_update ||
-	    !dev->mt_sync.mt_state) {
+	    !dev->mt_sync.slot_update) {
 		rc = -ENOMEM;
 		goto out;
 	}
@@ -691,7 +682,6 @@ sync_mt_state(struct libevdev *dev, int create_events)
 	int rc;
 	int axis, slot;
 	int last_reported_slot = 0;
-	struct mt_sync_state *mt_state = dev->mt_sync.mt_state;
 	unsigned long *slot_update = dev->mt_sync.slot_update;
 	unsigned long *tracking_id_changes = dev->mt_sync.tracking_id_changes;
 	int need_tracking_id_changes = 0;
@@ -703,30 +693,35 @@ sync_mt_state(struct libevdev *dev, int create_events)
 #define AXISBIT(_slot, _axis) (_slot * ABS_MT_CNT + _axis - ABS_MT_MIN)
 
 	for (axis = ABS_MT_MIN; axis <= ABS_MT_MAX; axis++) {
+		/* EVIOCGMTSLOTS required format */
+		struct mt_sync_state {
+			uint32_t code;
+			int32_t val[dev->num_slots];
+		} mt_state;
+
 		if (axis == ABS_MT_SLOT)
 			continue;
 
 		if (!libevdev_has_event_code(dev, EV_ABS, axis))
 			continue;
 
-		mt_state->code = axis;
-		rc = ioctl(dev->fd, EVIOCGMTSLOTS(dev->mt_sync.mt_state_sz), mt_state);
+		mt_state.code = axis;
+		rc = ioctl(dev->fd, EVIOCGMTSLOTS(sizeof(mt_state)), &mt_state);
 		if (rc < 0)
 			goto out;
 
 		for (slot = 0; slot < dev->num_slots; slot++) {
-
-			if (*slot_value(dev, slot, axis) == mt_state->val[slot])
+			if (*slot_value(dev, slot, axis) == mt_state.val[slot])
 				continue;
 
 			if (axis == ABS_MT_TRACKING_ID &&
 			    *slot_value(dev, slot, axis) != -1 &&
-			    mt_state->val[slot] != -1) {
+			    mt_state.val[slot] != -1) {
 				set_bit(tracking_id_changes, slot);
 				need_tracking_id_changes = 1;
 			}
 
-			*slot_value(dev, slot, axis) = mt_state->val[slot];
+			*slot_value(dev, slot, axis) = mt_state.val[slot];
 
 			set_bit(slot_update, AXISBIT(slot, axis));
 			/* note that this slot has updates */
