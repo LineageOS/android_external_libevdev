@@ -108,8 +108,6 @@ struct libevdev {
 	struct timeval last_event_time;
 
 	struct {
-		unsigned long *slot_update;
-		size_t slot_update_sz;		 /* in bytes */
 		unsigned long *tracking_id_changes;
 		size_t tracking_id_changes_sz;	 /* in bytes */
 	} mt_sync;

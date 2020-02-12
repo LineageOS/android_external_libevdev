@@ -201,7 +201,6 @@ libevdev_reset(struct libevdev *dev)
 	free(dev->uniq);
 	free(dev->mt_slot_vals);
 	free(dev->mt_sync.tracking_id_changes);
-	free(dev->mt_sync.slot_update);
 	memset(dev, 0, sizeof(*dev));
 	dev->fd = -1;
 	dev->initialized = false;
@@ -332,10 +331,8 @@ free_slots(struct libevdev *dev)
 	dev->num_slots = -1;
 	free(dev->mt_slot_vals);
 	free(dev->mt_sync.tracking_id_changes);
-	free(dev->mt_sync.slot_update);
 	dev->mt_slot_vals = NULL;
 	dev->mt_sync.tracking_id_changes = NULL;
-	dev->mt_sync.slot_update = NULL;
 }
 
 static int
@@ -346,10 +343,8 @@ init_slots(struct libevdev *dev)
 
 	free(dev->mt_slot_vals);
 	free(dev->mt_sync.tracking_id_changes);
-	free(dev->mt_sync.slot_update);
 	dev->mt_slot_vals = NULL;
 	dev->mt_sync.tracking_id_changes = NULL;
-	dev->mt_sync.slot_update = NULL;
 
 	/* devices with ABS_RESERVED aren't MT devices,
 	   see the documentation for multitouch-related
@@ -376,11 +371,7 @@ init_slots(struct libevdev *dev)
 	dev->mt_sync.tracking_id_changes_sz = NLONGS(dev->num_slots) * sizeof(long);
 	dev->mt_sync.tracking_id_changes = malloc(dev->mt_sync.tracking_id_changes_sz);
 
-	dev->mt_sync.slot_update_sz = NLONGS(dev->num_slots * ABS_MT_CNT) * sizeof(long);
-	dev->mt_sync.slot_update = malloc(dev->mt_sync.slot_update_sz);
-
-	if (!dev->mt_sync.tracking_id_changes ||
-	    !dev->mt_sync.slot_update) {
+	if (!dev->mt_sync.tracking_id_changes) {
 		rc = -ENOMEM;
 		goto out;
 	}
@@ -682,11 +673,12 @@ sync_mt_state(struct libevdev *dev, int create_events)
 	int rc;
 	int axis, slot;
 	int last_reported_slot = 0;
-	unsigned long *slot_update = dev->mt_sync.slot_update;
+	unsigned long slot_update[NLONGS(dev->num_slots * ABS_MT_CNT)];
 	unsigned long *tracking_id_changes = dev->mt_sync.tracking_id_changes;
 	int need_tracking_id_changes = 0;
 
-	memset(dev->mt_sync.slot_update, 0, dev->mt_sync.slot_update_sz);
+	memset(slot_update, 0, sizeof(slot_update));
+
 	memset(dev->mt_sync.tracking_id_changes, 0,
 	       dev->mt_sync.tracking_id_changes_sz);
 
