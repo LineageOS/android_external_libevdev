@@ -674,10 +674,8 @@ sync_mt_state(struct libevdev *dev, int create_events)
 			int32_t val[dev->num_slots];
 		} mt_state;
 
-		if (axis == ABS_MT_SLOT)
-			continue;
-
-		if (!libevdev_has_event_code(dev, EV_ABS, axis))
+		if (axis == ABS_MT_SLOT ||
+		    !libevdev_has_event_code(dev, EV_ABS, axis))
 			continue;
 
 		mt_state.code = axis;
