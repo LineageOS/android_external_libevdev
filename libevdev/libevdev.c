@@ -61,6 +61,8 @@ struct slot_change_state {
 
 static int sync_mt_state(struct libevdev *dev,
 			 struct slot_change_state *changes_out);
+static int
+update_key_state(struct libevdev *dev, const struct input_event *e);
 
 static inline int*
 slot_value(const struct libevdev *dev, int slot, int axis)
@@ -737,24 +739,70 @@ terminate_slots(struct libevdev *dev,
 		const struct slot_change_state changes[dev->num_slots],
 		int *last_reported_slot)
 {
+	const unsigned int map[] = {BTN_TOOL_FINGER, BTN_TOOL_DOUBLETAP,
+				    BTN_TOOL_TRIPLETAP, BTN_TOOL_QUADTAP,
+				    BTN_TOOL_QUINTTAP};
 	bool touches_stopped = false;
+	int ntouches_before = 0, ntouches_after = 0;
 
+	/* For BTN_TOOL_* emulation, we need to know how many touches we had
+	 * before and how many we have left once we terminate all the ones
+	 * that changed and all the ones that stopped.
+	 */
 	for (int slot = 0; slot < dev->num_slots;  slot++) {
-		if (changes[slot].state == TOUCH_CHANGED ||
-		    changes[slot].state == TOUCH_STOPPED) {
+		switch(changes[slot].state) {
+		case TOUCH_OFF:
+			break;
+		case TOUCH_CHANGED:
+		case TOUCH_STOPPED:
 			queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
 			queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
 
 			*last_reported_slot = slot;
 			touches_stopped = true;
+			ntouches_before++;
+			break;
+		case TOUCH_ONGOING:
+			ntouches_before++;
+			ntouches_after++;
+			break;
+		case TOUCH_STARTED:
+			break;
 		}
 	}
 
 	/* If any of the touches stopped, we need to split the sync state
 	   into two frames - one with all the stopped touches, one with the
 	   new touches starting (if any) */
-	if (touches_stopped)
+	if (touches_stopped) {
+		/* Send through the required BTN_TOOL_ 0 and 1 events for
+		 * the previous and current number of fingers. And update
+		 * our own key state accordingly, so that during the second
+		 * sync event frame sync_key_state() sets everything correctly
+		 * for the *real* number of touches.
+		 */
+		if (ntouches_before <= 5) {
+			struct input_event ev = {
+				.type = EV_KEY,
+				.code = map[ntouches_before - 1],
+				.value = 0,
+			};
+			queue_push_event(dev, ev.type, ev.code, ev.value);
+			update_key_state(dev, &ev);
+		}
+
+		if (ntouches_after <= 5) {
+			struct input_event ev = {
+				.type = EV_KEY,
+				.code = map[ntouches_after - 1],
+				.value = 1,
+			};
+			queue_push_event(dev, ev.type, ev.code, ev.value);
+			update_key_state(dev, &ev);
+		}
+
 		queue_push_event(dev, EV_SYN, SYN_REPORT, 0);
+	}
 }
 
 static int

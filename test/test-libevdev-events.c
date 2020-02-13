@@ -824,6 +824,207 @@ START_TEST(test_syn_delta_tracking_ids)
 }
 END_TEST
 
+START_TEST(test_syn_delta_tracking_ids_btntool)
+{
+       struct uinput_device* uidev;
+       struct libevdev *dev;
+       int rc;
+       struct input_event ev;
+       const int num_slots = 5;
+       struct input_absinfo abs[6] = {
+               { .value = ABS_X, .maximum = 1000 },
+               { .value = ABS_Y, .maximum = 1000 },
+               { .value = ABS_MT_POSITION_X, .maximum = 1000 },
+               { .value = ABS_MT_POSITION_Y, .maximum = 1000 },
+               { .value = ABS_MT_SLOT, .maximum = num_slots },
+               { .value = ABS_MT_TRACKING_ID, .minimum = -1, .maximum = 0xffff },
+       };
+       bool have_tripletap = false,
+            have_doubletap = false,
+            have_quadtap = false,
+            have_quinttap = false;
+
+       test_create_abs_device(&uidev, &dev,
+                              ARRAY_LENGTH(abs), abs,
+                              EV_KEY, BTN_TOOL_FINGER,
+                              EV_KEY, BTN_TOOL_DOUBLETAP,
+                              EV_KEY, BTN_TOOL_TRIPLETAP,
+                              EV_KEY, BTN_TOOL_QUADTAP,
+                              EV_KEY, BTN_TOOL_QUINTTAP,
+                              EV_SYN, SYN_REPORT,
+                              -1);
+
+       /* Test the sync process to make sure we get the BTN_TOOL bits for
+        * touches adjusted correctly when the tracking id changes:
+        * 1) start a bunch of touch points
+        * 2) read data into libevdev, make sure state is up-to-date
+        * 3) change touchpoints
+        * 3.1) change the tracking ID on some (indicating terminated and
+        * re-started touchpoint)
+        * 3.2) change the tracking ID to -1 on some (indicating termianted
+        * touchpoint)
+        * 3.3) just update the data on others
+        * 4) force a sync on the device
+        * 5) make sure we get the right BTN_TOOL_ changes in the caller
+        */
+       for (int i = 0; i < num_slots; i++) {
+               uinput_device_event_multiple(uidev,
+                                            EV_ABS, ABS_MT_SLOT, i,
+                                            EV_ABS, ABS_MT_TRACKING_ID, 111,
+                                            EV_ABS, ABS_X, 100 + 10 * i,
+                                            EV_ABS, ABS_Y, 100 + 10 * i,
+                                            EV_ABS, ABS_MT_POSITION_X, 100,
+                                            EV_ABS, ABS_MT_POSITION_Y, 100,
+                                            -1, -1);
+               switch (i) {
+               case 0:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_FINGER, 1);
+                       break;
+               case 1:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_FINGER, 0);
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
+                       break;
+               case 2:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
+                       break;
+               case 3:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_TRIPLETAP, 0);
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUADTAP, 1);
+                       break;
+               case 4:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUADTAP, 0);
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUINTTAP, 1);
+                       break;
+               case 5:
+                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUINTTAP, 0);
+                       break;
+               default:
+                       ck_abort();
+               }
+               uinput_device_event(uidev, EV_SYN, SYN_REPORT, 0);
+       }
+
+       do {
+               rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
+               ck_assert_int_ne(rc, LIBEVDEV_READ_STATUS_SYNC);
+       } while (rc >= 0);
+
+       /* we have a bunch of touches now, and libevdev knows it.
+        * - stop touch 0
+        * - stop and restart touch 1 and 4
+        * - leave 2, 3 unchanged
+        */
+       uinput_device_event_multiple(uidev,
+                                    EV_ABS, ABS_MT_SLOT, 0,
+                                    EV_ABS, ABS_MT_TRACKING_ID, -1,
+                                    EV_KEY, BTN_TOOL_QUINTTAP, 0,
+                                    EV_KEY, BTN_TOOL_QUADTAP, 1,
+                                    EV_SYN, SYN_REPORT, 0,
+                                    -1, -1);
+       uinput_device_event_multiple(uidev,
+                                    EV_ABS, ABS_MT_SLOT, 1,
+                                    EV_ABS, ABS_MT_TRACKING_ID, -1,
+                                    EV_KEY, BTN_TOOL_QUADTAP, 0,
+                                    EV_KEY, BTN_TOOL_TRIPLETAP, 1,
+                                    EV_SYN, SYN_REPORT, 0,
+                                    -1, -1);
+       uinput_device_event_multiple(uidev,
+                                    EV_ABS, ABS_MT_SLOT, 1,
+                                    EV_ABS, ABS_MT_TRACKING_ID, 666,
+                                    EV_ABS, ABS_X, 666,
+                                    EV_ABS, ABS_Y, 666,
+                                    EV_ABS, ABS_MT_POSITION_X, 666,
+                                    EV_ABS, ABS_MT_POSITION_Y, 666,
+                                    EV_KEY, BTN_TOOL_TRIPLETAP, 0,
+                                    EV_KEY, BTN_TOOL_QUADTAP, 1,
+                                    EV_SYN, SYN_REPORT, 0,
+                                    -1, -1);
+       uinput_device_event_multiple(uidev,
+                                    EV_ABS, ABS_MT_SLOT, 4,
+                                    EV_ABS, ABS_MT_TRACKING_ID, -1,
+                                    EV_KEY, BTN_TOOL_QUADTAP, 0,
+                                    EV_KEY, BTN_TOOL_TRIPLETAP, 1,
+                                    EV_SYN, SYN_REPORT, 0,
+                                    -1, -1);
+       uinput_device_event_multiple(uidev,
+                                    EV_ABS, ABS_MT_SLOT, 4,
+                                    EV_ABS, ABS_MT_TRACKING_ID, 777,
+                                    EV_ABS, ABS_X, 777,
+                                    EV_ABS, ABS_Y, 777,
+                                    EV_ABS, ABS_MT_POSITION_X, 777,
+                                    EV_ABS, ABS_MT_POSITION_Y, 777,
+                                    EV_KEY, BTN_TOOL_QUADTAP, 1,
+                                    EV_KEY, BTN_TOOL_TRIPLETAP, 0,
+                                    EV_SYN, SYN_REPORT, 0,
+                                    -1, -1);
+
+       /* Force sync */
+       rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_FORCE_SYNC, &ev);
+       ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SYNC);
+
+       /* In the first sync frame, we expect us to drop to 2 touches - we
+        * started with 5, 1 stopped, 2 stopped+restarted */
+       while ((rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev)) != -EAGAIN) {
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_QUINTTAP)) {
+                       ck_assert(!have_quinttap);
+                       assert_event(&ev, EV_KEY, BTN_TOOL_QUINTTAP, 0);
+                       have_quinttap = true;
+               }
+
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_DOUBLETAP)) {
+                       ck_assert(!have_doubletap);
+                       assert_event(&ev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
+                       have_doubletap = true;
+               }
+
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_TRIPLETAP));
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_QUADTAP));
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_FINGER));
+
+               if (libevdev_event_is_code(&ev, EV_SYN, SYN_REPORT)) {
+                       ck_assert(have_doubletap);
+                       ck_assert(have_quinttap);
+                       ck_assert(!have_tripletap);
+                       break;
+               }
+       }
+
+       have_tripletap = false;
+       have_doubletap = false;
+       have_quadtap = false;
+
+       /* In the second sync frame, we expect to go back to 4 touches,
+        * recovering the two stopped+started touches */
+       while ((rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev)) != -EAGAIN) {
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_QUADTAP)) {
+                       ck_assert(!have_quadtap);
+                       assert_event(&ev, EV_KEY, BTN_TOOL_QUADTAP, 1);
+                       have_quadtap = true;
+               }
+
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_DOUBLETAP)) {
+                       ck_assert(!have_doubletap);
+                       assert_event(&ev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+                       have_doubletap = true;
+               }
+
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_TRIPLETAP));
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_QUINTTAP));
+               ck_assert(!libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_FINGER));
+
+               if (libevdev_event_is_code(&ev, EV_SYN, SYN_REPORT)) {
+                       ck_assert(have_doubletap);
+                       ck_assert(have_quadtap);
+                       break;
+               }
+       }
+
+        uinput_device_free(uidev);
+        libevdev_free(dev);
+}
+END_TEST
+
 START_TEST(test_syn_delta_late_sync)
 {
 	struct uinput_device* uidev;
@@ -1875,6 +2076,7 @@ TEST_SUITE_ROOT_PRIVILEGES(libevdev_events)
 	add_test(s, test_syn_delta_fake_mt);
 	add_test(s, test_syn_delta_late_sync);
 	add_test(s, test_syn_delta_tracking_ids);
+	add_test(s, test_syn_delta_tracking_ids_btntool);
 
 	add_test(s, test_skipped_sync);
 	add_test(s, test_incomplete_sync);
