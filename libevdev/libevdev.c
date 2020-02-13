@@ -684,17 +684,19 @@ sync_mt_state(struct libevdev *dev, int create_events)
 			goto out;
 
 		for (int slot = 0; slot < dev->num_slots; slot++) {
-			if (*slot_value(dev, slot, axis) == mt_state.val[slot])
+			int val_before = *slot_value(dev, slot, axis),
+			    val_after = mt_state.val[slot];
+
+			if (val_before == val_after)
 				continue;
 
 			if (axis == ABS_MT_TRACKING_ID &&
-			    *slot_value(dev, slot, axis) != -1 &&
-			    mt_state.val[slot] != -1) {
+			    val_before != -1 && val_after != -1) {
 				set_bit(tracking_id_changes, slot);
 				need_tracking_id_changes = 1;
 			}
 
-			*slot_value(dev, slot, axis) = mt_state.val[slot];
+			*slot_value(dev, slot, axis) = val_after;
 
 			set_bit(slot_update[slot], axis);
 			/* note that this slot has updates */
