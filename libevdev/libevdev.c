@@ -59,7 +59,8 @@ struct slot_change_state {
 	unsigned long axes[NLONGS(ABS_CNT)]; /* bitmask for updated axes */
 };
 
-static int sync_mt_state(struct libevdev *dev, int create_events);
+static int sync_mt_state(struct libevdev *dev,
+			 struct slot_change_state *changes_out);
 
 static inline int*
 slot_value(const struct libevdev *dev, int slot, int axis)
@@ -533,8 +534,10 @@ libevdev_set_fd(struct libevdev* dev, int fd)
 	if (rc != 0)
 		goto out;
 
-	if (dev->num_slots != -1)
-		sync_mt_state(dev, 0);
+	if (dev->num_slots != -1) {
+		struct slot_change_state unused[dev->num_slots];
+		sync_mt_state(dev, unused);
+	}
 
 	rc = init_event_queue(dev);
 	if (rc < 0) {
@@ -669,13 +672,11 @@ out:
 }
 
 static int
-sync_mt_state(struct libevdev *dev, int create_events)
+sync_mt_state(struct libevdev *dev,
+	      struct slot_change_state changes_out[dev->num_slots])
 {
-	struct input_absinfo abs_info;
 	int rc;
-	int last_reported_slot = 0;
 	struct slot_change_state changes[dev->num_slots];
-	int need_tracking_id_changes = 0;
 
 	memset(changes, 0, sizeof(changes));
 
@@ -710,7 +711,6 @@ sync_mt_state(struct libevdev *dev, int create_events)
 				} else if (val_before != -1 && val_after != -1 &&
 					   val_before != val_after) {
 					changes[slot].state = TOUCH_CHANGED;
-					need_tracking_id_changes = 1;
 				} else {
 					changes[slot].state = TOUCH_OFF;
 				}
@@ -727,24 +727,36 @@ sync_mt_state(struct libevdev *dev, int create_events)
 		}
 	}
 
-	if (!create_events) {
-		rc = 0;
-		goto out;
+	memcpy(changes_out, changes, sizeof(changes));
+out:
+	return rc;
+}
+
+static int
+push_mt_sync_events(struct libevdev *dev,
+		    const struct slot_change_state changes[dev->num_slots])
+{
+	struct input_absinfo abs_info;
+	int last_reported_slot = 0;
+	int rc;
+	bool touches_stopped = false;
+
+	for (int slot = 0; slot < dev->num_slots;  slot++) {
+		if (changes[slot].state != TOUCH_CHANGED)
+			continue;
+
+		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
+		queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+
+		last_reported_slot = slot;
+		touches_stopped = true;
 	}
 
-	if (need_tracking_id_changes) {
-		for (int slot = 0; slot < dev->num_slots;  slot++) {
-			if (changes[slot].state != TOUCH_CHANGED)
-				continue;
-
-			queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
-			queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
-
-			last_reported_slot = slot;
-		}
-
+	/* If any of the touches stopped, we need to split the sync state
+	   into two frames - one with all the stopped touches, one with the
+	   new touches starting (if any) */
+	if (touches_stopped)
 		queue_push_event(dev, EV_SYN, SYN_REPORT, 0);
-	}
 
 	for (int slot = 0; slot < dev->num_slots;  slot++) {
 		if (!bit_is_set(changes[slot].axes, ABS_MT_SLOT))
@@ -859,8 +871,13 @@ sync_state(struct libevdev *dev)
 	if (rc == 0 && libevdev_has_event_type(dev, EV_ABS))
 		rc = sync_abs_state(dev);
 	if (rc == 0 && dev->num_slots > -1 &&
-	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT))
-		rc = sync_mt_state(dev, 1);
+	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
+		struct slot_change_state changes[dev->num_slots];
+
+		rc = sync_mt_state(dev, changes);
+		if (rc == 0)
+			push_mt_sync_events(dev, changes);
+	}
 
 	dev->queue_nsync = queue_num_elements(dev);
 
