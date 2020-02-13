@@ -111,7 +111,7 @@ check-commit:
              --assert=plain \
              ./.gitlab-ci/check-commit.py
   except:
-    - master@libinput/libinput
+    - master@libevdev/libevdev
   variables:
     GIT_DEPTH: 100
   artifacts:
