@@ -740,14 +740,13 @@ terminate_slots(struct libevdev *dev,
 	bool touches_stopped = false;
 
 	for (int slot = 0; slot < dev->num_slots;  slot++) {
-		if (changes[slot].state != TOUCH_CHANGED)
-			continue;
+		if (changes[slot].state == TOUCH_CHANGED) {
+			queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
+			queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
 
-		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
-		queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
-
-		*last_reported_slot = slot;
-		touches_stopped = true;
+			*last_reported_slot = slot;
+			touches_stopped = true;
+		}
 	}
 
 	/* If any of the touches stopped, we need to split the sync state
