@@ -28,7 +28,7 @@ include:
     file: '/templates/centos.yml'
 
 stages:
-  - container_prep   # rebuild the container images if there is a change
+  - prep             # rebuild the container images if there is a change
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
   - distro           # distribs test
@@ -79,6 +79,8 @@ variables:
       - test/test-suite.log
     expire_in: 1 week
     when: on_failure
+    reports:
+      junit: junit-*.xml
 
 .default_build: &default_build
   script:
@@ -91,9 +93,30 @@ variables:
 
 #################################################################
 #                                                               #
-#                    container prep stage                       #
+#                          prep stage                           #
 #                                                               #
 #################################################################
+
+check-commit:
+  image: golang:alpine
+  stage: prep
+  before_script:
+    - apk add python3 git
+  script:
+    - pip3 install GitPython
+    - pip3 install pytest
+    - |
+      pytest --junitxml=results.xml \
+             --tb=line \
+             --assert=plain \
+             ./.gitlab-ci/check-commit.py
+  except:
+    - master@libinput/libinput
+  variables:
+    GIT_DEPTH: 100
+  artifacts:
+    reports:
+      junit: results.xml
 
 .pull_upstream_or_rebuild: &pull_upstream_or_rebuild
   before_script:
@@ -117,7 +140,7 @@ variables:
 
 fedora:30@container-prep:
   extends: .fedora@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 30
@@ -128,7 +151,7 @@ fedora:30@container-prep:
 
 fedora:31@container-prep:
   extends: .fedora@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 31
@@ -140,7 +163,7 @@ fedora:31@container-prep:
 
 ubuntu:19.10@container-prep:
   extends: .ubuntu@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.10"
@@ -151,7 +174,7 @@ ubuntu:19.10@container-prep:
 
 ubuntu:19.04@container-prep:
   extends: .ubuntu@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.04"
@@ -162,7 +185,7 @@ ubuntu:19.04@container-prep:
 
 debian:stable@container-prep:
   extends: .debian@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     DEBIAN_VERSION: stable
@@ -173,7 +196,7 @@ debian:stable@container-prep:
 
 debian:sid@container-prep:
   extends: .debian@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     DEBIAN_VERSION: sid
@@ -184,7 +207,7 @@ debian:sid@container-prep:
 
 .centos@container-prep:
   extends: .centos@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     CENTOS_VERSION: 7
@@ -205,7 +228,7 @@ centos:8@container-prep:
 
 arch:rolling@container-prep:
   extends: .arch@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     ARCH_VERSION: rolling
@@ -216,7 +239,7 @@ arch:rolling@container-prep:
 
 alpine:latest@container-prep:
   extends: .alpine@container-build
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     ALPINE_VERSION: latest
