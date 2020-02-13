@@ -73,7 +73,7 @@ variables:
   LIBEVDEV_SKIP_ROOT_TESTS: 1
   GIT_DEPTH: 1
 
-.default_artifacts: &default_artifacts
+.default_artifacts:
   artifacts:
     paths:
       - test/test-suite.log
@@ -82,14 +82,15 @@ variables:
     reports:
       junit: junit-*.xml
 
-.default_build: &default_build
+.default_build:
+  extends:
+    - .default_artifacts
   script:
     - autoreconf -ivf
     - ./configure --disable-silent-rules $CONFIGURE_FLAGS
     - make
     - make check
     - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
-  <<: *default_artifacts
 
 #################################################################
 #                                                               #
@@ -118,7 +119,7 @@ check-commit:
     reports:
       junit: results.xml
 
-.pull_upstream_or_rebuild: &pull_upstream_or_rebuild
+.pull_upstream_or_rebuild:
   before_script:
     # log in to the registry
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -139,7 +140,9 @@ check-commit:
       fi
 
 fedora:30@container-prep:
-  extends: .fedora@container-build
+  extends:
+    - .fedora@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -147,10 +150,11 @@ fedora:30@container-prep:
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
-  <<: *pull_upstream_or_rebuild
 
 fedora:31@container-prep:
-  extends: .fedora@container-build
+  extends:
+    - .fedora@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -158,11 +162,11 @@ fedora:31@container-prep:
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
-  <<: *pull_upstream_or_rebuild
-
 
 ubuntu:19.10@container-prep:
-  extends: .ubuntu@container-build
+  extends:
+    - .ubuntu@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -170,10 +174,11 @@ ubuntu:19.10@container-prep:
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
-  <<: *pull_upstream_or_rebuild
 
 ubuntu:19.04@container-prep:
-  extends: .ubuntu@container-build
+  extends:
+    - .ubuntu@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -181,10 +186,11 @@ ubuntu:19.04@container-prep:
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
-  <<: *pull_upstream_or_rebuild
 
 debian:stable@container-prep:
-  extends: .debian@container-build
+  extends:
+    - .debian@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -192,10 +198,11 @@ debian:stable@container-prep:
     DISTRIB_FLAVOR: debian
     DISTRIB_VERSION: $DEBIAN_VERSION
     TAG: $DEBIAN_TAG
-  <<: *pull_upstream_or_rebuild
 
 debian:sid@container-prep:
-  extends: .debian@container-build
+  extends:
+    - .debian@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -203,10 +210,11 @@ debian:sid@container-prep:
     DISTRIB_FLAVOR: debian
     DISTRIB_VERSION: $DEBIAN_VERSION
     TAG: $DEBIAN_TAG
-  <<: *pull_upstream_or_rebuild
 
 .centos@container-prep:
-  extends: .centos@container-build
+  extends:
+    - .centos@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -214,7 +222,6 @@ debian:sid@container-prep:
     DISTRIB_FLAVOR: centos
     DISTRIB_VERSION: $CENTOS_VERSION
     TAG: $CENTOS_TAG
-  <<: *pull_upstream_or_rebuild
 
 centos:7@container-prep:
   extends: .centos@container-prep
@@ -227,7 +234,9 @@ centos:8@container-prep:
     CENTOS_VERSION: 8
 
 arch:rolling@container-prep:
-  extends: .arch@container-build
+  extends:
+    - .arch@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -235,10 +244,11 @@ arch:rolling@container-prep:
     DISTRIB_FLAVOR: archlinux
     DISTRIB_VERSION: $ARCH_VERSION
     TAG: $ARCH_TAG
-  <<: *pull_upstream_or_rebuild
 
 alpine:latest@container-prep:
-  extends: .alpine@container-build
+  extends:
+    - .alpine@container-build
+    - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -246,7 +256,6 @@ alpine:latest@container-prep:
     DISTRIB_FLAVOR: alpine
     DISTRIB_VERSION: $ALPINE_VERSION
     TAG: $ALPINE_TAG
-  <<: *pull_upstream_or_rebuild
 
 #################################################################
 #                                                               #
@@ -405,9 +414,9 @@ alpine:latest@container-clean:
 #################################################################
 
 .build@template:
+  extends:
+    - .default_build
   stage: build
-  <<: *default_artifacts
-  <<: *default_build
   dependencies: []
   variables:
     MAKE_ARGS: "distcheck"
@@ -527,7 +536,6 @@ fedora:31@no-doxygen:
   extends: .fedora-custom-build@template
   before_script:
     - dnf remove -y doxygen
-  <<: *default_build
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
@@ -536,7 +544,6 @@ fedora:31@no-doxygen-check-valgrind:
   extends: .fedora-custom-build@template
   before_script:
     - dnf remove -y doxygen valgrind check check-devel
-  <<: *default_build
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
@@ -547,6 +554,5 @@ fedora:31@no-nm:
 
 fedora:31@enable-gcov:
   extends: .fedora-custom-build@template
-  <<: *default_artifacts
   variables:
     CONFIGURE_FLAGS: "--enable-gcov"
