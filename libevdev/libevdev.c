@@ -740,7 +740,8 @@ terminate_slots(struct libevdev *dev,
 	bool touches_stopped = false;
 
 	for (int slot = 0; slot < dev->num_slots;  slot++) {
-		if (changes[slot].state == TOUCH_CHANGED) {
+		if (changes[slot].state == TOUCH_CHANGED ||
+		    changes[slot].state == TOUCH_STOPPED) {
 			queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
 			queue_push_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
 
@@ -765,7 +766,10 @@ push_mt_sync_events(struct libevdev *dev,
 	int rc;
 
 	for (int slot = 0; slot < dev->num_slots;  slot++) {
-		if (!bit_is_set(changes[slot].axes, ABS_MT_SLOT))
+		/* stopped touches were already terminated in
+		 * terminate_slots */
+		if (changes[slot].state == TOUCH_STOPPED ||
+		    !bit_is_set(changes[slot].axes, ABS_MT_SLOT))
 			continue;
 
 		queue_push_event(dev, EV_ABS, ABS_MT_SLOT, slot);
@@ -863,10 +867,33 @@ static int
 sync_state(struct libevdev *dev)
 {
 	int rc = 0;
+	bool want_mt_sync = false;
+	int last_reported_slot = 0;
+	struct slot_change_state changes[dev->num_slots > 0 ? dev->num_slots : 1];
+		memset(changes, 0, sizeof(changes));
 
 	 /* see section "Discarding events before synchronizing" in
 	  * libevdev/libevdev.h */
 	drain_events(dev);
+
+	/* We generate one or two event frames during sync.
+	 * The first one (if it exists) terminates all slots that have
+	 * either terminated during SYN_DROPPED or changed their tracking
+	 * ID.
+	 *
+	 * The second frame syncs everything up to the current state of the
+	 * device - including re-starting those slots that have a changed
+	 * tracking id.
+	 */
+	if (dev->num_slots > -1 &&
+	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
+		want_mt_sync = true;
+		rc = sync_mt_state(dev, changes);
+		if (rc == 0)
+			terminate_slots(dev, changes, &last_reported_slot);
+		else
+			want_mt_sync = false;
+	}
 
 	if (libevdev_has_event_type(dev, EV_KEY))
 		rc = sync_key_state(dev);
@@ -876,17 +903,8 @@ sync_state(struct libevdev *dev)
 		rc = sync_sw_state(dev);
 	if (rc == 0 && libevdev_has_event_type(dev, EV_ABS))
 		rc = sync_abs_state(dev);
-	if (rc == 0 && dev->num_slots > -1 &&
-	    libevdev_has_event_code(dev, EV_ABS, ABS_MT_SLOT)) {
-		struct slot_change_state changes[dev->num_slots];
-		int last_reported_slot = 0;
-
-		rc = sync_mt_state(dev, changes);
-		if (rc == 0) {
-			terminate_slots(dev, changes, &last_reported_slot);
-			push_mt_sync_events(dev, changes, last_reported_slot);
-		}
-	}
+	if (rc == 0 && want_mt_sync)
+		push_mt_sync_events(dev, changes, last_reported_slot);
 
 	dev->queue_nsync = queue_num_elements(dev);
 
