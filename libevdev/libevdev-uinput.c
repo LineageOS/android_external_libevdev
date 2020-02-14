@@ -293,8 +293,7 @@ fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 }
 
 static int
-uinput_create_write(const struct libevdev *dev, int fd,
-		    struct libevdev_uinput *new_device)
+uinput_create_write(const struct libevdev *dev, int fd)
 {
 	int rc;
 	struct uinput_user_dev uidev;
@@ -381,7 +380,7 @@ libevdev_uinput_create_from_device(const struct libevdev *dev, int fd, struct li
 	    uinput_version >= 5)
 		rc = uinput_create_DEV_SETUP(dev, fd, new_device);
 	else
-		rc = uinput_create_write(dev, fd, new_device);
+		rc = uinput_create_write(dev, fd);
 
 	if (rc != 0)
 		goto error;
