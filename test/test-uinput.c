@@ -69,7 +69,7 @@ START_TEST(test_uinput_create_device)
 		if (max == -1)
 			continue;
 
-		for (code = 0; code < max; code++) {
+		for (code = 0; code < (unsigned int)max; code++) {
 			ck_assert_int_eq(libevdev_has_event_code(dev, type, code),
 					 libevdev_has_event_code(dev2, type, code));
 		}
@@ -150,7 +150,7 @@ START_TEST(test_uinput_create_device_from_fd)
 		if (max == -1)
 			continue;
 
-		for (code = 0; code < max; code++) {
+		for (code = 0; code < (unsigned int)max; code++) {
 			ck_assert_int_eq(libevdev_has_event_code(dev, type, code),
 					 libevdev_has_event_code(dev2, type, code));
 		}
