@@ -20,7 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <limits.h>
 #include <libevdev/libevdev-int.h>
 #include "test-common.h"

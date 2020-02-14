@@ -20,7 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include "test-common.h"
 
 START_TEST(test_info)

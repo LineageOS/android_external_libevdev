@@ -23,7 +23,7 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#include <config.h>
+#include "config.h"
 #include <stdbool.h>
 #include <string.h>
 

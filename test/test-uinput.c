@@ -20,7 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <linux/input.h>
 #include <errno.h>
 #include <unistd.h>

@@ -20,7 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <check.h>
 #include <errno.h>
 #include <fcntl.h>

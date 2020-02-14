@@ -20,7 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <libevdev/libevdev.h>
 #include <stdbool.h>
 #include <stdio.h>
