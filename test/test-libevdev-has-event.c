@@ -249,7 +249,7 @@ START_TEST(test_input_props)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	int rc, i;
-	struct input_absinfo abs = {0, 0, 2, 0, 0};
+	struct input_absinfo abs = { .value = 0, .minimum = 0, .maximum = 2};
 
 	uidev = uinput_device_new(TEST_DEVICE_NAME);
 	rc = uinput_device_set_abs_bit(uidev, ABS_X, &abs);
@@ -282,7 +282,7 @@ START_TEST(test_set_input_props)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	int rc, fd;
-	struct input_absinfo abs = {0, 0, 2, 0, 0};
+	struct input_absinfo abs = { .value = 0, .minimum = 0, .maximum = 2};
 
 	dev = libevdev_new();
 	ck_assert_int_eq(libevdev_enable_property(dev, INPUT_PROP_MAX + 1), -1);
@@ -318,12 +318,14 @@ START_TEST(test_slot_init_value)
 	const int nabs = 6;
 	int i;
 	int fd;
-	struct input_absinfo abs[] = { { ABS_X, 0, 1000 },
-				       { ABS_Y, 0, 1000 },
-				       { ABS_MT_POSITION_X, 0, 1000 },
-				       { ABS_MT_POSITION_Y, 0, 1000 },
-				       { ABS_MT_TRACKING_ID, -1, 2 },
-				       { ABS_MT_SLOT, 0, 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_TRACKING_ID, .minimum = -1, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = 1 }
+	};
 
 	uidev = uinput_device_new(TEST_DEVICE_NAME);
 
@@ -371,10 +373,12 @@ START_TEST(test_no_slots)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-					{ ABS_Y, 0, 2 },
-					{ ABS_MT_POSITION_X, 0, 2 },
-					{ ABS_MT_POSITION_Y, 0, 2 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 4, abs,
 			       -1);
@@ -392,11 +396,13 @@ START_TEST(test_slot_number)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	const int nslots = 4;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-					{ ABS_Y, 0, 2 },
-					{ ABS_MT_POSITION_X, 0, 2 },
-					{ ABS_MT_POSITION_Y, 0, 2 },
-					{ ABS_MT_SLOT, 0, nslots - 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = nslots - 1 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 5, abs,
 			       -1);
@@ -415,12 +421,14 @@ START_TEST(test_invalid_mt_device)
 	struct libevdev *dev;
 	const int nslots = 4;
 	int value;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-		{ ABS_Y, 0, 2 },
-		{ ABS_MT_POSITION_X, 0, 2 },
-		{ ABS_MT_POSITION_Y, 0, 2 },
-		{ ABS_MT_SLOT - 1, 0, 2 },
-		{ ABS_MT_SLOT, 0, nslots - 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT - 1, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = nslots - 1 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 6, abs,
 			       -1);
@@ -732,7 +740,7 @@ START_TEST(test_device_enable_bit)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev, *dev2;
-	struct input_absinfo abs = {ABS_X, 0, 2};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 2 };
 	int rc;
 
 	test_create_abs_device(&uidev, &dev, 1, &abs,
@@ -776,7 +784,7 @@ START_TEST(test_device_enable_bit_invalid)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs = {ABS_X, 0, 1};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 1 };
 
 	test_create_abs_device(&uidev, &dev, 1, &abs,
 			       -1);
@@ -802,7 +810,10 @@ START_TEST(test_device_disable_bit)
 	struct uinput_device* uidev;
 	struct libevdev *dev, *dev2;
 	int rc;
-	struct input_absinfo abs[2] = {{ABS_X, 0, 1}, {ABS_Y, 0, 1}};
+	struct input_absinfo abs[2] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 1 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 1 },
+	};
 
 	test_create_abs_device(&uidev, &dev,
 			       2, abs,
@@ -848,7 +859,7 @@ START_TEST(test_device_disable_bit_invalid)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs = {ABS_X, 0, 1};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 1 };
 
 	test_create_abs_device(&uidev, &dev, 1, &abs, -1);
 

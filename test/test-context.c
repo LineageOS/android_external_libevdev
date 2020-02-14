@@ -71,7 +71,11 @@ START_TEST(test_bits)
 		for (unsigned code = 0; code <= max; code++) {
 			struct libevdev *d = libevdev_new();
 			const struct input_absinfo abs = {
-				10, 20, 30, 40, 50
+				.minimum = 10,
+				.maximum = 20,
+				.fuzz = 30,
+				.flat = 40,
+				.resolution = 50,
 			};
 			const void *data = NULL;
 

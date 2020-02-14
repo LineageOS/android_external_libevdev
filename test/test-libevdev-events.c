@@ -1047,11 +1047,12 @@ START_TEST(test_syn_delta_fake_mt)
 	struct libevdev *dev;
 	int rc;
 	struct input_event ev;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 1000 },
-		{ ABS_Y, 0, 1000 },
-		{ ABS_MT_POSITION_X, 0, 1000 },
-		{ ABS_MT_POSITION_Y, 0, 1000 },
-		{ ABS_MT_SLOT - 1, 0, 2 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_SLOT - 1, .minimum = 0, .maximum = 2 }};
 		/* don't set ABS_MT_SLOT here, otherwise uinput will init
 		 * slots and the behavior is different to real devices with
 		 * such events */
