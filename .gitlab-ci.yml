@@ -82,7 +82,7 @@ variables:
     reports:
       junit: junit-*.xml
 
-.default_build:
+.autotools_build:
   extends:
     - .default_artifacts
   script:
@@ -417,7 +417,7 @@ alpine:latest@container-clean:
 
 .build@template:
   extends:
-    - .default_build
+    - .autotools_build
   stage: build
   dependencies: []
   variables:
