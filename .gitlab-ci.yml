@@ -58,7 +58,7 @@ variables:
   CENTOS_TAG: '2020-02-03.0'
   DEBIAN_TAG: '2020-02-03.0'
   UBUNTU_TAG: '2020-02-03.0'
-  ARCH_TAG: '2020-02-03.0'
+  ARCH_TAG:   '2020-02-03.0'
   ALPINE_TAG: '2020-02-03.0'
 
   UPSTREAM_REPO: libevdev/libevdev
