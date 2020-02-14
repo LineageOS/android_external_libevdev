@@ -19,6 +19,7 @@ distributions = [
                 'MAKE_ARGS': ('\'\'  # disable distcheck, requires doxygen'),
             }
         },
+        'meson': False
     },
     {
         'name': 'centos', 'version': '8',
@@ -27,6 +28,7 @@ distributions = [
                 'MAKE_ARGS': ('\'\'  # disable distcheck, requires doxygen'),
             }
         },
+        'meson': False
     },
     {'name': 'arch', 'version': 'rolling',
      'flavor': 'archlinux' },  # see https://gitlab.freedesktop.org/wayland/ci-templates/merge_requests/19

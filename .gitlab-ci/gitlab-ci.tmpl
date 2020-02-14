@@ -34,6 +34,7 @@ stages:
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
   - autotools        # distribution builds with autotools
+  - meson            # distribution builds with meson
   - deploy           # trigger wayland's website generation
   - container_clean  # clean up unused container images
 
@@ -45,23 +46,23 @@ variables:
   # Run dnf install/apt-get install/.. with the list of packages for your       #
   # distribution                                                                #
   ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
-  CENTOS_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
-  UBUNTU_DEBS: 'git gcc g++     automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
+  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
+  CENTOS_RPMS: 'git gcc gcc-c++       automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
+  UBUNTU_DEBS: 'git gcc g++     meson automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
   DEBIAN_DEBS: $UBUNTU_DEBS
-  ARCH_PKGS:   'git gcc         automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
-  ALPINE_PKGS: 'git gcc g++     automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
+  ARCH_PKGS:   'git gcc         meson automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
+  ALPINE_PKGS: 'git gcc g++     meson automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
   ############################ end of package lists #############################
   # these tags should be updated each time the list of packages is updated
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2020-02-17.0'
-  CENTOS_TAG: '2020-02-17.0'
-  DEBIAN_TAG: '2020-02-17.0'
-  UBUNTU_TAG: '2020-02-17.0'
-  ARCH_TAG:   '2020-02-17.0'
-  ALPINE_TAG: '2020-02-17.0'
+  FEDORA_TAG: '2020-02-17.1'
+  CENTOS_TAG: '2020-02-17.1'
+  DEBIAN_TAG: '2020-02-17.1'
+  UBUNTU_TAG: '2020-02-17.1'
+  ARCH_TAG:   '2020-02-17.1'
+  ALPINE_TAG: '2020-02-17.1'
 
   UPSTREAM_REPO: libevdev/libevdev
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
@@ -79,6 +80,7 @@ variables:
   artifacts:
     paths:
       - _build/test/test-suite.log
+      - builddir/meson-logs/testlog-*.txt
     expire_in: 1 week
     when: on_failure
     reports:
@@ -95,6 +97,13 @@ variables:
     - make check
     - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
     - popd > /dev/null
+
+.meson_build:
+  extends:
+    - .default_artifacts
+  script:
+    - meson builddir $MESON_ARGS
+    - ninja -C builddir $NINJA_ARGS
 
 #################################################################
 #                                                               #
@@ -282,6 +291,14 @@ check-commit:
   variables:
     MAKE_ARGS: "distcheck"
 
+.meson-build@template:
+  extends:
+    - .meson_build
+  stage: build
+  dependencies: []
+  variables:
+    NINJA_ARGS: "dist"
+
 {% for distro in distributions %}
 
 {{ distro.name }}:{{ distro.version }}@autotools-build:
@@ -297,6 +314,23 @@ check-commit:
       {% endfor %}
     {% endif %}
   needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
+
+{% if distro.meson|default(True) %}
+{{ distro.name }}:{{ distro.version }}@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
+  variables:
+    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {# Where we have extra_variables defined, add them to the list #}
+    {% if distro.build is defined and distro.build.extra_variables is defined %}
+      {% for key, value in distro.build.extra_variables.items() %}
+    {{ key }}: {{ value }}
+      {% endfor %}
+    {% endif %}
+  needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
+{% endif %}
+
 {% endfor %}
 
 # Build argument tests

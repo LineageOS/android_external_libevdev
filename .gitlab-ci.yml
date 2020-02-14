@@ -34,6 +34,7 @@ stages:
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
   - autotools        # distribution builds with autotools
+  - meson            # distribution builds with meson
   - deploy           # trigger wayland's website generation
   - container_clean  # clean up unused container images
 
@@ -45,23 +46,23 @@ variables:
   # Run dnf install/apt-get install/.. with the list of packages for your       #
   # distribution                                                                #
   ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
-  CENTOS_RPMS: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
-  UBUNTU_DEBS: 'git gcc g++     automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
+  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
+  CENTOS_RPMS: 'git gcc gcc-c++       automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
+  UBUNTU_DEBS: 'git gcc g++     meson automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
   DEBIAN_DEBS: $UBUNTU_DEBS
-  ARCH_PKGS:   'git gcc         automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
-  ALPINE_PKGS: 'git gcc g++     automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
+  ARCH_PKGS:   'git gcc         meson automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
+  ALPINE_PKGS: 'git gcc g++     meson automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
   ############################ end of package lists #############################
   # these tags should be updated each time the list of packages is updated
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2020-02-17.0'
-  CENTOS_TAG: '2020-02-17.0'
-  DEBIAN_TAG: '2020-02-17.0'
-  UBUNTU_TAG: '2020-02-17.0'
-  ARCH_TAG:   '2020-02-17.0'
-  ALPINE_TAG: '2020-02-17.0'
+  FEDORA_TAG: '2020-02-17.1'
+  CENTOS_TAG: '2020-02-17.1'
+  DEBIAN_TAG: '2020-02-17.1'
+  UBUNTU_TAG: '2020-02-17.1'
+  ARCH_TAG:   '2020-02-17.1'
+  ALPINE_TAG: '2020-02-17.1'
 
   UPSTREAM_REPO: libevdev/libevdev
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
@@ -79,6 +80,7 @@ variables:
   artifacts:
     paths:
       - _build/test/test-suite.log
+      - builddir/meson-logs/testlog-*.txt
     expire_in: 1 week
     when: on_failure
     reports:
@@ -95,6 +97,13 @@ variables:
     - make check
     - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
     - popd > /dev/null
+
+.meson_build:
+  extends:
+    - .default_artifacts
+  script:
+    - meson builddir $MESON_ARGS
+    - ninja -C builddir $NINJA_ARGS
 
 #################################################################
 #                                                               #
@@ -485,6 +494,14 @@ alpine:latest@container-clean:
   variables:
     MAKE_ARGS: "distcheck"
 
+.meson-build@template:
+  extends:
+    - .meson_build
+  stage: build
+  dependencies: []
+  variables:
+    NINJA_ARGS: "dist"
+
 
 fedora:30@autotools-build:
   extends: .autotools-build@template
@@ -494,6 +511,15 @@ fedora:30@autotools-build:
     FEDORA_VERSION: '30'
   needs: ['fedora:30@container-prep']
 
+fedora:30@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $FEDORA_CONTAINER_IMAGE
+  variables:
+    FEDORA_VERSION: '30'
+  needs: ['fedora:30@container-prep']
+
+
 fedora:31@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -501,6 +527,15 @@ fedora:31@autotools-build:
   variables:
     FEDORA_VERSION: '31'
   needs: ['fedora:31@container-prep']
+
+fedora:31@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $FEDORA_CONTAINER_IMAGE
+  variables:
+    FEDORA_VERSION: '31'
+  needs: ['fedora:31@container-prep']
+
 
 ubuntu:19.10@autotools-build:
   extends: .autotools-build@template
@@ -510,6 +545,15 @@ ubuntu:19.10@autotools-build:
     UBUNTU_VERSION: '19.10'
   needs: ['ubuntu:19.10@container-prep']
 
+ubuntu:19.10@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $UBUNTU_CONTAINER_IMAGE
+  variables:
+    UBUNTU_VERSION: '19.10'
+  needs: ['ubuntu:19.10@container-prep']
+
+
 ubuntu:19.04@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -517,6 +561,15 @@ ubuntu:19.04@autotools-build:
   variables:
     UBUNTU_VERSION: '19.04'
   needs: ['ubuntu:19.04@container-prep']
+
+ubuntu:19.04@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $UBUNTU_CONTAINER_IMAGE
+  variables:
+    UBUNTU_VERSION: '19.04'
+  needs: ['ubuntu:19.04@container-prep']
+
 
 debian:stable@autotools-build:
   extends: .autotools-build@template
@@ -526,6 +579,15 @@ debian:stable@autotools-build:
     DEBIAN_VERSION: 'stable'
   needs: ['debian:stable@container-prep']
 
+debian:stable@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $DEBIAN_CONTAINER_IMAGE
+  variables:
+    DEBIAN_VERSION: 'stable'
+  needs: ['debian:stable@container-prep']
+
+
 debian:sid@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -533,6 +595,15 @@ debian:sid@autotools-build:
   variables:
     DEBIAN_VERSION: 'sid'
   needs: ['debian:sid@container-prep']
+
+debian:sid@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $DEBIAN_CONTAINER_IMAGE
+  variables:
+    DEBIAN_VERSION: 'sid'
+  needs: ['debian:sid@container-prep']
+
 
 centos:7@autotools-build:
   extends: .autotools-build@template
@@ -543,6 +614,8 @@ centos:7@autotools-build:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:7@container-prep']
 
+
+
 centos:8@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -552,6 +625,8 @@ centos:8@autotools-build:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:8@container-prep']
 
+
+
 arch:rolling@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -560,6 +635,15 @@ arch:rolling@autotools-build:
     ARCH_VERSION: 'rolling'
   needs: ['arch:rolling@container-prep']
 
+arch:rolling@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $ARCH_CONTAINER_IMAGE
+  variables:
+    ARCH_VERSION: 'rolling'
+  needs: ['arch:rolling@container-prep']
+
+
 alpine:latest@autotools-build:
   extends: .autotools-build@template
   stage: autotools
@@ -567,6 +651,15 @@ alpine:latest@autotools-build:
   variables:
     ALPINE_VERSION: 'latest'
   needs: ['alpine:latest@container-prep']
+
+alpine:latest@meson-build:
+  extends: .meson-build@template
+  stage: meson
+  image: $ALPINE_CONTAINER_IMAGE
+  variables:
+    ALPINE_VERSION: 'latest'
+  needs: ['alpine:latest@container-prep']
+
 
 # Build argument tests
 #
