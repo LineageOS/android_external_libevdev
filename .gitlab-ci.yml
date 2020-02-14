@@ -76,7 +76,7 @@ variables:
 .default_artifacts:
   artifacts:
     paths:
-      - test/test-suite.log
+      - _build/test/test-suite.log
     expire_in: 1 week
     when: on_failure
     reports:
@@ -86,11 +86,13 @@ variables:
   extends:
     - .default_artifacts
   script:
-    - autoreconf -ivf
-    - ./configure --disable-silent-rules $CONFIGURE_FLAGS
+    - mkdir _build
+    - pushd _build > /dev/null
+    - ../autogen.sh --disable-silent-rules $CONFIGURE_FLAGS
     - make
     - make check
     - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
+    - popd > /dev/null
 
 #################################################################
 #                                                               #
