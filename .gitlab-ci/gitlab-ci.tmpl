@@ -159,146 +159,22 @@ check-commit:
         skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
       fi
 
+{% for distro in distributions %}
 
-### fedora 30
-fedora:30@container-prep:
+### {{ distro.name }} {{ distro.version }}
+{{ distro.name }}:{{ distro.version }}@container-prep:
   extends:
-    - .fedora@container-build
+    - .{{ distro.name }}@container-build
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '30'
-    DISTRIB_FLAVOR: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
+    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    DISTRIB_FLAVOR: {{ distro.flavor|default(distro.name) }}
+    DISTRIB_VERSION: ${{ distro.name.upper() }}_VERSION
+    TAG: ${{ distro.name.upper() }}_TAG
 
-
-### fedora 31
-fedora:31@container-prep:
-  extends:
-    - .fedora@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: '31'
-    DISTRIB_FLAVOR: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
-
-
-### ubuntu 19.10
-ubuntu:19.10@container-prep:
-  extends:
-    - .ubuntu@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.10'
-    DISTRIB_FLAVOR: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
-
-
-### ubuntu 19.04
-ubuntu:19.04@container-prep:
-  extends:
-    - .ubuntu@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    DISTRIB_FLAVOR: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
-
-
-### debian stable
-debian:stable@container-prep:
-  extends:
-    - .debian@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    DEBIAN_VERSION: 'stable'
-    DISTRIB_FLAVOR: debian
-    DISTRIB_VERSION: $DEBIAN_VERSION
-    TAG: $DEBIAN_TAG
-
-
-### debian sid
-debian:sid@container-prep:
-  extends:
-    - .debian@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    DEBIAN_VERSION: 'sid'
-    DISTRIB_FLAVOR: debian
-    DISTRIB_VERSION: $DEBIAN_VERSION
-    TAG: $DEBIAN_TAG
-
-
-### centos 7
-centos:7@container-prep:
-  extends:
-    - .centos@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    CENTOS_VERSION: '7'
-    DISTRIB_FLAVOR: centos
-    DISTRIB_VERSION: $CENTOS_VERSION
-    TAG: $CENTOS_TAG
-
-
-### centos 8
-centos:8@container-prep:
-  extends:
-    - .centos@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    CENTOS_VERSION: '8'
-    DISTRIB_FLAVOR: centos
-    DISTRIB_VERSION: $CENTOS_VERSION
-    TAG: $CENTOS_TAG
-
-
-### arch rolling
-arch:rolling@container-prep:
-  extends:
-    - .arch@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    ARCH_VERSION: 'rolling'
-    DISTRIB_FLAVOR: archlinux
-    DISTRIB_VERSION: $ARCH_VERSION
-    TAG: $ARCH_TAG
-
-
-### alpine latest
-alpine:latest@container-prep:
-  extends:
-    - .alpine@container-build
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    ALPINE_VERSION: 'latest'
-    DISTRIB_FLAVOR: alpine
-    DISTRIB_VERSION: $ALPINE_VERSION
-    TAG: $ALPINE_TAG
-
+{% endfor %}
 
 #################################################################
 #                                                               #
@@ -380,96 +256,17 @@ alpine:latest@container-prep:
   only:
     - schedules
 
+{% for distro in distributions %}
 
-### fedora 30
-fedora:30@container-clean:
+### {{ distro.name }} {{ distro.version }}
+{{ distro.name }}:{{ distro.version }}@container-clean:
   extends: .container-clean
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '30'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    CURRENT_CONTAINER_IMAGE: ${{ distro.name.upper() }}_CONTAINER_IMAGE
 
-
-### fedora 31
-fedora:31@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: '31'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-
-
-### ubuntu 19.10
-ubuntu:19.10@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.10'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
-
-### ubuntu 19.04
-ubuntu:19.04@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
-
-### debian stable
-debian:stable@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    DEBIAN_VERSION: 'stable'
-    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
-
-
-### debian sid
-debian:sid@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    DEBIAN_VERSION: 'sid'
-    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
-
-
-### centos 7
-centos:7@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CENTOS_VERSION: '7'
-    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
-
-
-### centos 8
-centos:8@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CENTOS_VERSION: '8'
-    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
-
-
-### arch rolling
-arch:rolling@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    ARCH_VERSION: 'rolling'
-    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
-
-
-### alpine latest
-alpine:latest@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    ALPINE_VERSION: 'latest'
-    CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
-
+{% endfor %}
 
 #################################################################
 #                                                               #
@@ -485,88 +282,22 @@ alpine:latest@container-clean:
   variables:
     MAKE_ARGS: "distcheck"
 
+{% for distro in distributions %}
 
-fedora:30@default-build:
+{{ distro.name }}:{{ distro.version }}@default-build:
   extends: .build@template
   stage: distro
-  image: $FEDORA_CONTAINER_IMAGE
+  image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
   variables:
-    FEDORA_VERSION: '30'
-  needs: ['fedora:30@container-prep']
-
-fedora:31@default-build:
-  extends: .build@template
-  stage: distro
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: '31'
-  needs: ['fedora:31@container-prep']
-
-ubuntu:19.10@default-build:
-  extends: .build@template
-  stage: distro
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.10'
-  needs: ['ubuntu:19.10@container-prep']
-
-ubuntu:19.04@default-build:
-  extends: .build@template
-  stage: distro
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.04'
-  needs: ['ubuntu:19.04@container-prep']
-
-debian:stable@default-build:
-  extends: .build@template
-  stage: distro
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'stable'
-  needs: ['debian:stable@container-prep']
-
-debian:sid@default-build:
-  extends: .build@template
-  stage: distro
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'sid'
-  needs: ['debian:sid@container-prep']
-
-centos:7@default-build:
-  extends: .build@template
-  stage: distro
-  image: $CENTOS_CONTAINER_IMAGE
-  variables:
-    CENTOS_VERSION: '7'
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:7@container-prep']
-
-centos:8@default-build:
-  extends: .build@template
-  stage: distro
-  image: $CENTOS_CONTAINER_IMAGE
-  variables:
-    CENTOS_VERSION: '8'
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:8@container-prep']
-
-arch:rolling@default-build:
-  extends: .build@template
-  stage: distro
-  image: $ARCH_CONTAINER_IMAGE
-  variables:
-    ARCH_VERSION: 'rolling'
-  needs: ['arch:rolling@container-prep']
-
-alpine:latest@default-build:
-  extends: .build@template
-  stage: distro
-  image: $ALPINE_CONTAINER_IMAGE
-  variables:
-    ALPINE_VERSION: 'latest'
-  needs: ['alpine:latest@container-prep']
+    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {# Where we have extra_variables defined, add them to the list #}
+    {% if distro.build is defined and distro.build.extra_variables is defined %}
+      {% for key, value in distro.build.extra_variables.items() %}
+    {{ key }}: {{ value }}
+      {% endfor %}
+    {% endif %}
+  needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
+{% endfor %}
 
 # Build argument tests
 #
