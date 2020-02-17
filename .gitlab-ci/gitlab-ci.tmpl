@@ -80,7 +80,7 @@ variables:
   artifacts:
     paths:
       - _build/test/test-suite.log
-      - builddir/meson-logs/testlog-*.txt
+      - builddir/meson-logs/testlog*.txt
     expire_in: 1 week
     when: on_failure
     reports:
@@ -104,6 +104,9 @@ variables:
   script:
     - meson builddir $MESON_ARGS
     - ninja -C builddir $NINJA_ARGS
+    - if ! [[ -z '$MESON_TEST_ARGS' ]]; then
+        meson test -C builddir $MESON_TEST_ARGS;
+      fi
 
 #################################################################
 #                                                               #
@@ -423,6 +426,10 @@ fedora:31@enable-gcov-meson:
   variables:
     MESON_ARGS: '-Dcoverity=true'
 
+fedora:31@valgrind-meson:
+  extends: .fedora-custom-build@meson-template
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
 
 fedora:31@meson-from-tarball:
   stage: tarballs

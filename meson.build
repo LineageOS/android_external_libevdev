@@ -188,6 +188,8 @@ if dep_check.found()
 	valgrind = find_program('valgrind', required : false)
 	if valgrind.found()
 		valgrind_env = environment()
+		valgrind_env.set('CK_TIMEOUT_MULTIPLIER', '10')
+		valgrind_env.set('CK_FORK', 'no')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,
