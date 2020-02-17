@@ -13,14 +13,8 @@ dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
 # Include directories
 includes_include = include_directories('include')
 
-# We use libtool-version numbers because it's easier to understand.
-# Before making a release, the libinput_so_*
-# numbers should be modified. The components are of the form C:R:A.
-# a) If binary compatibility has been broken (eg removed or changed interfaces)
-#    change to C+1:0:0.
-# b) If interfaces have been changed or added, but binary compatibility has
-#    been preserved, change to C+1:0:A+1
-# c) If the interface is the same as the previous version, change to C:R+1:A
+# DO NOT MODIFY THIS
+# Use symbol versioning instead.
 libevdev_lt_c=5
 libevdev_lt_r=0
 libevdev_lt_a=3

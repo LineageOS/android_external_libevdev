@@ -34,14 +34,8 @@ AC_USE_SYSTEM_EXTENSIONS
 
 AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz subdir-objects])
 
-# Before making a release, the LIBEVDEV_LT_VERSION string should be
-# modified.
-# The string is of the form C:R:A.
-# - If interfaces have been changed or added, but binary compatibility has
-#   been preserved, change to C+1:0:A+1
-# - If binary compatibility has been broken (eg removed or changed interfaces)
-#   change to C+1:0:0
-# - If the interface is the same as the previous version, change to C:R+1:A
+# DO NOT MODIFY THIS
+# Use symbol versioning instead.
 LIBEVDEV_LT_VERSION=5:0:3
 AC_SUBST(LIBEVDEV_LT_VERSION)
 
