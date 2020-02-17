@@ -665,7 +665,7 @@ alpine:latest@meson-build:
 #
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
-.fedora-custom-build@template:
+.fedora-custom-build@autotools-template:
   extends: .autotools-build@template
   stage: build
   image: $FEDORA_CONTAINER_IMAGE
@@ -673,37 +673,37 @@ alpine:latest@meson-build:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
-fedora:31@no-valgrind:
-  extends: .fedora-custom-build@template
+fedora:31@no-valgrind-autotools:
+  extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y valgrind
 
-fedora:31@no-check:
-  extends: .fedora-custom-build@template
+fedora:31@no-check-autotools:
+  extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y check check-devel
 
-fedora:31@no-doxygen:
-  extends: .fedora-custom-build@template
+fedora:31@no-doxygen-autotools:
+  extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y doxygen
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
 # doxygen is required for distcheck
-fedora:31@no-doxygen-check-valgrind:
-  extends: .fedora-custom-build@template
+fedora:31@no-doxygen-check-valgrind-autotools:
+  extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y doxygen valgrind check check-devel
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
-fedora:31@no-nm:
-  extends: .fedora-custom-build@template
+fedora:31@no-nm-autotools:
+  extends: .fedora-custom-build@autotools-template
   before_script:
     - mv /usr/bin/nm /usr/bin/nm.moved
 
-fedora:31@enable-gcov:
-  extends: .fedora-custom-build@template
+fedora:31@enable-gcov-autotools:
+  extends: .fedora-custom-build@autotools-template
   variables:
     CONFIGURE_FLAGS: "--enable-gcov"
