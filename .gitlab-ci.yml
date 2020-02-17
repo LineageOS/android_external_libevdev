@@ -33,7 +33,7 @@ stages:
   - prep             # rebuild the container images if there is a change
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
-  - distro           # distribs test
+  - autotools        # distribution builds with autotools
   - deploy           # trigger wayland's website generation
   - container_clean  # clean up unused container images
 
@@ -477,7 +477,7 @@ alpine:latest@container-clean:
 #                                                               #
 #################################################################
 
-.build@template:
+.autotools-build@template:
   extends:
     - .autotools_build
   stage: build
@@ -486,83 +486,83 @@ alpine:latest@container-clean:
     MAKE_ARGS: "distcheck"
 
 
-fedora:30@default-build:
-  extends: .build@template
-  stage: distro
+fedora:30@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $FEDORA_CONTAINER_IMAGE
   variables:
     FEDORA_VERSION: '30'
   needs: ['fedora:30@container-prep']
 
-fedora:31@default-build:
-  extends: .build@template
-  stage: distro
+fedora:31@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $FEDORA_CONTAINER_IMAGE
   variables:
     FEDORA_VERSION: '31'
   needs: ['fedora:31@container-prep']
 
-ubuntu:19.10@default-build:
-  extends: .build@template
-  stage: distro
+ubuntu:19.10@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $UBUNTU_CONTAINER_IMAGE
   variables:
     UBUNTU_VERSION: '19.10'
   needs: ['ubuntu:19.10@container-prep']
 
-ubuntu:19.04@default-build:
-  extends: .build@template
-  stage: distro
+ubuntu:19.04@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $UBUNTU_CONTAINER_IMAGE
   variables:
     UBUNTU_VERSION: '19.04'
   needs: ['ubuntu:19.04@container-prep']
 
-debian:stable@default-build:
-  extends: .build@template
-  stage: distro
+debian:stable@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $DEBIAN_CONTAINER_IMAGE
   variables:
     DEBIAN_VERSION: 'stable'
   needs: ['debian:stable@container-prep']
 
-debian:sid@default-build:
-  extends: .build@template
-  stage: distro
+debian:sid@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $DEBIAN_CONTAINER_IMAGE
   variables:
     DEBIAN_VERSION: 'sid'
   needs: ['debian:sid@container-prep']
 
-centos:7@default-build:
-  extends: .build@template
-  stage: distro
+centos:7@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $CENTOS_CONTAINER_IMAGE
   variables:
     CENTOS_VERSION: '7'
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:7@container-prep']
 
-centos:8@default-build:
-  extends: .build@template
-  stage: distro
+centos:8@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $CENTOS_CONTAINER_IMAGE
   variables:
     CENTOS_VERSION: '8'
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:8@container-prep']
 
-arch:rolling@default-build:
-  extends: .build@template
-  stage: distro
+arch:rolling@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $ARCH_CONTAINER_IMAGE
   variables:
     ARCH_VERSION: 'rolling'
   needs: ['arch:rolling@container-prep']
 
-alpine:latest@default-build:
-  extends: .build@template
-  stage: distro
+alpine:latest@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: $ALPINE_CONTAINER_IMAGE
   variables:
     ALPINE_VERSION: 'latest'
@@ -573,7 +573,7 @@ alpine:latest@default-build:
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
 .fedora-custom-build@template:
-  extends: .build@template
+  extends: .autotools-build@template
   stage: build
   image: $FEDORA_CONTAINER_IMAGE
   variables:

@@ -33,7 +33,7 @@ stages:
   - prep             # rebuild the container images if there is a change
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
-  - distro           # distribs test
+  - autotools        # distribution builds with autotools
   - deploy           # trigger wayland's website generation
   - container_clean  # clean up unused container images
 
@@ -274,7 +274,7 @@ check-commit:
 #                                                               #
 #################################################################
 
-.build@template:
+.autotools-build@template:
   extends:
     - .autotools_build
   stage: build
@@ -284,9 +284,9 @@ check-commit:
 
 {% for distro in distributions %}
 
-{{ distro.name }}:{{ distro.version }}@default-build:
-  extends: .build@template
-  stage: distro
+{{ distro.name }}:{{ distro.version }}@autotools-build:
+  extends: .autotools-build@template
+  stage: autotools
   image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
   variables:
     {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
@@ -304,7 +304,7 @@ check-commit:
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
 .fedora-custom-build@template:
-  extends: .build@template
+  extends: .autotools-build@template
   stage: build
   image: $FEDORA_CONTAINER_IMAGE
   variables:
