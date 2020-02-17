@@ -31,7 +31,7 @@
 #include <assert.h>
 #include <linux/input.h>
 
-#include "libevdev.h"
+#include "libevdev/libevdev.h"
 
 static void
 print_abs_bits(struct libevdev *dev, int axis)

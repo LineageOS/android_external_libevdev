@@ -23,7 +23,6 @@
 
 #include "config.h"
 
-#include <libevdev/libevdev.h>
 #include <sys/signalfd.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -35,6 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "libevdev/libevdev.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))

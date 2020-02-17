@@ -36,7 +36,7 @@
 #include <assert.h>
 #include <linux/input.h>
 
-#include "libevdev.h"
+#include "libevdev/libevdev.h"
 
 static void
 usage(void)
