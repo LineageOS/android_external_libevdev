@@ -707,3 +707,46 @@ fedora:31@enable-gcov-autotools:
   extends: .fedora-custom-build@autotools-template
   variables:
     CONFIGURE_FLAGS: "--enable-gcov"
+
+.fedora-custom-build@meson-template:
+  extends: .meson-build@template
+  stage: build
+  image: $FEDORA_CONTAINER_IMAGE
+  variables:
+    FEDORA_VERSION: 31
+  needs: ['fedora:31@container-prep']
+
+fedora:31@no-valgrind-meson:
+  extends: .fedora-custom-build@meson-template
+  before_script:
+    - dnf remove -y valgrind
+
+fedora:31@no-check-meson:
+  extends: .fedora-custom-build@meson-template
+  before_script:
+    - dnf remove -y check check-devel
+  variables:
+    MESON_ARGS: -Dtests=disabled
+
+# doxygen is required for dist
+fedora:31@no-doxygen-meson:
+  extends: .fedora-custom-build@meson-template
+  before_script:
+    - dnf remove -y doxygen
+  variables:
+    MESON_ARGS: -Ddocumentation=disabled
+    NINJA_ARGS: ''
+
+# doxygen is required for dist
+fedora:31@no-doxygen-check-valgrind-meson:
+  extends: .fedora-custom-build@meson-template
+  before_script:
+    - dnf remove -y doxygen valgrind check check-devel
+  variables:
+    MESON_ARGS: -Dtests=disabled -Ddocumentation=disabled
+    NINJA_ARGS: ''
+
+fedora:31@enable-gcov-meson:
+  extends: .fedora-custom-build@meson-template
+  variables:
+    MESON_ARGS: '-Dcoverity=true'
