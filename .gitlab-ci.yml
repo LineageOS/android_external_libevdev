@@ -428,13 +428,6 @@ alpine:latest@container-clean:
   extends: .build@template
   image: $FEDORA_CONTAINER_IMAGE
 
-fedora:31@default-build:
-  stage: distro
-  extends: .fedora-build@template
-  variables:
-    FEDORA_VERSION: 31
-  needs: ['fedora:31@container-prep']
-
 fedora:30@default-build:
   stage: distro
   extends: .fedora-build@template
@@ -442,24 +435,12 @@ fedora:30@default-build:
     FEDORA_VERSION: 30
   needs: ['fedora:30@container-prep']
 
-.centos-build@template:
+fedora:31@default-build:
   stage: distro
-  extends: .build@template
-  image: $CENTOS_CONTAINER_IMAGE
-
-centos:7@default-build:
-  extends: .centos-build@template
+  extends: .fedora-build@template
   variables:
-    CENTOS_VERSION: 7
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:7@container-prep']
-
-centos:8@default-build:
-  extends: .centos-build@template
-  variables:
-    CENTOS_VERSION: 8
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:8@container-prep']
+    FEDORA_VERSION: 31
+  needs: ['fedora:31@container-prep']
 
 .ubuntu@template:
   stage: distro
@@ -494,6 +475,25 @@ debian:sid@default-build:
   variables:
     DEBIAN_VERSION: sid
   needs: ['debian:sid@container-prep']
+
+.centos-build@template:
+  stage: distro
+  extends: .build@template
+  image: $CENTOS_CONTAINER_IMAGE
+
+centos:7@default-build:
+  extends: .centos-build@template
+  variables:
+    CENTOS_VERSION: 7
+    MAKE_ARGS: ''  # disable distcheck, requires doxygen
+  needs: ['centos:7@container-prep']
+
+centos:8@default-build:
+  extends: .centos-build@template
+  variables:
+    CENTOS_VERSION: 8
+    MAKE_ARGS: ''  # disable distcheck, requires doxygen
+  needs: ['centos:8@container-prep']
 
 .arch@template:
   stage: distro
