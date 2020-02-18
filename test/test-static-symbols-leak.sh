@@ -5,6 +5,8 @@
 # Note the spaces in the expressions! After the first grep, each line
 # is " T symbol_name"
 
+test -z "$RUNNING_ON_VALGRIND" || exit 77
+
 builddir="$1"
 
 test -f "$builddir/test-static-link" || (echo "Unable to find test file" && exit 1)

@@ -190,6 +190,7 @@ if dep_check.found()
 		valgrind_env = environment()
 		valgrind_env.set('CK_TIMEOUT_MULTIPLIER', '10')
 		valgrind_env.set('CK_FORK', 'no')
+		valgrind_env.set('RUNNING_ON_VALGRIND', '1')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
 				exe_wrapper: [ valgrind,
@@ -203,7 +204,9 @@ if dep_check.found()
 		message('valgrind not found, disabling valgrind test suite')
 	endif
 
-	# FIXME: static link test
+	test_static_link = find_program('test/test-static-symbols-leak.sh')
+	test('static-symbols-leak', test_static_link,
+		args: [meson.current_build_dir()])
 endif
 
 doxygen = find_program('doxygen', required: get_option('documentation'))
