@@ -1,5 +1,5 @@
 project('libevdev', 'c',
-	version: '1.8.0',
+	version: '1.8.0', # change autotools version too
 	license: 'MIT/Expat',
 	default_options: [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version: '>= 0.47.0')
@@ -28,8 +28,8 @@ libevdev_so_version = '@0@.@1@.@2@'.format((libevdev_lt_c - libevdev_lt_a),
 cc = meson.get_compiler('c')
 cppflags = ['-Wno-unused-parameter', '-fvisibility=hidden']
 cflags = cppflags + ['-Wmissing-prototypes', '-Wstrict-prototypes']
-add_project_arguments(cflags, language : 'c')
-add_project_arguments(cppflags, language : 'cpp')
+add_project_arguments(cflags, language: 'c')
+add_project_arguments(cppflags, language: 'cpp')
 
 # config.h
 config_h = configuration_data()
@@ -185,20 +185,20 @@ if dep_check.found()
 	test('test-kernel', test_kernel)
 
 
-	valgrind = find_program('valgrind', required : false)
+	valgrind = find_program('valgrind', required: false)
 	if valgrind.found()
 		valgrind_env = environment()
 		valgrind_env.set('CK_TIMEOUT_MULTIPLIER', '10')
 		valgrind_env.set('CK_FORK', 'no')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
-				exe_wrapper : [ valgrind,
+				exe_wrapper: [ valgrind,
 						'--leak-check=full',
 						'--gen-suppressions=all',
 						'--error-exitcode=3',
 						'--suppressions=' + valgrind_suppressions_file ],
-				env :  valgrind_env,
-				timeout_multiplier : 100)
+				env:  valgrind_env,
+				timeout_multiplier: 100)
 	else
 		message('valgrind not found, disabling valgrind test suite')
 	endif
@@ -273,4 +273,4 @@ if get_option('coverity')
 endif
 
 ############ output files ############
-configure_file(output : 'config.h', configuration : config_h)
+configure_file(output: 'config.h', configuration: config_h)
