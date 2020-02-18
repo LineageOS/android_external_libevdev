@@ -759,6 +759,20 @@ valgrind:meson:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
+soname:
+  stage: build
+  image: $FEDORA_CONTAINER_IMAGE
+  script:
+  - ./autogen.sh --prefix=$PWD/prefix-autotools/
+  - make install
+  - ls -l $PWD/prefix-autotools/lib/libevdev.so.2.3.0
+  - meson builddir --prefix=$PWD/prefix-meson/
+  - ninja -C builddir install
+  - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
+  variables:
+    FEDORA_VERSION: 31
+  needs: ['fedora:31@container-prep']
+
 meson-from-tarball:
   stage: tarballs
   image: $FEDORA_CONTAINER_IMAGE
