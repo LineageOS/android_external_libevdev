@@ -348,17 +348,17 @@ check-commit:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
-fedora:31@no-valgrind-autotools:
+no-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y valgrind
 
-fedora:31@no-check-autotools:
+no-check:autotools:
   extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y check check-devel
 
-fedora:31@no-doxygen-autotools:
+no-doxygen:autotools:
   extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y doxygen
@@ -366,19 +366,19 @@ fedora:31@no-doxygen-autotools:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
 # doxygen is required for distcheck
-fedora:31@no-doxygen-check-valgrind-autotools:
+no-doxygen-check-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
   before_script:
     - dnf remove -y doxygen valgrind check check-devel
   variables:
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
 
-fedora:31@no-nm-autotools:
+no-nm:autotools:
   extends: .fedora-custom-build@autotools-template
   before_script:
     - mv /usr/bin/nm /usr/bin/nm.moved
 
-fedora:31@enable-gcov-autotools:
+enable-gcov:autotools:
   extends: .fedora-custom-build@autotools-template
   variables:
     CONFIGURE_FLAGS: "--enable-gcov"
@@ -391,12 +391,12 @@ fedora:31@enable-gcov-autotools:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
-fedora:31@no-valgrind-meson:
+no-valgrind:meson:
   extends: .fedora-custom-build@meson-template
   before_script:
     - dnf remove -y valgrind
 
-fedora:31@no-check-meson:
+no-check:meson:
   extends: .fedora-custom-build@meson-template
   before_script:
     - dnf remove -y check check-devel
@@ -404,7 +404,7 @@ fedora:31@no-check-meson:
     MESON_ARGS: -Dtests=disabled
 
 # doxygen is required for dist
-fedora:31@no-doxygen-meson:
+no-doxygen:meson:
   extends: .fedora-custom-build@meson-template
   before_script:
     - dnf remove -y doxygen
@@ -413,7 +413,7 @@ fedora:31@no-doxygen-meson:
     NINJA_ARGS: ''
 
 # doxygen is required for dist
-fedora:31@no-doxygen-check-valgrind-meson:
+no-doxygen-check-valgrind:meson:
   extends: .fedora-custom-build@meson-template
   before_script:
     - dnf remove -y doxygen valgrind check check-devel
@@ -421,17 +421,17 @@ fedora:31@no-doxygen-check-valgrind-meson:
     MESON_ARGS: -Dtests=disabled -Ddocumentation=disabled
     NINJA_ARGS: ''
 
-fedora:31@enable-gcov-meson:
+enable-gcov:meson:
   extends: .fedora-custom-build@meson-template
   variables:
     MESON_ARGS: '-Dcoverity=true'
 
-fedora:31@valgrind-meson:
+valgrind:meson:
   extends: .fedora-custom-build@meson-template
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
-fedora:31@meson-from-tarball:
+meson-from-tarball:
   stage: tarballs
   image: $FEDORA_CONTAINER_IMAGE
   script:
@@ -454,7 +454,7 @@ fedora:31@meson-from-tarball:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
-fedora:31@autotools-from-tarball:
+autotools-from-tarball:
   stage: tarballs
   image: $FEDORA_CONTAINER_IMAGE
   script:
