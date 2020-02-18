@@ -75,6 +75,7 @@ variables:
 
   LIBEVDEV_SKIP_ROOT_TESTS: 1
   GIT_DEPTH: 1
+  MESON_BUILDDIR: 'build dir'
 
 .default_artifacts:
   artifacts:
@@ -438,8 +439,8 @@ soname:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
   - make install
   - ls -l $PWD/prefix-autotools/lib/libevdev.so.2.3.0
-  - meson builddir --prefix=$PWD/prefix-meson/
-  - ninja -C builddir install
+  - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
+  - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
   variables:
     FEDORA_VERSION: 31
@@ -459,9 +460,9 @@ meson-from-tarball:
     - mkdir -p _tarball_dir
     - tar xf _build/libevdev-*.tar.xz -C _tarball_dir
     - pushd _tarball_dir/libevdev-*/ > /dev/null
-    - meson builddir --prefix="$INSTALLDIR"
-    - ninja -C builddir test
-    - ninja -C builddir install
+    - meson "$MESON_BUILDDIR" --prefix="$INSTALLDIR"
+    - ninja -C "$MESON_BUILDDIR" test
+    - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
   variables:
@@ -473,10 +474,10 @@ autotools-from-tarball:
   image: $FEDORA_CONTAINER_IMAGE
   script:
     - export INSTALLDIR="$PWD/_inst"
-    - meson builddir
-    - ninja -C builddir dist
+    - meson "$MESON_BUILDDIR"
+    - ninja -C "$MESON_BUILDDIR" dist
     - mkdir -p _tarball_dir
-    - tar xf builddir/meson-dist/libevdev-*.xz -C _tarball_dir
+    - tar xf "$MESON_BUILDDIR"/meson-dist/libevdev-*.xz -C _tarball_dir
     - pushd _tarball_dir/libevdev-*/ > /dev/null
     - mkdir _build
     - pushd _build > /dev/null
