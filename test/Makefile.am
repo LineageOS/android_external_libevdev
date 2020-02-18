@@ -102,8 +102,6 @@ check_local_deps += valgrind
 
 endif
 
-EXTRA_DIST = valgrind.suppressions  generate-gcov-report.sh
-
 if GCOV_ENABLED
 
 CLEANFILES = gcov-reports/*.gcov gcov-reports/summary.txt *.gcno *.gcda
@@ -152,6 +150,8 @@ static-symbol-leaks: test-static-link
 
 check_local_deps += static-symbol-leaks
 endif # HAVE_NM
+
+EXTRA_DIST = valgrind.suppressions  generate-gcov-report.sh
 
 check-local: $(check_local_deps)
 
