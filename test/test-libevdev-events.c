@@ -839,8 +839,7 @@ START_TEST(test_syn_delta_tracking_ids_btntool)
                { .value = ABS_MT_SLOT, .maximum = num_slots },
                { .value = ABS_MT_TRACKING_ID, .minimum = -1, .maximum = 0xffff },
        };
-       bool have_tripletap = false,
-            have_doubletap = false,
+       bool have_doubletap = false,
             have_quadtap = false,
             have_quinttap = false;
 
@@ -972,6 +971,9 @@ START_TEST(test_syn_delta_tracking_ids_btntool)
                        have_quinttap = true;
                }
 
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_TRIPLETAP))
+		       ck_abort();
+
                if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_DOUBLETAP)) {
                        ck_assert(!have_doubletap);
                        assert_event(&ev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
@@ -985,12 +987,10 @@ START_TEST(test_syn_delta_tracking_ids_btntool)
                if (libevdev_event_is_code(&ev, EV_SYN, SYN_REPORT)) {
                        ck_assert(have_doubletap);
                        ck_assert(have_quinttap);
-                       ck_assert(!have_tripletap);
                        break;
                }
        }
 
-       have_tripletap = false;
        have_doubletap = false;
        have_quadtap = false;
 
@@ -1002,6 +1002,9 @@ START_TEST(test_syn_delta_tracking_ids_btntool)
                        assert_event(&ev, EV_KEY, BTN_TOOL_QUADTAP, 1);
                        have_quadtap = true;
                }
+
+               if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_TRIPLETAP))
+		       ck_abort();
 
                if (libevdev_event_is_code(&ev, EV_KEY, BTN_TOOL_DOUBLETAP)) {
                        ck_assert(!have_doubletap);
