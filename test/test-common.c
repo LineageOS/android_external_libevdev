@@ -89,6 +89,7 @@ void test_create_abs_device(struct uinput_device **uidev_return,
 
 	va_start(args, abs);
 	rc = uinput_device_set_event_bits_v(uidev, args);
+	ck_assert_msg(rc == 0, "Failed to set uinput bits");
 	va_end(args);
 
 	while (--nabs >= 0) {

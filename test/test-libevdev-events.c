@@ -1670,7 +1670,7 @@ START_TEST(test_mt_slot_ranges_invalid)
 
 	libevdev_set_log_function(test_logfunc_ignore_error, NULL);
 
-	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, ev);
+	libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, ev);
 	ck_assert(libevdev_event_is_code(ev, EV_ABS, ABS_MT_SLOT));
 	ck_assert_int_eq(ev[0].value, num_slots - 1);
 
@@ -1686,7 +1686,7 @@ START_TEST(test_mt_slot_ranges_invalid)
 	rc = write(pipefd[1], ev, sizeof(ev));
 	ck_assert_int_eq(rc, sizeof(ev));
 
-	rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, ev);
+	libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, ev);
 	ck_assert(libevdev_event_is_code(ev, EV_ABS, ABS_MT_SLOT));
 	ck_assert_int_eq(ev[0].value, num_slots - 1);
 
