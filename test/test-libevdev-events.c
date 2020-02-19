@@ -895,9 +895,6 @@ START_TEST(test_syn_delta_tracking_ids_btntool)
                        uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUADTAP, 0);
                        uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUINTTAP, 1);
                        break;
-               case 5:
-                       uinput_device_event(uidev, EV_KEY, BTN_TOOL_QUINTTAP, 0);
-                       break;
                default:
                        ck_abort();
                }
