@@ -678,7 +678,7 @@ sync_mt_state(struct libevdev *dev,
 	      struct slot_change_state changes_out[dev->num_slots])
 {
 #define MAX_SLOTS 256
-	int rc;
+	int rc = 0;
 	struct slot_change_state changes[MAX_SLOTS] = {0};
 
 	for (int axis = ABS_MT_MIN; axis <= ABS_MT_MAX; axis++) {
