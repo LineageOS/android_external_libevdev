@@ -780,7 +780,7 @@ terminate_slots(struct libevdev *dev,
 		 * sync event frame sync_key_state() sets everything correctly
 		 * for the *real* number of touches.
 		 */
-		if (ntouches_before <= 5) {
+		if (ntouches_before > 0 && ntouches_before <= 5) {
 			struct input_event ev = {
 				.type = EV_KEY,
 				.code = map[ntouches_before - 1],
@@ -790,7 +790,7 @@ terminate_slots(struct libevdev *dev,
 			update_key_state(dev, &ev);
 		}
 
-		if (ntouches_after <= 5) {
+		if (ntouches_after > 0 && ntouches_after <= 5) {
 			struct input_event ev = {
 				.type = EV_KEY,
 				.code = map[ntouches_after - 1],
