@@ -107,7 +107,7 @@ variables:
   script:
     - meson "$MESON_BUILDDIR" $MESON_ARGS
     - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
-    - if ! [[ -z '$MESON_TEST_ARGS' ]]; then
+    - if ! [[ -z "$MESON_TEST_ARGS" ]]; then
         meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS;
       fi
 
