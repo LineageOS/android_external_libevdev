@@ -83,7 +83,7 @@ variables:
   artifacts:
     paths:
       - _build/test/test-suite.log
-      - builddir/meson-logs/testlog*.txt
+      - $MESON_BUILDDIR/meson-logs/
     expire_in: 1 week
     when: on_failure
     reports:
@@ -105,10 +105,10 @@ variables:
   extends:
     - .default_artifacts
   script:
-    - meson builddir $MESON_ARGS
-    - ninja -C builddir $NINJA_ARGS
+    - meson "$MESON_BUILDDIR" $MESON_ARGS
+    - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
     - if ! [[ -z '$MESON_TEST_ARGS' ]]; then
-        meson test -C builddir $MESON_TEST_ARGS;
+        meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS;
       fi
 
 #################################################################
