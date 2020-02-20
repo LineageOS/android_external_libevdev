@@ -46,7 +46,7 @@ variables:
   # Run dnf install/apt-get install/.. with the list of packages for your       #
   # distribution                                                                #
   ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz'
+  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz clang-analyzer'
   CENTOS_RPMS: 'git gcc gcc-c++       automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
   UBUNTU_DEBS: 'git gcc g++     meson automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
   DEBIAN_DEBS: $UBUNTU_DEBS
@@ -57,7 +57,7 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2020-02-17.1'
+  FEDORA_TAG: '2020-02-20.0'
   CENTOS_TAG: '2020-02-17.1'
   DEBIAN_TAG: '2020-02-17.1'
   UBUNTU_TAG: '2020-02-17.1'
@@ -772,6 +772,11 @@ enable-gcov:meson:
   extends: .fedora-custom-build@meson-template
   variables:
     MESON_ARGS: '-Dcoverity=true'
+
+scan-build:meson:
+  extends: .fedora-custom-build@meson-template
+  variables:
+    NINJA_ARGS: 'scan-build'
 
 soname:
   stage: build
