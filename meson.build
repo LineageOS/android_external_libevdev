@@ -8,7 +8,6 @@ libevdev_version = meson.project_version().split('.')
 
 dir_src         = join_paths(meson.source_root(), 'libevdev')
 dir_src_test    = join_paths(meson.source_root(), 'test')
-dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
 
 # Include directories
 includes_include = include_directories('include')
