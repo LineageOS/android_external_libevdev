@@ -1,0 +1,38 @@
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
+#
+# This file contains the configuration for the gitlab ci.
+# See the .gitlab-ci/generate-gitlab-ci.py file for more info
+
+
+distributions:
+  - name: fedora
+    version: '30'
+  - name: fedora
+    version: '31'
+  - name: ubuntu
+    version: '19.10'
+  - name: ubuntu
+    version: '19.04'
+  - name: debian
+    version: 'stable'
+  - name: debian
+    version: 'sid'
+  - name: centos
+    version: 7
+    build:
+      meson: False
+      extra_variables:
+        # note: the variable value includes the comment because we want that in the gitlab-ci file
+        MAKE_ARGS: "''  # disable distcheck, requires doxygen"
+  - name: centos
+    version: 8
+    build:
+      meson: False
+      extra_variables:
+        # note: the variable value includes the comment because we want that in the gitlab-ci file
+        MAKE_ARGS: "''  # disable distcheck, requires doxygen"
+  - name: arch
+    version: 'rolling'
+    flavor: 'archlinux' # see https://gitlab.freedesktop.org/wayland/ci-templates/merge_requests/19
+  - name: alpine
+    version: 'latest'

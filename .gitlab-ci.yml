@@ -130,7 +130,7 @@ check-ci-script:
   stage: prep
   before_script:
     - apk add python3 git
-    - pip3 install --user jinja2
+    - pip3 install --user jinja2 PyYAML
   script:
     - python3 ./.gitlab-ci/generate-gitlab-ci.py
     - git diff --exit-code && exit 0 || true

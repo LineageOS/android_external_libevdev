@@ -132,7 +132,7 @@ check-ci-script:
   stage: prep
   before_script:
     - apk add python3 git
-    - pip3 install --user jinja2
+    - pip3 install --user jinja2 PyYAML
   script:
     - python3 ./.gitlab-ci/generate-gitlab-ci.py
     - git diff --exit-code && exit 0 || true
@@ -343,7 +343,7 @@ fedora:31@qemu-prep:
     {% endif %}
   needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
 
-{% if distro.meson|default(True) %}
+{% if not distro.build is defined or distro.build.meson|default(True) %}
 {{ distro.name }}:{{ distro.version }}@meson-build:
   extends: .meson-build@template
   stage: meson
