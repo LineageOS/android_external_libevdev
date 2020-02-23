@@ -509,6 +509,8 @@ soname:
     paths:
       - $MESON_BUILDDIR/meson-logs
       - console.out
+    reports:
+      junit: $MESON_BUILDDIR/junit-*.xml
 
   allow_failure: true
   retry:

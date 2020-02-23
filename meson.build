@@ -147,7 +147,7 @@ if dep_check.found()
 				      ],
 				      dependencies: [dep_libevdev, dep_check],
 				      install: false)
-	test('test-event-codes', test_event_codes)
+	test('test-event-codes', test_event_codes, suite: 'library')
 
 	test_internals = executable('test-internals',
 				    sources: src_common + [
@@ -155,7 +155,7 @@ if dep_check.found()
 				    ],
 				    dependencies: [dep_libevdev, dep_check],
 				    install: false)
-	test('test-internals', test_internals)
+	test('test-internals', test_internals, suite: 'library')
 
 	test_uinput = executable('test-uinput',
 				 sources: src_common + [
@@ -163,7 +163,7 @@ if dep_check.found()
 				 ],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
-	test('test-uinput', test_uinput)
+	test('test-uinput', test_uinput, suite: 'library')
 
 	test_libevdev = executable('test-libevdev',
 				   sources: src_common + [
@@ -173,7 +173,7 @@ if dep_check.found()
 				   ],
 				   dependencies: [dep_libevdev, dep_check],
 				   install: false)
-	test('test-libevdev', test_libevdev)
+	test('test-libevdev', test_libevdev, suite: 'library')
 
 	test_kernel = executable('test-kernel',
 				 sources: src_common + [
@@ -181,7 +181,7 @@ if dep_check.found()
 				 ],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
-	test('test-kernel', test_kernel)
+	test('test-kernel', test_kernel, suite: 'kernel')
 
 
 	valgrind = find_program('valgrind', required: false)
@@ -205,7 +205,8 @@ if dep_check.found()
 
 	test_static_link = find_program('test/test-static-symbols-leak.sh')
 	test('static-symbols-leak', test_static_link,
-		args: [meson.current_build_dir()])
+	     args: [meson.current_build_dir()],
+	     suite: 'static')
 endif
 
 doxygen = find_program('doxygen', required: get_option('documentation'))
