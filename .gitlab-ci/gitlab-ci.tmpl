@@ -8,7 +8,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha b7030c2cd0d6ccc5f6d4f8299bafa4daa9240d71 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 8410d3382c4ba5e83da76a027cb332169f2a95ad # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
@@ -46,13 +46,13 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2020-02-24.0'
-  CENTOS_TAG: '2020-02-24.0'
-  DEBIAN_TAG: '2020-02-24.0'
-  UBUNTU_TAG: '2020-02-24.0'
-  ARCH_TAG:   '2020-02-24.0'
-  ALPINE_TAG: '2020-02-24.0'
-  QEMU_TAG:   'qemu-2020-02-24.0'
+  FEDORA_TAG: '2020-02-25.0'
+  CENTOS_TAG: '2020-02-25.0'
+  DEBIAN_TAG: '2020-02-25.0'
+  UBUNTU_TAG: '2020-02-25.0'
+  ARCH_TAG:   '2020-02-25.0'
+  ALPINE_TAG: '2020-02-25.0'
+  QEMU_TAG:   'qemu-2020-02-25.0'
 
   UPSTREAM_REPO: libevdev/libevdev
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
@@ -60,7 +60,7 @@ variables:
   CENTOS_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/centos/$CENTOS_VERSION:$CENTOS_TAG
   UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
   DEBIAN_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$DEBIAN_VERSION:$DEBIAN_TAG
-  ARCH_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/archlinux/rolling:$ARCH_TAG
+  ARCH_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/arch/rolling:$ARCH_TAG
   ALPINE_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/alpine/latest:$ALPINE_TAG
   QEMU_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$QEMU_TAG
 
