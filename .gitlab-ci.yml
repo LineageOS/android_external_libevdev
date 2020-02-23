@@ -62,13 +62,13 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libevdev version
-  FEDORA_TAG: '2020-02-20.0'
-  CENTOS_TAG: '2020-02-17.1'
-  DEBIAN_TAG: '2020-02-17.1'
-  UBUNTU_TAG: '2020-02-17.1'
-  ARCH_TAG:   '2020-02-17.1'
-  ALPINE_TAG: '2020-02-17.1'
-  QEMU_TAG:   'qemu-2020-02-18.0'
+  FEDORA_TAG: '2020-02-24.0'
+  CENTOS_TAG: '2020-02-24.0'
+  DEBIAN_TAG: '2020-02-24.0'
+  UBUNTU_TAG: '2020-02-24.0'
+  ARCH_TAG:   '2020-02-24.0'
+  ALPINE_TAG: '2020-02-24.0'
+  QEMU_TAG:   'qemu-2020-02-24.0'
 
   UPSTREAM_REPO: libevdev/libevdev
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
@@ -317,7 +317,7 @@ arch:rolling@container-prep:
   variables:
     GIT_STRATEGY: none
     ARCH_VERSION: 'rolling'
-    DISTRIB_FLAVOR: archlinux
+    DISTRIB_FLAVOR: arch
     DISTRIB_VERSION: $ARCH_VERSION
     TAG: $ARCH_TAG
 
