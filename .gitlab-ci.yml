@@ -11,11 +11,20 @@
 include:
   # Alpine container builder template
   - project: 'wayland/ci-templates'
+    ref: *template_sha
     file: '/templates/alpine.yml'
   # Arch container builder template
   - project: 'wayland/ci-templates'
     ref: *template_sha
     file: '/templates/arch.yml'
+  # Centos container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/centos.yml'
+  # Debian container builder template
+  - project: 'wayland/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
   # Fedora container builder template
   - project: 'wayland/ci-templates'
     ref: *template_sha
@@ -24,14 +33,6 @@ include:
   - project: 'wayland/ci-templates'
     ref: *template_sha
     file: '/templates/ubuntu.yml'
-  # Debian container builder template
-  - project: 'wayland/ci-templates'
-    ref: *template_sha
-    file: '/templates/debian.yml'
-  # CentOS container builder template
-  - project: 'wayland/ci-templates'
-    ref: *template_sha
-    file: '/templates/centos.yml'
 
 stages:
   - prep             # rebuild the container images if there is a change
