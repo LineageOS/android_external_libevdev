@@ -6,7 +6,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha 8410d3382c4ba5e83da76a027cb332169f2a95ad # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha df52af2195b052325daf5d715c88be90f8ec7d86 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
@@ -26,42 +26,10 @@ stages:
   - container_clean  # clean up unused container images
 
 variables:
-  ###############################################################################
-  # This is the list of packages required to build libevdev with the default    #
-  # configuration.                                                              #
-  #                                                                             #
-  # Run dnf install/apt-get install/.. with the list of packages for your       #
-  # distribution                                                                #
-  ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz clang-analyzer'
-  CENTOS_RPMS: 'git gcc gcc-c++       automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
-  UBUNTU_DEBS: 'git gcc g++     meson automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
-  DEBIAN_DEBS: $UBUNTU_DEBS
-  ARCH_PKGS:   'git gcc         meson automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
-  ALPINE_PKGS: 'git gcc g++     meson automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
-  ############################ end of package lists #############################
-  # these tags should be updated each time the list of packages is updated
-  # changing these will force rebuilding the associated image
-  # Note: these tags have no meaning and are not tied to a particular
-  # libevdev version
-  FEDORA_TAG: '2020-02-26.4'
-  CENTOS_TAG: '2020-02-26.4'
-  DEBIAN_TAG: '2020-02-26.4'
-  UBUNTU_TAG: '2020-02-26.4'
-  ARCH_TAG:   '2020-02-26.4'
-  ALPINE_TAG: '2020-02-26.4'
-  QEMU_TAG:   'qemu-2020-02-26.4'
-
-  UPSTREAM_REPO: libevdev/libevdev
+  # The upstrem repository we will check for images
+  FDO_UPSTREAM_REPO: libevdev/libevdev
+  # The image that has buildah installed
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
-  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$FEDORA_TAG
-  CENTOS_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/centos/$CENTOS_VERSION:$CENTOS_TAG
-  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
-  DEBIAN_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$DEBIAN_VERSION:$DEBIAN_TAG
-  ARCH_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/arch/rolling:$ARCH_TAG
-  ALPINE_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/alpine/latest:$ALPINE_TAG
-  QEMU_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$QEMU_TAG
-
   LIBEVDEV_SKIP_ROOT_TESTS: 1
   GIT_DEPTH: 1
   MESON_BUILDDIR: 'build dir'
@@ -93,6 +61,30 @@ variables:
     - .default_artifacts
   script:
     - .gitlab-ci/meson-build.sh
+
+# Base image for a given distribution, provides
+# - the image of that distribution
+# - DISTRO_CONTAINER_IMAGE for any manipulation the job needs to be
+.distribution_image:
+  image: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+  variables:
+    DISTRO_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+
+{# Generate templates for every distribution/version combination we want, any
+  job can then just extends: .name:version and the images will sort
+  themselves out. #}
+{% for distro in distributions %}
+{% for version in distro.versions %}
+.{{distro.name}}:{{version}}:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: '{{distro.name}}'
+    FDO_DISTRIBUTION_TAG: '{{distro.tag}}'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
+
+{% endfor %}
+{% endfor %}
+
 
 #################################################################
 #                                                               #
@@ -146,36 +138,44 @@ check-commit:
     # log in to the registry
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
-    # get the full container image name (DISTRIB_VERSION still has indirections)
-    - IMAGE=$(eval echo "$DISTRIB_NAME/$DISTRIB_VERSION:$TAG")
+    # get the full container image name (FDO_DISTRIBUTION_VERSION still has indirections)
+    - IMAGE=$(eval echo "$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
 
     - |
       # force rebuild if schedule, reuse otherwise
       if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
       then
         # pull the latest upstream image if it exists
-        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE \
+        skopeo copy docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE \
                     docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
 
         # check if our image is already in the current registry
         skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
       fi
 
-fedora:31@qemu-prep:
+{% for distro in distributions %}
+{% if distro.want_qemu %}
+{% for version in distro.versions %}
+.{{ distro.name }}:{{ version }}@qemu-prep:
   extends:
-    - .fedora@qemu-build
+    - .{{ distro.name }}:{{ version }}
+    - .fdo.qemu-build@fedora
     - .pull_upstream_or_rebuild
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 31
-    FEDORA_TAG: $QEMU_TAG
-    DISTRIB_NAME: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: qemu-{{ distro.tag }}
+    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
   allow_failure: true
+
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+fedora:31@qemu-prep:
+  extends: .fedora:31@qemu-prep
 
 {% for distro in distributions %}
 {% for version in distro.versions %}
@@ -183,15 +183,13 @@ fedora:31@qemu-prep:
 ### {{ distro.name }} {{ version }}
 {{ distro.name }}:{{ version }}@container-prep:
   extends:
-    - .{{ distro.name }}@container-build
+    - .{{ distro.name }}:{{ version }}
+    - .fdo.container-build@{{ distro.name }}
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    {{ distro.name.upper() }}_VERSION: '{{ version }}'
-    DISTRIB_NAME: {{ distro.name }}
-    DISTRIB_VERSION: ${{ distro.name.upper() }}_VERSION
-    TAG: ${{ distro.name.upper() }}_TAG
+    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
 
 {% endfor %}
 {% endfor %}
@@ -212,8 +210,7 @@ fedora:31@qemu-prep:
   stage: container_clean
   image: $BUILDAH_IMAGE
   script:
-    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
-    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
+    - CONTAINER_IMAGE=$DISTRO_CONTAINER_IMAGE
     - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
     - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
     - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
@@ -280,13 +277,11 @@ fedora:31@qemu-prep:
 
 {% for distro in distributions %}
 {% for version in distro.versions %}
-
 ### {{ distro.name }} {{ version }}
 {{ distro.name }}:{{ version }}@container-clean:
-  extends: .container-clean
-  variables:
-    {{ distro.name.upper() }}_VERSION: '{{ version }}'
-    CURRENT_CONTAINER_IMAGE: ${{ distro.name.upper() }}_CONTAINER_IMAGE
+  extends:
+    - .{{ distro.name }}:{{ version }}
+    - .container-clean
 
 {% endfor %}
 {% endfor %}
@@ -317,32 +312,32 @@ fedora:31@qemu-prep:
 {% for version in distro.versions %}
 
 {{ distro.name }}:{{ version }}@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .{{ distro.name }}:{{ version }}
+    - .autotools-build@template
   stage: autotools
-  image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
+  {# Where we have extra_variables defined, add them to the list #}
+  {% if distro.build is defined and distro.build.extra_variables is defined %}
   variables:
-    {{ distro.name.upper() }}_VERSION: '{{ version }}'
-    {# Where we have extra_variables defined, add them to the list #}
-    {% if distro.build is defined and distro.build.extra_variables is defined %}
-      {% for key, value in distro.build.extra_variables.items() %}
+    {% for key, value in distro.build.extra_variables.items() %}
     {{ key }}: {{ value }}
-      {% endfor %}
-    {% endif %}
+    {% endfor %}
+  {% endif %}
   needs: ['{{ distro.name }}:{{ version }}@container-prep']
 
 {% if not distro.build is defined or distro.build.meson|default(True) %}
 {{ distro.name }}:{{ version }}@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .{{ distro.name }}:{{ version }}
+    - .meson-build@template
   stage: meson
-  image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
+  {# Where we have extra_variables defined, add them to the list #}
+  {% if distro.build is defined and distro.build.extra_variables is defined %}
   variables:
-    {{ distro.name.upper() }}_VERSION: '{{ version }}'
-    {# Where we have extra_variables defined, add them to the list #}
-    {% if distro.build is defined and distro.build.extra_variables is defined %}
-      {% for key, value in distro.build.extra_variables.items() %}
+    {% for key, value in distro.build.extra_variables.items() %}
     {{ key }}: {{ value }}
-      {% endfor %}
-    {% endif %}
+    {% endfor %}
+  {% endif %}
   needs: ['{{ distro.name }}:{{ version }}@container-prep']
 {% endif %}
 
@@ -354,11 +349,10 @@ fedora:31@qemu-prep:
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
 .fedora-custom-build@autotools-template:
-  extends: .autotools-build@template
+  extends:
+    - .fedora:31
+    - .autotools-build@template
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 no-valgrind:autotools:
@@ -397,11 +391,10 @@ enable-gcov:autotools:
     CONFIGURE_FLAGS: "--enable-gcov"
 
 .fedora-custom-build@meson-template:
-  extends: .meson-build@template
+  extends:
+    - .fedora:31
+    - .meson-build@template
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 no-valgrind:meson:
@@ -448,8 +441,9 @@ scan-build:meson:
     SKIP_MESON_TEST: 1
 
 soname:
+  extends:
+    - .fedora:31
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
   - make install
@@ -457,8 +451,6 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 #################################################################
@@ -476,12 +468,14 @@ soname:
   fi
 
 .qemu@fedora:31:
+  extends:
+    - .fedora:31
   stage: VM
-  image: $QEMU_CONTAINER_IMAGE
+  image:
+    $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
     - kvm
   variables:
-    FEDORA_VERSION: 31
     MESON_BUILDDIR: build_dir
   script:
     # start our vm, no args required
@@ -534,8 +528,9 @@ qemu:meson:valgrind:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 meson-from-tarball:
+  extends:
+    - .fedora:31
   stage: tarballs
-  image: $FEDORA_CONTAINER_IMAGE
   script:
     - export INSTALLDIR="$PWD/_inst"
     - mkdir _build
@@ -552,13 +547,12 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 autotools-from-tarball:
+  extends:
+    - .fedora:31
   stage: tarballs
-  image: $FEDORA_CONTAINER_IMAGE
   script:
     - export INSTALLDIR="$PWD/_inst"
     - meson "$MESON_BUILDDIR"
@@ -575,6 +569,4 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']

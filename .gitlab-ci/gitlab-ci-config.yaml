@@ -1,31 +1,136 @@
 # This file contains the configuration for the gitlab ci.
 # See the .gitlab-ci/generate-gitlab-ci.py file for more info
+#
+
+# We're happy to rebuild all containers when one changes.
+.default_tag: &default_tag '2020-03-06.0'
 
 distributions:
   - name: fedora
+    tag: *default_tag
     versions:
       - '30'
       - '31'
+    packages:
+      - git
+      - gcc
+      - gcc-c++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check-devel
+      - valgrind
+      - binutils
+      - doxygen
+      - xz
+      - clang-analyzer
+    want_qemu: true
   - name: ubuntu
+    tag: *default_tag
     versions:
       - '19.10'
       - '19.04'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkg-config
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
+      - xz-utils
   - name: debian
+    tag: *default_tag
     versions:
       - 'stable'
       - 'sid'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkg-config
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
+      - xz-utils
   - name: centos
+    tag: *default_tag
     versions:
       - '7'
       - '8'
+    packages:
+      - git
+      - gcc
+      - gcc-c++
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check-devel
+      - valgrind
+      - binutils
+      - xz
     build:
       meson: False
       extra_variables:
         # note: the variable value includes the comment because we want that in the gitlab-ci file
         MAKE_ARGS: "''  # disable distcheck, requires doxygen"
   - name: arch
+    tag: *default_tag
     versions:
       - 'rolling'
+    packages:
+      - git
+      - gcc
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
   - name: alpine
+    tag: *default_tag
     versions:
       - 'latest'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check-dev
+      - valgrind
+      - binutils
+      - doxygen
+      - xz
+      - linux-headers

@@ -4,7 +4,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha 8410d3382c4ba5e83da76a027cb332169f2a95ad # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha df52af2195b052325daf5d715c88be90f8ec7d86 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -42,42 +42,10 @@ stages:
   - container_clean  # clean up unused container images
 
 variables:
-  ###############################################################################
-  # This is the list of packages required to build libevdev with the default    #
-  # configuration.                                                              #
-  #                                                                             #
-  # Run dnf install/apt-get install/.. with the list of packages for your       #
-  # distribution                                                                #
-  ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils doxygen xz clang-analyzer'
-  CENTOS_RPMS: 'git gcc gcc-c++       automake autoconf libtool make pkgconfig  python3 check-devel valgrind binutils xz'
-  UBUNTU_DEBS: 'git gcc g++     meson automake autoconf libtool make pkg-config python3 check       valgrind binutils doxygen xz-utils'
-  DEBIAN_DEBS: $UBUNTU_DEBS
-  ARCH_PKGS:   'git gcc         meson automake autoconf libtool make pkgconfig  python3 check       valgrind binutils doxygen'
-  ALPINE_PKGS: 'git gcc g++     meson automake autoconf libtool make pkgconfig  python3 check-dev   valgrind binutils doxygen xz linux-headers'
-  ############################ end of package lists #############################
-  # these tags should be updated each time the list of packages is updated
-  # changing these will force rebuilding the associated image
-  # Note: these tags have no meaning and are not tied to a particular
-  # libevdev version
-  FEDORA_TAG: '2020-02-26.4'
-  CENTOS_TAG: '2020-02-26.4'
-  DEBIAN_TAG: '2020-02-26.4'
-  UBUNTU_TAG: '2020-02-26.4'
-  ARCH_TAG:   '2020-02-26.4'
-  ALPINE_TAG: '2020-02-26.4'
-  QEMU_TAG:   'qemu-2020-02-26.4'
-
-  UPSTREAM_REPO: libevdev/libevdev
+  # The upstrem repository we will check for images
+  FDO_UPSTREAM_REPO: libevdev/libevdev
+  # The image that has buildah installed
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
-  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$FEDORA_TAG
-  CENTOS_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/centos/$CENTOS_VERSION:$CENTOS_TAG
-  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
-  DEBIAN_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$DEBIAN_VERSION:$DEBIAN_TAG
-  ARCH_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/arch/rolling:$ARCH_TAG
-  ALPINE_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/alpine/latest:$ALPINE_TAG
-  QEMU_CONTAINER_IMAGE:   $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$QEMU_TAG
-
   LIBEVDEV_SKIP_ROOT_TESTS: 1
   GIT_DEPTH: 1
   MESON_BUILDDIR: 'build dir'
@@ -109,6 +77,86 @@ variables:
     - .default_artifacts
   script:
     - .gitlab-ci/meson-build.sh
+
+# Base image for a given distribution, provides
+# - the image of that distribution
+# - DISTRO_CONTAINER_IMAGE for any manipulation the job needs to be
+.distribution_image:
+  image: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+  variables:
+    DISTRO_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+
+.fedora:30:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'fedora'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '30'
+
+.fedora:31:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'fedora'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '31'
+
+.ubuntu:19.10:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'ubuntu'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '19.10'
+
+.ubuntu:19.04:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'ubuntu'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '19.04'
+
+.debian:stable:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'debian'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: 'stable'
+
+.debian:sid:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'debian'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: 'sid'
+
+.centos:7:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'centos'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '7'
+
+.centos:8:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'centos'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: '8'
+
+.arch:rolling:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'arch'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: 'rolling'
+
+.alpine:latest:
+  extends: .distribution_image
+  variables:
+    DISTRIB_NAME: 'alpine'
+    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_VERSION: 'latest'
+
+
 
 #################################################################
 #                                                               #
@@ -162,176 +210,172 @@ check-commit:
     # log in to the registry
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
-    # get the full container image name (DISTRIB_VERSION still has indirections)
-    - IMAGE=$(eval echo "$DISTRIB_NAME/$DISTRIB_VERSION:$TAG")
+    # get the full container image name (FDO_DISTRIBUTION_VERSION still has indirections)
+    - IMAGE=$(eval echo "$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
 
     - |
       # force rebuild if schedule, reuse otherwise
       if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
       then
         # pull the latest upstream image if it exists
-        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE \
+        skopeo copy docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE \
                     docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
 
         # check if our image is already in the current registry
         skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
       fi
 
-fedora:31@qemu-prep:
+.fedora:30@qemu-prep:
   extends:
-    - .fedora@qemu-build
+    - .fedora:30
+    - .fdo.qemu-build@fedora
     - .pull_upstream_or_rebuild
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 31
-    FEDORA_TAG: $QEMU_TAG
-    DISTRIB_NAME: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
   allow_failure: true
+
+.fedora:31@qemu-prep:
+  extends:
+    - .fedora:31
+    - .fdo.qemu-build@fedora
+    - .pull_upstream_or_rebuild
+  stage: prep
+  tags:
+    - kvm
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
+  allow_failure: true
+
+
+fedora:31@qemu-prep:
+  extends: .fedora:31@qemu-prep
 
 
 ### fedora 30
 fedora:30@container-prep:
   extends:
-    - .fedora@container-build
+    - .fedora:30
+    - .fdo.container-build@fedora
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '30'
-    DISTRIB_NAME: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
 
 
 ### fedora 31
 fedora:31@container-prep:
   extends:
-    - .fedora@container-build
+    - .fedora:31
+    - .fdo.container-build@fedora
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '31'
-    DISTRIB_NAME: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
 
 
 ### ubuntu 19.10
 ubuntu:19.10@container-prep:
   extends:
-    - .ubuntu@container-build
+    - .ubuntu:19.10
+    - .fdo.container-build@ubuntu
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.10'
-    DISTRIB_NAME: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
 
 ### ubuntu 19.04
 ubuntu:19.04@container-prep:
   extends:
-    - .ubuntu@container-build
+    - .ubuntu:19.04
+    - .fdo.container-build@ubuntu
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    DISTRIB_NAME: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
 
 ### debian stable
 debian:stable@container-prep:
   extends:
-    - .debian@container-build
+    - .debian:stable
+    - .fdo.container-build@debian
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    DEBIAN_VERSION: 'stable'
-    DISTRIB_NAME: debian
-    DISTRIB_VERSION: $DEBIAN_VERSION
-    TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
 
 ### debian sid
 debian:sid@container-prep:
   extends:
-    - .debian@container-build
+    - .debian:sid
+    - .fdo.container-build@debian
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    DEBIAN_VERSION: 'sid'
-    DISTRIB_NAME: debian
-    DISTRIB_VERSION: $DEBIAN_VERSION
-    TAG: $DEBIAN_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
 
 ### centos 7
 centos:7@container-prep:
   extends:
-    - .centos@container-build
+    - .centos:7
+    - .fdo.container-build@centos
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    CENTOS_VERSION: '7'
-    DISTRIB_NAME: centos
-    DISTRIB_VERSION: $CENTOS_VERSION
-    TAG: $CENTOS_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
 
 
 ### centos 8
 centos:8@container-prep:
   extends:
-    - .centos@container-build
+    - .centos:8
+    - .fdo.container-build@centos
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    CENTOS_VERSION: '8'
-    DISTRIB_NAME: centos
-    DISTRIB_VERSION: $CENTOS_VERSION
-    TAG: $CENTOS_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
 
 
 ### arch rolling
 arch:rolling@container-prep:
   extends:
-    - .arch@container-build
+    - .arch:rolling
+    - .fdo.container-build@arch
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    ARCH_VERSION: 'rolling'
-    DISTRIB_NAME: arch
-    DISTRIB_VERSION: $ARCH_VERSION
-    TAG: $ARCH_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc meson automake autoconf libtool make pkgconfig python3 check valgrind binutils doxygen'
 
 
 ### alpine latest
 alpine:latest@container-prep:
   extends:
-    - .alpine@container-build
+    - .alpine:latest
+    - .fdo.container-build@alpine
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    ALPINE_VERSION: 'latest'
-    DISTRIB_NAME: alpine
-    DISTRIB_VERSION: $ALPINE_VERSION
-    TAG: $ALPINE_TAG
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkgconfig python3 check-dev valgrind binutils doxygen xz linux-headers'
 
 
 #################################################################
@@ -350,8 +394,7 @@ alpine:latest@container-prep:
   stage: container_clean
   image: $BUILDAH_IMAGE
   script:
-    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
-    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
+    - CONTAINER_IMAGE=$DISTRO_CONTAINER_IMAGE
     - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
     - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
     - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
@@ -416,85 +459,65 @@ alpine:latest@container-prep:
   variables:
     GIT_STRATEGY: none
 
-
 ### fedora 30
 fedora:30@container-clean:
-  extends: .container-clean
-  variables:
-    FEDORA_VERSION: '30'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-
+  extends:
+    - .fedora:30
+    - .container-clean
 
 ### fedora 31
 fedora:31@container-clean:
-  extends: .container-clean
-  variables:
-    FEDORA_VERSION: '31'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-
+  extends:
+    - .fedora:31
+    - .container-clean
 
 ### ubuntu 19.10
 ubuntu:19.10@container-clean:
-  extends: .container-clean
-  variables:
-    UBUNTU_VERSION: '19.10'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
+  extends:
+    - .ubuntu:19.10
+    - .container-clean
 
 ### ubuntu 19.04
 ubuntu:19.04@container-clean:
-  extends: .container-clean
-  variables:
-    UBUNTU_VERSION: '19.04'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
+  extends:
+    - .ubuntu:19.04
+    - .container-clean
 
 ### debian stable
 debian:stable@container-clean:
-  extends: .container-clean
-  variables:
-    DEBIAN_VERSION: 'stable'
-    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
-
+  extends:
+    - .debian:stable
+    - .container-clean
 
 ### debian sid
 debian:sid@container-clean:
-  extends: .container-clean
-  variables:
-    DEBIAN_VERSION: 'sid'
-    CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
-
+  extends:
+    - .debian:sid
+    - .container-clean
 
 ### centos 7
 centos:7@container-clean:
-  extends: .container-clean
-  variables:
-    CENTOS_VERSION: '7'
-    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
-
+  extends:
+    - .centos:7
+    - .container-clean
 
 ### centos 8
 centos:8@container-clean:
-  extends: .container-clean
-  variables:
-    CENTOS_VERSION: '8'
-    CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
-
+  extends:
+    - .centos:8
+    - .container-clean
 
 ### arch rolling
 arch:rolling@container-clean:
-  extends: .container-clean
-  variables:
-    ARCH_VERSION: 'rolling'
-    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
-
+  extends:
+    - .arch:rolling
+    - .container-clean
 
 ### alpine latest
 alpine:latest@container-clean:
-  extends: .container-clean
-  variables:
-    ALPINE_VERSION: 'latest'
-    CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
+  extends:
+    - .alpine:latest
+    - .container-clean
 
 
 #################################################################
@@ -521,160 +544,144 @@ alpine:latest@container-clean:
 
 
 fedora:30@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .fedora:30
+    - .autotools-build@template
   stage: autotools
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: '30'
   needs: ['fedora:30@container-prep']
 
 fedora:30@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .fedora:30
+    - .meson-build@template
   stage: meson
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: '30'
   needs: ['fedora:30@container-prep']
 
 
 fedora:31@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .fedora:31
+    - .autotools-build@template
   stage: autotools
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: '31'
   needs: ['fedora:31@container-prep']
 
 fedora:31@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .fedora:31
+    - .meson-build@template
   stage: meson
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: '31'
   needs: ['fedora:31@container-prep']
 
 
 ubuntu:19.10@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .ubuntu:19.10
+    - .autotools-build@template
   stage: autotools
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.10'
   needs: ['ubuntu:19.10@container-prep']
 
 ubuntu:19.10@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .ubuntu:19.10
+    - .meson-build@template
   stage: meson
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.10'
   needs: ['ubuntu:19.10@container-prep']
 
 
 ubuntu:19.04@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .ubuntu:19.04
+    - .autotools-build@template
   stage: autotools
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.04'
   needs: ['ubuntu:19.04@container-prep']
 
 ubuntu:19.04@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .ubuntu:19.04
+    - .meson-build@template
   stage: meson
-  image: $UBUNTU_CONTAINER_IMAGE
-  variables:
-    UBUNTU_VERSION: '19.04'
   needs: ['ubuntu:19.04@container-prep']
 
 
 debian:stable@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .debian:stable
+    - .autotools-build@template
   stage: autotools
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'stable'
   needs: ['debian:stable@container-prep']
 
 debian:stable@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .debian:stable
+    - .meson-build@template
   stage: meson
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'stable'
   needs: ['debian:stable@container-prep']
 
 
 debian:sid@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .debian:sid
+    - .autotools-build@template
   stage: autotools
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'sid'
   needs: ['debian:sid@container-prep']
 
 debian:sid@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .debian:sid
+    - .meson-build@template
   stage: meson
-  image: $DEBIAN_CONTAINER_IMAGE
-  variables:
-    DEBIAN_VERSION: 'sid'
   needs: ['debian:sid@container-prep']
 
 
 centos:7@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .centos:7
+    - .autotools-build@template
   stage: autotools
-  image: $CENTOS_CONTAINER_IMAGE
   variables:
-    CENTOS_VERSION: '7'
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:7@container-prep']
 
 
 
 centos:8@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .centos:8
+    - .autotools-build@template
   stage: autotools
-  image: $CENTOS_CONTAINER_IMAGE
   variables:
-    CENTOS_VERSION: '8'
     MAKE_ARGS: ''  # disable distcheck, requires doxygen
   needs: ['centos:8@container-prep']
 
 
 
 arch:rolling@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .arch:rolling
+    - .autotools-build@template
   stage: autotools
-  image: $ARCH_CONTAINER_IMAGE
-  variables:
-    ARCH_VERSION: 'rolling'
   needs: ['arch:rolling@container-prep']
 
 arch:rolling@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .arch:rolling
+    - .meson-build@template
   stage: meson
-  image: $ARCH_CONTAINER_IMAGE
-  variables:
-    ARCH_VERSION: 'rolling'
   needs: ['arch:rolling@container-prep']
 
 
 alpine:latest@autotools-build:
-  extends: .autotools-build@template
+  extends:
+    - .alpine:latest
+    - .autotools-build@template
   stage: autotools
-  image: $ALPINE_CONTAINER_IMAGE
-  variables:
-    ALPINE_VERSION: 'latest'
   needs: ['alpine:latest@container-prep']
 
 alpine:latest@meson-build:
-  extends: .meson-build@template
+  extends:
+    - .alpine:latest
+    - .meson-build@template
   stage: meson
-  image: $ALPINE_CONTAINER_IMAGE
-  variables:
-    ALPINE_VERSION: 'latest'
   needs: ['alpine:latest@container-prep']
 
 
@@ -683,11 +690,10 @@ alpine:latest@meson-build:
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
 .fedora-custom-build@autotools-template:
-  extends: .autotools-build@template
+  extends:
+    - .fedora:31
+    - .autotools-build@template
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 no-valgrind:autotools:
@@ -726,11 +732,10 @@ enable-gcov:autotools:
     CONFIGURE_FLAGS: "--enable-gcov"
 
 .fedora-custom-build@meson-template:
-  extends: .meson-build@template
+  extends:
+    - .fedora:31
+    - .meson-build@template
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 no-valgrind:meson:
@@ -777,8 +782,9 @@ scan-build:meson:
     SKIP_MESON_TEST: 1
 
 soname:
+  extends:
+    - .fedora:31
   stage: build
-  image: $FEDORA_CONTAINER_IMAGE
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
   - make install
@@ -786,8 +792,6 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 #################################################################
@@ -805,12 +809,14 @@ soname:
   fi
 
 .qemu@fedora:31:
+  extends:
+    - .fedora:31
   stage: VM
-  image: $QEMU_CONTAINER_IMAGE
+  image:
+    $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
     - kvm
   variables:
-    FEDORA_VERSION: 31
     MESON_BUILDDIR: build_dir
   script:
     # start our vm, no args required
@@ -863,8 +869,9 @@ qemu:meson:valgrind:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 meson-from-tarball:
+  extends:
+    - .fedora:31
   stage: tarballs
-  image: $FEDORA_CONTAINER_IMAGE
   script:
     - export INSTALLDIR="$PWD/_inst"
     - mkdir _build
@@ -881,13 +888,12 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 autotools-from-tarball:
+  extends:
+    - .fedora:31
   stage: tarballs
-  image: $FEDORA_CONTAINER_IMAGE
   script:
     - export INSTALLDIR="$PWD/_inst"
     - meson "$MESON_BUILDDIR"
@@ -904,6 +910,4 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  variables:
-    FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
