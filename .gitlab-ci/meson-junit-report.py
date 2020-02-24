@@ -9,19 +9,26 @@
 import argparse
 import datetime
 import json
+import os
 import sys
 import xml.etree.ElementTree as ET
 
+
+default_name = os.getenv('CI_PROJECT_NAME', 'unknown')
+default_job_id = os.getenv('CI_JOB_ID', 'Unknown')
+default_branch = os.getenv('CI_COMMIT_REF_NAME', 'master')
+
+
 aparser = argparse.ArgumentParser(description='Turns a Meson test log into a JUnit report')
 aparser.add_argument('--project-name', metavar='NAME',
-                     help='The project name',
-                     default='unknown')
+                     help='The project name (default: $CI_PROJECT_NAME)',
+                     default=default_name)
 aparser.add_argument('--job-id', metavar='ID',
-                     help='The job ID for the report',
-                     default='Unknown')
+                     help='The job ID for the report (default: $CI_JOB_ID)',
+                     default=default_job_id)
 aparser.add_argument('--branch', metavar='NAME',
                      help='Branch of the project being tested',
-                     default='master')
+                     default=default_branch)
 aparser.add_argument('--output', metavar='FILE',
                      help='The output file, stdout by default',
                      type=argparse.FileType('w', encoding='UTF-8'),
