@@ -92,7 +92,7 @@ variables:
     expire_in: 1 week
     when: on_failure
     reports:
-      junit: junit-*.xml
+      junit: $MESON_BUILDDIR/junit-*.xml
 
 .autotools_build:
   extends:
@@ -110,11 +110,7 @@ variables:
   extends:
     - .default_artifacts
   script:
-    - meson "$MESON_BUILDDIR" $MESON_ARGS
-    - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
-    - if ! [[ -z "$MESON_TEST_ARGS" ]]; then
-        meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS;
-      fi
+    - .gitlab-ci/meson-build.sh
 
 #################################################################
 #                                                               #
@@ -754,6 +750,7 @@ no-check:meson:
     - dnf remove -y check check-devel
   variables:
     MESON_ARGS: -Dtests=disabled
+    SKIP_MESON_TEST: 1
 
 # doxygen is required for dist
 no-doxygen:meson:
@@ -772,6 +769,7 @@ no-doxygen-check-valgrind:meson:
   variables:
     MESON_ARGS: -Dtests=disabled -Ddocumentation=disabled
     NINJA_ARGS: ''
+    SKIP_MESON_TEST: 1
 
 enable-gcov:meson:
   extends: .fedora-custom-build@meson-template
@@ -782,6 +780,7 @@ scan-build:meson:
   extends: .fedora-custom-build@meson-template
   variables:
     NINJA_ARGS: 'scan-build'
+    SKIP_MESON_TEST: 1
 
 soname:
   stage: build

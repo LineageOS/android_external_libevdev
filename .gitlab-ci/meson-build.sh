@@ -35,6 +35,11 @@ meson "$MESON_BUILDDIR" $MESON_ARGS
 meson configure "$MESON_BUILDDIR"
 ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
 
+if [[ ! -z "$SKIP_MESON_TEST" ]]; then
+	echo "Skipping meson test"
+	exit 0
+fi
+
 # we still want to generate the reports, even if meson test fails
 set +e
 meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS --print-errorlogs
