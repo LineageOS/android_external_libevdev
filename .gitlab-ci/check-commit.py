@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim: set expandtab shiftwidth=4:
-# -*- Mode: python; coding: utf-8; indent-tabs-mode: nil -*- */
 #
 # This script tests a few things against the commit messages, search for
 # `def test_` to see the actual tests run.

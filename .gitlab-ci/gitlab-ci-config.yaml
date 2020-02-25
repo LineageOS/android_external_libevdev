@@ -1,8 +1,5 @@
-# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
-#
 # This file contains the configuration for the gitlab ci.
 # See the .gitlab-ci/generate-gitlab-ci.py file for more info
-
 
 distributions:
   - name: fedora

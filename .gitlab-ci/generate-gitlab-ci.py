@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# vim: set expandtab shiftwidth=4:
 
 # This file generates the .gitlab-ci.yml file that defines the pipeline.
 
