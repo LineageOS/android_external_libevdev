@@ -855,7 +855,6 @@ soname:
     reports:
       junit: $MESON_BUILDDIR/junit-*.xml
 
-  allow_failure: true
   retry:
     max: 2
     when: script_failure
