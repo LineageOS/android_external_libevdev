@@ -411,13 +411,14 @@ alpine:latest@container-prep:
   allow_failure: true
   only:
     - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
 ### fedora 30
 fedora:30@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     FEDORA_VERSION: '30'
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
@@ -426,7 +427,6 @@ fedora:30@container-clean:
 fedora:31@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     FEDORA_VERSION: '31'
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
@@ -435,7 +435,6 @@ fedora:31@container-clean:
 ubuntu:19.10@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     UBUNTU_VERSION: '19.10'
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
@@ -444,7 +443,6 @@ ubuntu:19.10@container-clean:
 ubuntu:19.04@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     UBUNTU_VERSION: '19.04'
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
@@ -453,7 +451,6 @@ ubuntu:19.04@container-clean:
 debian:stable@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     DEBIAN_VERSION: 'stable'
     CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
 
@@ -462,7 +459,6 @@ debian:stable@container-clean:
 debian:sid@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     DEBIAN_VERSION: 'sid'
     CURRENT_CONTAINER_IMAGE: $DEBIAN_CONTAINER_IMAGE
 
@@ -471,7 +467,6 @@ debian:sid@container-clean:
 centos:7@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     CENTOS_VERSION: '7'
     CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
 
@@ -480,7 +475,6 @@ centos:7@container-clean:
 centos:8@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     CENTOS_VERSION: '8'
     CURRENT_CONTAINER_IMAGE: $CENTOS_CONTAINER_IMAGE
 
@@ -489,7 +483,6 @@ centos:8@container-clean:
 arch:rolling@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     ARCH_VERSION: 'rolling'
     CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
 
@@ -498,7 +491,6 @@ arch:rolling@container-clean:
 alpine:latest@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     ALPINE_VERSION: 'latest'
     CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
 

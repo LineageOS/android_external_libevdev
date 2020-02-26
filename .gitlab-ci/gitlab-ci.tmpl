@@ -271,6 +271,8 @@ fedora:31@qemu-prep:
   allow_failure: true
   only:
     - schedules
+  variables:
+    GIT_STRATEGY: none
 
 {% for distro in distributions %}
 
@@ -278,7 +280,6 @@ fedora:31@qemu-prep:
 {{ distro.name }}:{{ distro.version }}@container-clean:
   extends: .container-clean
   variables:
-    GIT_STRATEGY: none
     {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
     CURRENT_CONTAINER_IMAGE: ${{ distro.name.upper() }}_CONTAINER_IMAGE
 
