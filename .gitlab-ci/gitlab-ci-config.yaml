@@ -3,32 +3,29 @@
 
 distributions:
   - name: fedora
-    version: '30'
-  - name: fedora
-    version: '31'
+    versions:
+      - '30'
+      - '31'
   - name: ubuntu
-    version: '19.10'
-  - name: ubuntu
-    version: '19.04'
+    versions:
+      - '19.10'
+      - '19.04'
   - name: debian
-    version: 'stable'
-  - name: debian
-    version: 'sid'
+    versions:
+      - 'stable'
+      - 'sid'
   - name: centos
-    version: 7
-    build:
-      meson: False
-      extra_variables:
-        # note: the variable value includes the comment because we want that in the gitlab-ci file
-        MAKE_ARGS: "''  # disable distcheck, requires doxygen"
-  - name: centos
-    version: 8
+    versions:
+      - '7'
+      - '8'
     build:
       meson: False
       extra_variables:
         # note: the variable value includes the comment because we want that in the gitlab-ci file
         MAKE_ARGS: "''  # disable distcheck, requires doxygen"
   - name: arch
-    version: 'rolling'
+    versions:
+      - 'rolling'
   - name: alpine
-    version: 'latest'
+    versions:
+      - 'latest'

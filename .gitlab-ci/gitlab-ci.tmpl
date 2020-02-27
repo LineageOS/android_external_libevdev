@@ -178,20 +178,22 @@ fedora:31@qemu-prep:
   allow_failure: true
 
 {% for distro in distributions %}
+{% for version in distro.versions %}
 
-### {{ distro.name }} {{ distro.version }}
-{{ distro.name }}:{{ distro.version }}@container-prep:
+### {{ distro.name }} {{ version }}
+{{ distro.name }}:{{ version }}@container-prep:
   extends:
     - .{{ distro.name }}@container-build
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {{ distro.name.upper() }}_VERSION: '{{ version }}'
     DISTRIB_NAME: {{ distro.name }}
     DISTRIB_VERSION: ${{ distro.name.upper() }}_VERSION
     TAG: ${{ distro.name.upper() }}_TAG
 
+{% endfor %}
 {% endfor %}
 
 #################################################################
@@ -277,14 +279,16 @@ fedora:31@qemu-prep:
     GIT_STRATEGY: none
 
 {% for distro in distributions %}
+{% for version in distro.versions %}
 
-### {{ distro.name }} {{ distro.version }}
-{{ distro.name }}:{{ distro.version }}@container-clean:
+### {{ distro.name }} {{ version }}
+{{ distro.name }}:{{ version }}@container-clean:
   extends: .container-clean
   variables:
-    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {{ distro.name.upper() }}_VERSION: '{{ version }}'
     CURRENT_CONTAINER_IMAGE: ${{ distro.name.upper() }}_CONTAINER_IMAGE
 
+{% endfor %}
 {% endfor %}
 
 #################################################################
@@ -310,37 +314,39 @@ fedora:31@qemu-prep:
     NINJA_ARGS: "dist"
 
 {% for distro in distributions %}
+{% for version in distro.versions %}
 
-{{ distro.name }}:{{ distro.version }}@autotools-build:
+{{ distro.name }}:{{ version }}@autotools-build:
   extends: .autotools-build@template
   stage: autotools
   image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
   variables:
-    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {{ distro.name.upper() }}_VERSION: '{{ version }}'
     {# Where we have extra_variables defined, add them to the list #}
     {% if distro.build is defined and distro.build.extra_variables is defined %}
       {% for key, value in distro.build.extra_variables.items() %}
     {{ key }}: {{ value }}
       {% endfor %}
     {% endif %}
-  needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
+  needs: ['{{ distro.name }}:{{ version }}@container-prep']
 
 {% if not distro.build is defined or distro.build.meson|default(True) %}
-{{ distro.name }}:{{ distro.version }}@meson-build:
+{{ distro.name }}:{{ version }}@meson-build:
   extends: .meson-build@template
   stage: meson
   image: ${{ distro.name.upper() }}_CONTAINER_IMAGE
   variables:
-    {{ distro.name.upper() }}_VERSION: '{{ distro.version }}'
+    {{ distro.name.upper() }}_VERSION: '{{ version }}'
     {# Where we have extra_variables defined, add them to the list #}
     {% if distro.build is defined and distro.build.extra_variables is defined %}
       {% for key, value in distro.build.extra_variables.items() %}
     {{ key }}: {{ value }}
       {% endfor %}
     {% endif %}
-  needs: ['{{ distro.name }}:{{ distro.version }}@container-prep']
+  needs: ['{{ distro.name }}:{{ version }}@container-prep']
 {% endif %}
 
+{% endfor %}
 {% endfor %}
 
 # Build argument tests
