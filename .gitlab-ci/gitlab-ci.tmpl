@@ -134,6 +134,7 @@ check-commit:
   variables:
     GIT_DEPTH: 100
   artifacts:
+    expire_in: 1 week
     when: on_failure
     paths:
       - results.xml
