@@ -231,6 +231,7 @@ fedora:31@qemu-prep:
   extends:
     - .{{ distro.name }}:{{ version }}
     - .container-clean
+  needs: ["{{distro.name}}:{{version}}@container-prep"]
 
 {% endfor %}
 {% endfor %}

@@ -413,60 +413,70 @@ fedora:30@container-clean:
   extends:
     - .fedora:30
     - .container-clean
+  needs: ["fedora:30@container-prep"]
 
 ### fedora 31
 fedora:31@container-clean:
   extends:
     - .fedora:31
     - .container-clean
+  needs: ["fedora:31@container-prep"]
 
 ### ubuntu 19.10
 ubuntu:19.10@container-clean:
   extends:
     - .ubuntu:19.10
     - .container-clean
+  needs: ["ubuntu:19.10@container-prep"]
 
 ### ubuntu 19.04
 ubuntu:19.04@container-clean:
   extends:
     - .ubuntu:19.04
     - .container-clean
+  needs: ["ubuntu:19.04@container-prep"]
 
 ### debian stable
 debian:stable@container-clean:
   extends:
     - .debian:stable
     - .container-clean
+  needs: ["debian:stable@container-prep"]
 
 ### debian sid
 debian:sid@container-clean:
   extends:
     - .debian:sid
     - .container-clean
+  needs: ["debian:sid@container-prep"]
 
 ### centos 7
 centos:7@container-clean:
   extends:
     - .centos:7
     - .container-clean
+  needs: ["centos:7@container-prep"]
 
 ### centos 8
 centos:8@container-clean:
   extends:
     - .centos:8
     - .container-clean
+  needs: ["centos:8@container-prep"]
 
 ### arch rolling
 arch:rolling@container-clean:
   extends:
     - .arch:rolling
     - .container-clean
+  needs: ["arch:rolling@container-prep"]
 
 ### alpine latest
 alpine:latest@container-clean:
   extends:
     - .alpine:latest
     - .container-clean
+  needs: ["alpine:latest@container-prep"]
 
 
 #################################################################
