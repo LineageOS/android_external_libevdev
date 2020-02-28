@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+#
+# Usage:
+# $ gitlab-container-delete <instance> <project>
+#     Deletes all containers within that instance project.
+#     Filter with --repository and --exclude.
+# $ echo $MY_GITLAB_TOKEN > auth.file
+# $ gitlab-container-delete https://gitlab.freedesktop.org \
+#                           libevdev/libevdev \
+#                           --exclude 2020-02-28.latest-tag \
+#                           --authfile auth.file
+
+import argparse
+import gitlab
+import logging
+
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(Path(__file__).stem)
+
+
+def delete_images(instance, project_name, repository=None, exclude=None, authfile=None):
+    if authfile is not None:
+        token = open(authfile).read().strip()
+    else:
+        token = None
+
+    gl = gitlab.Gitlab(instance, private_token=token)
+    p = gl.projects.list(search=project_name)[0]
+
+    repos = [r for r in p.repositories.list() if repository is None or repository == r.name]
+    for repo in repos:
+        logger.info('Repository {}'.format(repo.name))
+        for tag in repo.tags.list():
+            if tag.name != exclude:
+                logger.info('Deleting tag {}:{}'.format(repo.name, tag.name))
+                tag.delete()
+
+
+if __name__ == '__main__':
+    description = '''
+    This tool deletes all container images in the registry of the given
+    gitlab project.
+
+    Use with --repository and --exclude-tag to limit to one repository and
+    delete all but the given tag.
+
+    Where authentication is needed, use a --authfile containing the string
+    that is your gitlab private token value with 'api' access. Usually this
+    token looks like 12345678-abcdefgh. This tool will strip any whitespaces
+    from that file and use the rest of the file as token value.
+
+    '''
+    parser = argparse.ArgumentParser(description='Tool to delete all but one image from a gitlab registry')
+    parser.add_argument('instance', type=str, help='registry URL with transport, e.g. http://gitlab.freedesktop.org.')
+    parser.add_argument('project', type=str, help='project name in gitlab terminus, e.g. wayland/ci-templates')
+    parser.add_argument('--repository', type=str,
+                        help='registry repository to work on, e.g. fedora/latest',
+                        default=None)
+    parser.add_argument('--exclude-tag', type=str,
+                        help='tag to exclude, i.e. to not delete',
+                        default=None)
+    parser.add_argument('--authfile', type=str,
+                        help='path to a file containing the gitlab auth token string',
+                        default=None)
+
+    args = parser.parse_args()
+    delete_images(args.instance, args.project, args.repository, args.exclude_tag, args.authfile)
