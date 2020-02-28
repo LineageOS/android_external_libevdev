@@ -134,6 +134,9 @@ check-commit:
   variables:
     GIT_DEPTH: 100
   artifacts:
+    when: on_failure
+    paths:
+      - results.xml
     reports:
       junit: results.xml
 
