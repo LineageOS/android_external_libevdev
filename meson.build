@@ -128,11 +128,13 @@ dep_check = dependency('check', version: '>= 0.9.9',
 if dep_check.found()
 	executable('test-link',
 		   sources: ['test/test-link.c'],
+		   include_directories: [includes_include],
 		   dependencies: dep_libevdev,
 		   install: false)
 	executable('test-compile-pedantic',
 		   sources: ['test/test-compile-pedantic.c'],
 		   c_args: ['-pedantic', '-Werror', '-std=c89'],
+		   include_directories: [includes_include],
 		   dependencies: dep_libevdev,
 		   install: false)
 
@@ -149,6 +151,7 @@ if dep_check.found()
 					'test/test-event-names.c',
 					'test/test-context.c',
 				      ],
+				      include_directories: [includes_include],
 				      dependencies: [dep_libevdev, dep_check],
 				      install: false)
 	test('test-event-codes', test_event_codes, suite: 'library')
@@ -157,6 +160,7 @@ if dep_check.found()
 				    sources: src_common + [
 					'test/test-int-queue.c',
 				    ],
+				    include_directories: [includes_include],
 				    dependencies: [dep_libevdev, dep_check],
 				    install: false)
 	test('test-internals', test_internals, suite: 'library')
@@ -165,6 +169,7 @@ if dep_check.found()
 				 sources: src_common + [
 					'test/test-uinput.c',
 				 ],
+				 include_directories: [includes_include],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
 	test('test-uinput', test_uinput, suite: 'library')
@@ -175,6 +180,7 @@ if dep_check.found()
 					'test/test-libevdev-has-event.c',
 					'test/test-libevdev-events.c',
 				   ],
+				   include_directories: [includes_include],
 				   dependencies: [dep_libevdev, dep_check],
 				   install: false)
 	test('test-libevdev', test_libevdev, suite: 'library')
@@ -183,6 +189,7 @@ if dep_check.found()
 				 sources: src_common + [
 					'test/test-kernel.c',
 				 ],
+				 include_directories: [includes_include],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
 	test('test-kernel', test_kernel, suite: 'kernel')
