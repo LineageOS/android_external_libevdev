@@ -680,6 +680,7 @@ sync_mt_state(struct libevdev *dev,
 #define MAX_SLOTS 256
 	int rc = 0;
 	struct slot_change_state changes[MAX_SLOTS] = {0};
+	unsigned int nslots = min(MAX_SLOTS, dev->num_slots);
 
 	for (int axis = ABS_MT_MIN; axis <= ABS_MT_MAX; axis++) {
 		/* EVIOCGMTSLOTS required format */
@@ -697,7 +698,7 @@ sync_mt_state(struct libevdev *dev,
 		if (rc < 0)
 			goto out;
 
-		for (int slot = 0; slot < min(MAX_SLOTS, dev->num_slots); slot++) {
+		for (unsigned int slot = 0; slot < nslots; slot++) {
 			int val_before = *slot_value(dev, slot, axis),
 			    val_after = mt_state.val[slot];
 
@@ -728,7 +729,10 @@ sync_mt_state(struct libevdev *dev,
 		}
 	}
 
-	memcpy(changes_out, changes, sizeof(*changes) * dev->num_slots);
+	if (dev->num_slots > MAX_SLOTS)
+		memset(changes_out, 0, sizeof(*changes) * dev->num_slots);
+
+	memcpy(changes_out, changes, sizeof(*changes) * nslots);
 out:
 	return rc;
 }
