@@ -122,62 +122,81 @@ check-commit:
     reports:
       junit: results.xml
 
-.pull_upstream_or_rebuild:
-  before_script:
-    # log in to the registry
-    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+{% for distro in distributions %}
+.{{ distro.name }}.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
 
-    - IMAGE="$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
-
-    - |
-      # force rebuild if schedule, reuse otherwise
-      if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
-      then
-        # pull the latest upstream image if it exists
-        skopeo copy docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE \
-                    docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
-
-        # check if our image is already in the current registry
-        skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
-      fi
+{% endfor %}
 
 {% for distro in distributions %}
 {% if distro.want_qemu %}
 {% for version in distro.versions %}
+# Pulls in the qemu container from upstream or rebuilds it if missing
 .{{ distro.name }}:{{ version }}@qemu-prep:
   extends:
     - .{{ distro.name }}:{{ version }}
-    - .fdo.qemu-build@fedora
-    - .pull_upstream_or_rebuild
+    - .{{ distro.name}}.packages
+    - .fdo.qemu-ifnot-exists@fedora
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_TAG: qemu-{{ distro.tag }}
-    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
   allow_failure: true
+
+# Always rebuilds the container
+.{{ distro.name }}:{{ version }}@qemu-forced-rebuild:
+  extends:
+    - .{{ distro.name }}:{{ version }}
+    - .{{ distro.name}}.packages
+    - .fdo.qemu-ifnot-exists@fedora
+  stage: prep
+  tags:
+    - kvm
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_TAG: qemu-{{ distro.tag }}
+  allow_failure: true
+  only:
+    - schedules
 
 {% endfor %}
 {% endif %}
 {% endfor %}
 
+# This is the actual job
 fedora:31@qemu-prep:
   extends: .fedora:31@qemu-prep
+
+fedora:31@qemu-forced-rebuild:
+  extends: .fedora:31@qemu-forced-rebuild
 
 {% for distro in distributions %}
 {% for version in distro.versions %}
 
-### {{ distro.name }} {{ version }}
+# Pulls in the container from upstream or rebuilds it if missing
 {{ distro.name }}:{{ version }}@container-prep:
   extends:
     - .{{ distro.name }}:{{ version }}
-    - .fdo.container-build@{{ distro.name }}
-    - .pull_upstream_or_rebuild
+    - .{{ distro.name}}.packages
+    - .fdo.container-ifnot-exists@{{ distro.name }}
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
+
+# Always rebuilds the container
+{{ distro.name }}:{{ version }}@container-forced-rebuild:
+  extends:
+    - .{{ distro.name }}:{{ version }}
+    - .{{ distro.name}}.packages
+    - .fdo.container-build@{{ distro.name }}
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 {% endfor %}
 {% endfor %}

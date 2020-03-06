@@ -185,176 +185,328 @@ check-commit:
     reports:
       junit: results.xml
 
-.pull_upstream_or_rebuild:
-  before_script:
-    # log in to the registry
-    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+.fedora.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
 
-    - IMAGE="$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
+.ubuntu.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
-    - |
-      # force rebuild if schedule, reuse otherwise
-      if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
-      then
-        # pull the latest upstream image if it exists
-        skopeo copy docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE \
-                    docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
+.debian.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
-        # check if our image is already in the current registry
-        skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
-      fi
+.centos.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
 
+.arch.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc meson automake autoconf libtool make pkgconfig python3 check valgrind binutils doxygen'
+
+.alpine.packages:
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkgconfig python3 check-dev valgrind binutils doxygen xz linux-headers'
+
+
+# Pulls in the qemu container from upstream or rebuilds it if missing
 .fedora:30@qemu-prep:
   extends:
     - .fedora:30
-    - .fdo.qemu-build@fedora
-    - .pull_upstream_or_rebuild
+    - .fedora.packages
+    - .fdo.qemu-ifnot-exists@fedora
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
   allow_failure: true
 
+# Always rebuilds the container
+.fedora:30@qemu-forced-rebuild:
+  extends:
+    - .fedora:30
+    - .fedora.packages
+    - .fdo.qemu-ifnot-exists@fedora
+  stage: prep
+  tags:
+    - kvm
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+  allow_failure: true
+  only:
+    - schedules
+
+# Pulls in the qemu container from upstream or rebuilds it if missing
 .fedora:31@qemu-prep:
   extends:
     - .fedora:31
-    - .fdo.qemu-build@fedora
-    - .pull_upstream_or_rebuild
+    - .fedora.packages
+    - .fdo.qemu-ifnot-exists@fedora
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
   allow_failure: true
 
+# Always rebuilds the container
+.fedora:31@qemu-forced-rebuild:
+  extends:
+    - .fedora:31
+    - .fedora.packages
+    - .fdo.qemu-ifnot-exists@fedora
+  stage: prep
+  tags:
+    - kvm
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+  allow_failure: true
+  only:
+    - schedules
 
+
+# This is the actual job
 fedora:31@qemu-prep:
   extends: .fedora:31@qemu-prep
 
+fedora:31@qemu-forced-rebuild:
+  extends: .fedora:31@qemu-forced-rebuild
 
-### fedora 30
+
+# Pulls in the container from upstream or rebuilds it if missing
 fedora:30@container-prep:
   extends:
     - .fedora:30
-    - .fdo.container-build@fedora
-    - .pull_upstream_or_rebuild
+    - .fedora.packages
+    - .fdo.container-ifnot-exists@fedora
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
+
+# Always rebuilds the container
+fedora:30@container-forced-rebuild:
+  extends:
+    - .fedora:30
+    - .fedora.packages
+    - .fdo.container-build@fedora
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### fedora 31
+# Pulls in the container from upstream or rebuilds it if missing
 fedora:31@container-prep:
   extends:
     - .fedora:31
-    - .fdo.container-build@fedora
-    - .pull_upstream_or_rebuild
+    - .fedora.packages
+    - .fdo.container-ifnot-exists@fedora
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer'
+
+# Always rebuilds the container
+fedora:31@container-forced-rebuild:
+  extends:
+    - .fedora:31
+    - .fedora.packages
+    - .fdo.container-build@fedora
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### ubuntu 19.10
+# Pulls in the container from upstream or rebuilds it if missing
 ubuntu:19.10@container-prep:
   extends:
     - .ubuntu:19.10
-    - .fdo.container-build@ubuntu
-    - .pull_upstream_or_rebuild
+    - .ubuntu.packages
+    - .fdo.container-ifnot-exists@ubuntu
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
+
+# Always rebuilds the container
+ubuntu:19.10@container-forced-rebuild:
+  extends:
+    - .ubuntu:19.10
+    - .ubuntu.packages
+    - .fdo.container-build@ubuntu
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### ubuntu 19.04
+# Pulls in the container from upstream or rebuilds it if missing
 ubuntu:19.04@container-prep:
   extends:
     - .ubuntu:19.04
-    - .fdo.container-build@ubuntu
-    - .pull_upstream_or_rebuild
+    - .ubuntu.packages
+    - .fdo.container-ifnot-exists@ubuntu
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
+
+# Always rebuilds the container
+ubuntu:19.04@container-forced-rebuild:
+  extends:
+    - .ubuntu:19.04
+    - .ubuntu.packages
+    - .fdo.container-build@ubuntu
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### debian stable
+# Pulls in the container from upstream or rebuilds it if missing
 debian:stable@container-prep:
   extends:
     - .debian:stable
-    - .fdo.container-build@debian
-    - .pull_upstream_or_rebuild
+    - .debian.packages
+    - .fdo.container-ifnot-exists@debian
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
+
+# Always rebuilds the container
+debian:stable@container-forced-rebuild:
+  extends:
+    - .debian:stable
+    - .debian.packages
+    - .fdo.container-build@debian
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### debian sid
+# Pulls in the container from upstream or rebuilds it if missing
 debian:sid@container-prep:
   extends:
     - .debian:sid
-    - .fdo.container-build@debian
-    - .pull_upstream_or_rebuild
+    - .debian.packages
+    - .fdo.container-ifnot-exists@debian
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
+
+# Always rebuilds the container
+debian:sid@container-forced-rebuild:
+  extends:
+    - .debian:sid
+    - .debian.packages
+    - .fdo.container-build@debian
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### centos 7
+# Pulls in the container from upstream or rebuilds it if missing
 centos:7@container-prep:
   extends:
     - .centos:7
-    - .fdo.container-build@centos
-    - .pull_upstream_or_rebuild
+    - .centos.packages
+    - .fdo.container-ifnot-exists@centos
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
+
+# Always rebuilds the container
+centos:7@container-forced-rebuild:
+  extends:
+    - .centos:7
+    - .centos.packages
+    - .fdo.container-build@centos
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### centos 8
+# Pulls in the container from upstream or rebuilds it if missing
 centos:8@container-prep:
   extends:
     - .centos:8
-    - .fdo.container-build@centos
-    - .pull_upstream_or_rebuild
+    - .centos.packages
+    - .fdo.container-ifnot-exists@centos
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
+
+# Always rebuilds the container
+centos:8@container-forced-rebuild:
+  extends:
+    - .centos:8
+    - .centos.packages
+    - .fdo.container-build@centos
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### arch rolling
+# Pulls in the container from upstream or rebuilds it if missing
 arch:rolling@container-prep:
   extends:
     - .arch:rolling
-    - .fdo.container-build@arch
-    - .pull_upstream_or_rebuild
+    - .arch.packages
+    - .fdo.container-ifnot-exists@arch
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc meson automake autoconf libtool make pkgconfig python3 check valgrind binutils doxygen'
+
+# Always rebuilds the container
+arch:rolling@container-forced-rebuild:
+  extends:
+    - .arch:rolling
+    - .arch.packages
+    - .fdo.container-build@arch
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
-### alpine latest
+# Pulls in the container from upstream or rebuilds it if missing
 alpine:latest@container-prep:
   extends:
     - .alpine:latest
-    - .fdo.container-build@alpine
-    - .pull_upstream_or_rebuild
+    - .alpine.packages
+    - .fdo.container-ifnot-exists@alpine
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkgconfig python3 check-dev valgrind binutils doxygen xz linux-headers'
+
+# Always rebuilds the container
+alpine:latest@container-forced-rebuild:
+  extends:
+    - .alpine:latest
+    - .alpine.packages
+    - .fdo.container-build@alpine
+  stage: prep
+  only:
+    - schedules
+  variables:
+    GIT_STRATEGY: none
 
 
 #################################################################
