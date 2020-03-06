@@ -190,8 +190,7 @@ check-commit:
     # log in to the registry
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
-    # get the full container image name (FDO_DISTRIBUTION_VERSION still has indirections)
-    - IMAGE=$(eval echo "$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
+    - IMAGE="$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
 
     - |
       # force rebuild if schedule, reuse otherwise
