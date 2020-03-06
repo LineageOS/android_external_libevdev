@@ -6,12 +6,12 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha df52af2195b052325daf5d715c88be90f8ec7d86 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 2469555cd0a6b621b988e100ddd746c2ad0cdd1d # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
   # {{ distribution.capitalize() }} container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/{{distribution}}.yml'
   {% endfor %}
@@ -60,23 +60,14 @@ variables:
   script:
     - .gitlab-ci/meson-build.sh
 
-# Base image for a given distribution, provides
-# - the image of that distribution
-# - DISTRO_CONTAINER_IMAGE for any manipulation the job needs to be
-.distribution_image:
-  image: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-  variables:
-    DISTRO_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-
 {# Generate templates for every distribution/version combination we want, any
   job can then just extends: .name:version and the images will sort
   themselves out. #}
 {% for distro in distributions %}
 {% for version in distro.versions %}
 .{{distro.name}}:{{version}}:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@{{distro.name}}
   variables:
-    DISTRIB_NAME: '{{distro.name}}'
     FDO_DISTRIBUTION_TAG: '{{distro.tag}}'
     FDO_DISTRIBUTION_VERSION: '{{version}}'
 
@@ -137,7 +128,7 @@ check-commit:
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
     # get the full container image name (FDO_DISTRIBUTION_VERSION still has indirections)
-    - IMAGE=$(eval echo "$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
+    - IMAGE=$(eval echo "$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
 
     - |
       # force rebuild if schedule, reuse otherwise
@@ -217,7 +208,7 @@ fedora:31@qemu-prep:
     # Define a variable of type File named AUTHFILE. Content is that token
     # value.
     - python3 .gitlab-ci/gitlab-container-delete $CI_SERVER_URL $CI_PROJECT_PATH
-            --repository $DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION
+            --repository $FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION
             --authfile $AUTHFILE --exclude-tag "$LATEST_TAG"
   dependencies: []
   allow_failure: true
@@ -428,8 +419,7 @@ soname:
   extends:
     - .fedora:31
   stage: VM
-  image:
-    $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
+  image: $CI_REGISTRY_IMAGE/$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
     - kvm
   variables:

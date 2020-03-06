@@ -4,31 +4,31 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha df52af2195b052325daf5d715c88be90f8ec7d86 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 2469555cd0a6b621b988e100ddd746c2ad0cdd1d # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/alpine.yml'
   # Arch container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/arch.yml'
   # Centos container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/centos.yml'
   # Debian container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/debian.yml'
   # Fedora container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/fedora.yml'
   # Ubuntu container builder template
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/ubuntu.yml'
 
@@ -76,81 +76,63 @@ variables:
   script:
     - .gitlab-ci/meson-build.sh
 
-# Base image for a given distribution, provides
-# - the image of that distribution
-# - DISTRO_CONTAINER_IMAGE for any manipulation the job needs to be
-.distribution_image:
-  image: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-  variables:
-    DISTRO_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-
 .fedora:30:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@fedora
   variables:
-    DISTRIB_NAME: 'fedora'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '30'
 
 .fedora:31:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@fedora
   variables:
-    DISTRIB_NAME: 'fedora'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '31'
 
 .ubuntu:19.10:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@ubuntu
   variables:
-    DISTRIB_NAME: 'ubuntu'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '19.10'
 
 .ubuntu:19.04:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@ubuntu
   variables:
-    DISTRIB_NAME: 'ubuntu'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '19.04'
 
 .debian:stable:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@debian
   variables:
-    DISTRIB_NAME: 'debian'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@debian
   variables:
-    DISTRIB_NAME: 'debian'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: 'sid'
 
 .centos:7:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@centos
   variables:
-    DISTRIB_NAME: 'centos'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '7'
 
 .centos:8:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@centos
   variables:
-    DISTRIB_NAME: 'centos'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: '8'
 
 .arch:rolling:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@arch
   variables:
-    DISTRIB_NAME: 'arch'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
-  extends: .distribution_image
+  extends: .fdo.distribution_image@alpine
   variables:
-    DISTRIB_NAME: 'alpine'
     FDO_DISTRIBUTION_TAG: '2020-03-06.0'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
@@ -209,7 +191,7 @@ check-commit:
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
     # get the full container image name (FDO_DISTRIBUTION_VERSION still has indirections)
-    - IMAGE=$(eval echo "$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
+    - IMAGE=$(eval echo "$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG")
 
     - |
       # force rebuild if schedule, reuse otherwise
@@ -401,7 +383,7 @@ alpine:latest@container-prep:
     # Define a variable of type File named AUTHFILE. Content is that token
     # value.
     - python3 .gitlab-ci/gitlab-container-delete $CI_SERVER_URL $CI_PROJECT_PATH
-            --repository $DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION
+            --repository $FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION
             --authfile $AUTHFILE --exclude-tag "$LATEST_TAG"
   dependencies: []
   allow_failure: true
@@ -778,8 +760,7 @@ soname:
   extends:
     - .fedora:31
   stage: VM
-  image:
-    $CI_REGISTRY_IMAGE/$DISTRIB_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
+  image: $CI_REGISTRY_IMAGE/$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
     - kvm
   variables:
