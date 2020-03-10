@@ -32,7 +32,7 @@ def delete_images(instance, project_name, repository=None, exclude=None, authfil
     repos = [r for r in p.repositories.list() if repository is None or repository == r.name]
     for repo in repos:
         logger.info('Repository {}'.format(repo.name))
-        for tag in repo.tags.list():
+        for tag in repo.tags.list(per_page=100):
             if tag.name != exclude:
                 logger.info('Deleting tag {}:{}'.format(repo.name, tag.name))
                 tag.delete()
