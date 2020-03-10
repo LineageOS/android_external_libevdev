@@ -70,7 +70,7 @@ src_libevdev = [
 
 mapfile = join_paths(dir_src, 'libevdev.sym')
 version_flag = '-Wl,--version-script,@0@'.format(mapfile)
-lib_libevdev = shared_library('evdev',
+lib_libevdev = library('evdev',
 	src_libevdev,
 	include_directories: [includes_include],
 	dependencies: [],
