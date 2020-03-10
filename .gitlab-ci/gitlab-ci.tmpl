@@ -389,6 +389,13 @@ scan-build:meson:
     NINJA_ARGS: 'scan-build'
     SKIP_MESON_TEST: 1
 
+static-build:meson:
+  extends: .fedora-custom-build@meson-template
+  script:
+    - meson "$MESON_BUILDDIR" --default-library=static --prefix=$PWD/prefix-meson/
+    - ninja -C "$MESON_BUILDDIR" install
+    - ls -l $PWD/prefix-meson/lib64/libevdev.a
+
 soname:
   extends:
     - .fedora:31
