@@ -4,7 +4,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha 2469555cd0a6b621b988e100ddd746c2ad0cdd1d # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha d32ac1f30faad4fdef24af8a7724fb8c084c3dda # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -77,63 +77,63 @@ variables:
     - .gitlab-ci/meson-build.sh
 
 .fedora:30:
-  extends: .fdo.distribution_image@fedora
+  extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '30'
 
 .fedora:31:
-  extends: .fdo.distribution_image@fedora
+  extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '31'
 
 .ubuntu:19.10:
-  extends: .fdo.distribution_image@ubuntu
+  extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '19.10'
 
 .ubuntu:19.04:
-  extends: .fdo.distribution_image@ubuntu
+  extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '19.04'
 
 .debian:stable:
-  extends: .fdo.distribution_image@debian
+  extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
-  extends: .fdo.distribution_image@debian
+  extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: 'sid'
 
 .centos:7:
-  extends: .fdo.distribution_image@centos
+  extends: .fdo.distribution-image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '7'
 
 .centos:8:
-  extends: .fdo.distribution_image@centos
+  extends: .fdo.distribution-image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '8'
 
 .arch:rolling:
-  extends: .fdo.distribution_image@arch
+  extends: .fdo.distribution-image@arch
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
-  extends: .fdo.distribution_image@alpine
+  extends: .fdo.distribution-image@alpine
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 
@@ -215,28 +215,21 @@ check-commit:
   extends:
     - .fedora:30
     - .fedora.packages
-    - .fdo.qemu-ifnot-exists@fedora
+    - .fdo.qemu-build@fedora
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-17.0
   allow_failure: true
 
 # Always rebuilds the container
 .fedora:30@qemu-forced-rebuild:
   extends:
-    - .fedora:30
-    - .fedora.packages
-    - .fdo.qemu-ifnot-exists@fedora
-  stage: prep
-  tags:
-    - kvm
+    - .fedora:30@qemu-prep
   variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
-  allow_failure: true
+    FDO_FORCE_REBUILD: 1
   only:
     - schedules
 
@@ -245,28 +238,21 @@ check-commit:
   extends:
     - .fedora:31
     - .fedora.packages
-    - .fdo.qemu-ifnot-exists@fedora
+    - .fdo.qemu-build@fedora
   stage: prep
   tags:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-17.0
   allow_failure: true
 
 # Always rebuilds the container
 .fedora:31@qemu-forced-rebuild:
   extends:
-    - .fedora:31
-    - .fedora.packages
-    - .fdo.qemu-ifnot-exists@fedora
-  stage: prep
-  tags:
-    - kvm
+    - .fedora:31@qemu-prep
   variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
-  allow_failure: true
+    FDO_FORCE_REBUILD: 1
   only:
     - schedules
 
@@ -284,7 +270,7 @@ fedora:30@container-prep:
   extends:
     - .fedora:30
     - .fedora.packages
-    - .fdo.container-ifnot-exists@fedora
+    - .fdo.container-build@fedora
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -292,14 +278,11 @@ fedora:30@container-prep:
 # Always rebuilds the container
 fedora:30@container-forced-rebuild:
   extends:
-    - .fedora:30
-    - .fedora.packages
-    - .fdo.container-build@fedora
-  stage: prep
+    - fedora:30@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -307,7 +290,7 @@ fedora:31@container-prep:
   extends:
     - .fedora:31
     - .fedora.packages
-    - .fdo.container-ifnot-exists@fedora
+    - .fdo.container-build@fedora
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -315,14 +298,11 @@ fedora:31@container-prep:
 # Always rebuilds the container
 fedora:31@container-forced-rebuild:
   extends:
-    - .fedora:31
-    - .fedora.packages
-    - .fdo.container-build@fedora
-  stage: prep
+    - fedora:31@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -330,7 +310,7 @@ ubuntu:19.10@container-prep:
   extends:
     - .ubuntu:19.10
     - .ubuntu.packages
-    - .fdo.container-ifnot-exists@ubuntu
+    - .fdo.container-build@ubuntu
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -338,14 +318,11 @@ ubuntu:19.10@container-prep:
 # Always rebuilds the container
 ubuntu:19.10@container-forced-rebuild:
   extends:
-    - .ubuntu:19.10
-    - .ubuntu.packages
-    - .fdo.container-build@ubuntu
-  stage: prep
+    - ubuntu:19.10@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -353,7 +330,7 @@ ubuntu:19.04@container-prep:
   extends:
     - .ubuntu:19.04
     - .ubuntu.packages
-    - .fdo.container-ifnot-exists@ubuntu
+    - .fdo.container-build@ubuntu
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -361,14 +338,11 @@ ubuntu:19.04@container-prep:
 # Always rebuilds the container
 ubuntu:19.04@container-forced-rebuild:
   extends:
-    - .ubuntu:19.04
-    - .ubuntu.packages
-    - .fdo.container-build@ubuntu
-  stage: prep
+    - ubuntu:19.04@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -376,7 +350,7 @@ debian:stable@container-prep:
   extends:
     - .debian:stable
     - .debian.packages
-    - .fdo.container-ifnot-exists@debian
+    - .fdo.container-build@debian
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -384,14 +358,11 @@ debian:stable@container-prep:
 # Always rebuilds the container
 debian:stable@container-forced-rebuild:
   extends:
-    - .debian:stable
-    - .debian.packages
-    - .fdo.container-build@debian
-  stage: prep
+    - debian:stable@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -399,7 +370,7 @@ debian:sid@container-prep:
   extends:
     - .debian:sid
     - .debian.packages
-    - .fdo.container-ifnot-exists@debian
+    - .fdo.container-build@debian
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -407,14 +378,11 @@ debian:sid@container-prep:
 # Always rebuilds the container
 debian:sid@container-forced-rebuild:
   extends:
-    - .debian:sid
-    - .debian.packages
-    - .fdo.container-build@debian
-  stage: prep
+    - debian:sid@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -422,7 +390,7 @@ centos:7@container-prep:
   extends:
     - .centos:7
     - .centos.packages
-    - .fdo.container-ifnot-exists@centos
+    - .fdo.container-build@centos
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -430,14 +398,11 @@ centos:7@container-prep:
 # Always rebuilds the container
 centos:7@container-forced-rebuild:
   extends:
-    - .centos:7
-    - .centos.packages
-    - .fdo.container-build@centos
-  stage: prep
+    - centos:7@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -445,7 +410,7 @@ centos:8@container-prep:
   extends:
     - .centos:8
     - .centos.packages
-    - .fdo.container-ifnot-exists@centos
+    - .fdo.container-build@centos
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -453,14 +418,11 @@ centos:8@container-prep:
 # Always rebuilds the container
 centos:8@container-forced-rebuild:
   extends:
-    - .centos:8
-    - .centos.packages
-    - .fdo.container-build@centos
-  stage: prep
+    - centos:8@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -468,7 +430,7 @@ arch:rolling@container-prep:
   extends:
     - .arch:rolling
     - .arch.packages
-    - .fdo.container-ifnot-exists@arch
+    - .fdo.container-build@arch
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -476,14 +438,11 @@ arch:rolling@container-prep:
 # Always rebuilds the container
 arch:rolling@container-forced-rebuild:
   extends:
-    - .arch:rolling
-    - .arch.packages
-    - .fdo.container-build@arch
-  stage: prep
+    - arch:rolling@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -491,7 +450,7 @@ alpine:latest@container-prep:
   extends:
     - .alpine:latest
     - .alpine.packages
-    - .fdo.container-ifnot-exists@alpine
+    - .fdo.container-build@alpine
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -499,14 +458,11 @@ alpine:latest@container-prep:
 # Always rebuilds the container
 alpine:latest@container-forced-rebuild:
   extends:
-    - .alpine:latest
-    - .alpine.packages
-    - .fdo.container-build@alpine
-  stage: prep
+    - alpine:latest@container-prep
   only:
     - schedules
   variables:
-    GIT_STRATEGY: none
+    FDO_FORCE_REBUILD: 1
 
 
 #################################################################
