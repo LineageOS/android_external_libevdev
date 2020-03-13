@@ -79,61 +79,61 @@ variables:
 .fedora:30:
   extends: .fdo.distribution_image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '30'
 
 .fedora:31:
   extends: .fdo.distribution_image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '31'
 
 .ubuntu:19.10:
   extends: .fdo.distribution_image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '19.10'
 
 .ubuntu:19.04:
   extends: .fdo.distribution_image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '19.04'
 
 .debian:stable:
   extends: .fdo.distribution_image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
   extends: .fdo.distribution_image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: 'sid'
 
 .centos:7:
   extends: .fdo.distribution_image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '7'
 
 .centos:8:
   extends: .fdo.distribution_image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: '8'
 
 .arch:rolling:
   extends: .fdo.distribution_image@arch
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
   extends: .fdo.distribution_image@alpine
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-06.0'
+    FDO_DISTRIBUTION_TAG: '2020-03-13.0'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 
@@ -221,7 +221,7 @@ check-commit:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
   allow_failure: true
 
 # Always rebuilds the container
@@ -235,7 +235,7 @@ check-commit:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
   allow_failure: true
   only:
     - schedules
@@ -251,7 +251,7 @@ check-commit:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
   allow_failure: true
 
 # Always rebuilds the container
@@ -265,7 +265,7 @@ check-commit:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-03-06.0
+    FDO_DISTRIBUTION_TAG: qemu-2020-03-13.0
   allow_failure: true
   only:
     - schedules
