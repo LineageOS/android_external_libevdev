@@ -4,7 +4,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha d32ac1f30faad4fdef24af8a7724fb8c084c3dda # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha ca99d9418390fb5faaa7f2407b94c733d7ec6a37 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -153,9 +153,9 @@ check-ci-script:
   stage: prep
   before_script:
     - apk add python3 git
-    - pip3 install --user jinja2 PyYAML
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - python3 ./.gitlab-ci/generate-gitlab-ci.py
+    - ci-fairy generate-template
     - git diff --exit-code && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
@@ -480,18 +480,17 @@ alpine:latest@container-forced-rebuild:
   stage: container_clean
   image: golang:alpine
   before_script:
-    - apk add python3
-    - pip3 install --user python-gitlab
+    - apk add python3 git
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - LATEST_TAG=$(echo $DISTRO_CONTAINER_IMAGE | cut -f2 -d:)
     # Go to your Profile, Settings, Access Tokens
     # Create a personal token with 'api' scope, copy the value.
     # Go to Settings, CI/CD, Variables
     # Define a variable of type File named AUTHFILE. Content is that token
     # value.
-    - python3 .gitlab-ci/gitlab-container-delete $CI_SERVER_URL $CI_PROJECT_PATH
+    - ci-fairy -v --authfile $AUTHFILE delete-image
             --repository $FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION
-            --authfile $AUTHFILE --exclude-tag "$LATEST_TAG"
+            --exclude-tag $FDO_DISTRIBUTION_TAG
   dependencies: []
   allow_failure: true
   only:
