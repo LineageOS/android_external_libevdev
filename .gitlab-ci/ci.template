@@ -211,7 +211,7 @@ fedora:31@qemu-forced-rebuild:
   script:
     # Go to your Profile, Settings, Access Tokens
     # Create a personal token with 'api' scope, copy the value.
-    # Go to Settings, CI/CD, Variables
+    # Go to CI/CD, Schedules, schedule a new monthly job (or edit the existing one)
     # Define a variable of type File named AUTHFILE. Content is that token
     # value.
     - ci-fairy -v --authfile $AUTHFILE delete-image
