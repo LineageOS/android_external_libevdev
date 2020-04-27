@@ -43,7 +43,7 @@
 
 static int
 usage(void) {
-	printf("Usage: %s 12x34 /dev/input/event0\n", program_invocation_short_name);
+	printf("Usage: %s 12x34 /dev/input/eventX\n", program_invocation_short_name);
 	printf("\n");
 	printf("This tool reads the touchpad events from the kernel and calculates\n "
 	       "the minimum and maximum for the x and y coordinates, respectively.\n"
