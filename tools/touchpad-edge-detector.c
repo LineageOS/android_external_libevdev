@@ -170,8 +170,6 @@ dmi_matchstr(struct libevdev *dev, char *match, size_t sz)
 
 	modalias[strlen(modalias) - 1] = '\0'; /* drop \n */
 	snprintf(match, sz, "name:%s:%s", libevdev_get_name(dev), modalias);
-
-	return;
 }
 
 static void
