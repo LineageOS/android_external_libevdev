@@ -30,9 +30,10 @@
 #include <poll.h>
 #include <signal.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/signalfd.h>
 #include <unistd.h>
 
 #include "libevdev/libevdev.h"

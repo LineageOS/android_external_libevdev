@@ -26,9 +26,10 @@
 #include <string.h>
 #include <strings.h>
 
-#include "libevdev.h"
 #include "libevdev-int.h"
 #include "libevdev-util.h"
+#include "libevdev.h"
+
 #include "event-names.h"
 
 struct name_lookup {

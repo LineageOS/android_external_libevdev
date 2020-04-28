@@ -22,18 +22,19 @@
 
 #include "config.h"
 #include <errno.h>
+#include <limits.h>
 #include <poll.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdbool.h>
 
-#include "libevdev.h"
 #include "libevdev-int.h"
 #include "libevdev-util.h"
+#include "libevdev.h"
+
 #include "event-names.h"
 
 #define MAXEVENTS 64

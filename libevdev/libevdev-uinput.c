@@ -21,22 +21,22 @@
  */
 
 #include "config.h"
-#include <fcntl.h>
-#include <poll.h>
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
 #include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/uinput.h>
+#include <poll.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <linux/uinput.h>
+#include <unistd.h>
 
-#include "libevdev.h"
 #include "libevdev-int.h"
-#include "libevdev-uinput.h"
 #include "libevdev-uinput-int.h"
+#include "libevdev-uinput.h"
 #include "libevdev-util.h"
+#include "libevdev.h"
 
 #ifndef UINPUT_IOCTL_BASE
 #define UINPUT_IOCTL_BASE       'U'
