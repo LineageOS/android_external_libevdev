@@ -1706,7 +1706,7 @@ int libevdev_get_current_slot(const struct libevdev *dev);
  * @param code One of ABS_X, ABS_Y, ...
  * @param min The new minimum for this axis
  */
-void libevdev_set_abs_minimum(struct libevdev *dev, unsigned int code, int min);
+void libevdev_set_abs_minimum(struct libevdev *dev, unsigned int code, int val);
 
 /**
  * @ingroup kernel
@@ -1719,7 +1719,7 @@ void libevdev_set_abs_minimum(struct libevdev *dev, unsigned int code, int min);
  * @param code One of ABS_X, ABS_Y, ...
  * @param max The new maxium for this axis
  */
-void libevdev_set_abs_maximum(struct libevdev *dev, unsigned int code, int max);
+void libevdev_set_abs_maximum(struct libevdev *dev, unsigned int code, int val);
 
 /**
  * @ingroup kernel
@@ -1732,7 +1732,7 @@ void libevdev_set_abs_maximum(struct libevdev *dev, unsigned int code, int max);
  * @param code One of ABS_X, ABS_Y, ...
  * @param fuzz The new fuzz for this axis
  */
-void libevdev_set_abs_fuzz(struct libevdev *dev, unsigned int code, int fuzz);
+void libevdev_set_abs_fuzz(struct libevdev *dev, unsigned int code, int val);
 
 /**
  * @ingroup kernel
@@ -1745,7 +1745,7 @@ void libevdev_set_abs_fuzz(struct libevdev *dev, unsigned int code, int fuzz);
  * @param code One of ABS_X, ABS_Y, ...
  * @param flat The new flat for this axis
  */
-void libevdev_set_abs_flat(struct libevdev *dev, unsigned int code, int flat);
+void libevdev_set_abs_flat(struct libevdev *dev, unsigned int code, int val);
 
 /**
  * @ingroup kernel
@@ -1758,7 +1758,7 @@ void libevdev_set_abs_flat(struct libevdev *dev, unsigned int code, int flat);
  * @param code One of ABS_X, ABS_Y, ...
  * @param resolution The new axis resolution
  */
-void libevdev_set_abs_resolution(struct libevdev *dev, unsigned int code, int resolution);
+void libevdev_set_abs_resolution(struct libevdev *dev, unsigned int code, int val);
 
 /**
  * @ingroup kernel
