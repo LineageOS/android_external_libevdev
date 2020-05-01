@@ -88,17 +88,17 @@ variables:
     FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '31'
 
+.ubuntu:20.04:
+  extends: .fdo.distribution-image@ubuntu
+  variables:
+    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
+    FDO_DISTRIBUTION_VERSION: '20.04'
+
 .ubuntu:19.10:
   extends: .fdo.distribution-image@ubuntu
   variables:
     FDO_DISTRIBUTION_TAG: '2020-03-17.0'
     FDO_DISTRIBUTION_VERSION: '19.10'
-
-.ubuntu:19.04:
-  extends: .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_TAG: '2020-03-17.0'
-    FDO_DISTRIBUTION_VERSION: '19.04'
 
 .debian:stable:
   extends: .fdo.distribution-image@debian
@@ -306,6 +306,26 @@ fedora:31@container-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
+ubuntu:20.04@container-prep:
+  extends:
+    - .ubuntu:20.04
+    - .ubuntu.packages
+    - .fdo.container-build@ubuntu
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+
+# Always rebuilds the container
+ubuntu:20.04@container-forced-rebuild:
+  extends:
+    - ubuntu:20.04@container-prep
+  only:
+    - schedules
+  variables:
+    FDO_FORCE_REBUILD: 1
+
+
+# Pulls in the container from upstream or rebuilds it if missing
 ubuntu:19.10@container-prep:
   extends:
     - .ubuntu:19.10
@@ -319,26 +339,6 @@ ubuntu:19.10@container-prep:
 ubuntu:19.10@container-forced-rebuild:
   extends:
     - ubuntu:19.10@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-ubuntu:19.04@container-prep:
-  extends:
-    - .ubuntu:19.04
-    - .ubuntu.packages
-    - .fdo.container-build@ubuntu
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-ubuntu:19.04@container-forced-rebuild:
-  extends:
-    - ubuntu:19.04@container-prep
   only:
     - schedules
   variables:
@@ -510,19 +510,19 @@ fedora:31@container-clean:
     - .container-clean
   needs: ["fedora:31@container-prep"]
 
+### ubuntu 20.04
+ubuntu:20.04@container-clean:
+  extends:
+    - .ubuntu:20.04
+    - .container-clean
+  needs: ["ubuntu:20.04@container-prep"]
+
 ### ubuntu 19.10
 ubuntu:19.10@container-clean:
   extends:
     - .ubuntu:19.10
     - .container-clean
   needs: ["ubuntu:19.10@container-prep"]
-
-### ubuntu 19.04
-ubuntu:19.04@container-clean:
-  extends:
-    - .ubuntu:19.04
-    - .container-clean
-  needs: ["ubuntu:19.04@container-prep"]
 
 ### debian stable
 debian:stable@container-clean:
@@ -620,6 +620,21 @@ fedora:31@meson-build:
   needs: ['fedora:31@container-prep']
 
 
+ubuntu:20.04@autotools-build:
+  extends:
+    - .ubuntu:20.04
+    - .autotools-build@template
+  stage: autotools
+  needs: ['ubuntu:20.04@container-prep']
+
+ubuntu:20.04@meson-build:
+  extends:
+    - .ubuntu:20.04
+    - .meson-build@template
+  stage: meson
+  needs: ['ubuntu:20.04@container-prep']
+
+
 ubuntu:19.10@autotools-build:
   extends:
     - .ubuntu:19.10
@@ -633,21 +648,6 @@ ubuntu:19.10@meson-build:
     - .meson-build@template
   stage: meson
   needs: ['ubuntu:19.10@container-prep']
-
-
-ubuntu:19.04@autotools-build:
-  extends:
-    - .ubuntu:19.04
-    - .autotools-build@template
-  stage: autotools
-  needs: ['ubuntu:19.04@container-prep']
-
-ubuntu:19.04@meson-build:
-  extends:
-    - .ubuntu:19.04
-    - .meson-build@template
-  stage: meson
-  needs: ['ubuntu:19.04@container-prep']
 
 
 debian:stable@autotools-build:
