@@ -47,7 +47,7 @@ usage(void) {
 	printf("\n");
 	printf("This tool reads the touchpad events from the kernel and calculates\n "
 	       "the minimum and maximum for the x and y coordinates, respectively.\n"
-	       "The first argument is the physical size of the touchpad in mm.\n");
+	       "The first argument is the physical size of the touchpad in mm (WIDTHxHEIGHT).\n");
 	return 1;
 }
 
