@@ -312,9 +312,9 @@ uinput_create_write(const struct libevdev *dev, int fd)
 		goto error;
 
 	rc = write(fd, &uidev, sizeof(uidev));
-	if (rc < 0)
+	if (rc < 0) {
 		goto error;
-	else if ((size_t)rc < sizeof(uidev)) {
+	} else if ((size_t)rc < sizeof(uidev)) {
 		errno = EINVAL;
 		goto error;
 	}

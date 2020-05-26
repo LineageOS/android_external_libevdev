@@ -195,10 +195,11 @@ _libevdev_log_msg(const struct libevdev *dev,
 
 		if (priority > dev->log.priority)
 			return;
-	} else if (!log_data.global_handler || priority > log_data.priority)
+	} else if (!log_data.global_handler || priority > log_data.priority) {
 		return;
-	else if (unlikely(log_data.device_handler))
+	} else if (unlikely(log_data.device_handler)) {
 		abort(); /* Seppuku, see above */
+	}
 
 	va_start(args, format);
 	if (dev && dev->log.device_handler)
@@ -396,8 +397,9 @@ libevdev_set_fd(struct libevdev* dev, int fd)
 	if (dev->initialized) {
 		log_bug(dev, "device already initialized.\n");
 		return -EBADF;
-	} else if (fd < 0)
+	} else if (fd < 0) {
 		return -EBADF;
+	}
 
 	libevdev_reset(dev);
 
@@ -869,9 +871,9 @@ read_more_events(struct libevdev *dev)
 	len = read(dev->fd, next, free_elem * sizeof(struct input_event));
 	if (len < 0) {
 		return -errno;
-	} else if (len > 0 && len % sizeof(struct input_event) != 0)
+	} else if (len > 0 && len % sizeof(struct input_event) != 0) {
 		return -EINVAL;
-	else if (len > 0) {
+	} else if (len > 0) {
 		int nev = len/sizeof(struct input_event);
 		queue_set_num_elements(dev, queue_num_elements(dev) + nev);
 	}
@@ -994,8 +996,9 @@ update_mt_state(struct libevdev *dev, const struct input_event *e)
 		}
 
 		return 0;
-	} else if (dev->current_slot == -1)
+	} else if (dev->current_slot == -1) {
 		return 1;
+	}
 
 	*slot_value(dev, dev->current_slot, e->code) = e->value;
 
@@ -1128,8 +1131,9 @@ libevdev_next_event(struct libevdev *dev, unsigned int flags, struct input_event
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	if ((flags & valid_flags) == 0) {
 		log_bug(dev, "invalid flags %#x.\n", flags);
@@ -1219,8 +1223,9 @@ libevdev_has_event_pending(struct libevdev *dev)
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	if (queue_num_elements(dev) != 0)
 		return 1;
@@ -1400,8 +1405,9 @@ libevdev_fetch_event_value(const struct libevdev *dev, unsigned int type, unsign
 	    libevdev_has_event_code(dev, type, code)) {
 		*value = libevdev_get_event_value(dev, type, code);
 		return 1;
-	} else
+	} else {
 		return 0;
+	}
 }
 
 LIBEVDEV_EXPORT int
@@ -1451,8 +1457,9 @@ libevdev_fetch_slot_value(const struct libevdev *dev, unsigned int slot, unsigne
 	    slot < (unsigned int)dev->num_slots) {
 		*value = libevdev_get_slot_value(dev, slot, code);
 		return 1;
-	} else
+	} else {
 		return 0;
+	}
 }
 
 LIBEVDEV_EXPORT int
@@ -1639,8 +1646,9 @@ libevdev_kernel_set_abs_info(struct libevdev *dev, unsigned int code, const stru
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	if (code > ABS_MAX)
 		return -EINVAL;
@@ -1662,8 +1670,9 @@ libevdev_grab(struct libevdev *dev, enum libevdev_grab_mode grab)
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	if (grab != LIBEVDEV_GRAB && grab != LIBEVDEV_UNGRAB) {
 		log_bug(dev, "invalid grab parameter %#x\n", grab);
@@ -1790,8 +1799,9 @@ libevdev_kernel_set_led_values(struct libevdev *dev, ...)
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	memset(ev, 0, sizeof(ev));
 
@@ -1846,8 +1856,9 @@ libevdev_set_clock_id(struct libevdev *dev, int clockid)
 	if (!dev->initialized) {
 		log_bug(dev, "device not initialized. call libevdev_set_fd() first\n");
 		return -EBADF;
-	} else if (dev->fd < 0)
+	} else if (dev->fd < 0) {
 		return -EBADF;
+	}
 
 	return ioctl(dev->fd, EVIOCSCLOCKID, &clockid) ? -errno : 0;
 }
