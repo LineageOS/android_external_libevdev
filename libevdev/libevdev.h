@@ -165,6 +165,7 @@ extern "C" {
  * Bindings
  * ===================
  * - Python: https://gitlab.freedesktop.org/libevdev/python-libevdev
+ * - Haskell: http://hackage.haskell.org/package/evdev
  *
  * Reporting bugs
  * ==============
