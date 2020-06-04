@@ -152,7 +152,7 @@ check-ci-script:
   image: golang:alpine
   stage: prep
   before_script:
-    - apk add python3 git
+    - apk add python3 py-pip git
     - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
     - ci-fairy generate-template
@@ -164,7 +164,7 @@ check-commit:
   image: golang:alpine
   stage: prep
   before_script:
-    - apk add python3 git
+    - apk add python3 py-pip git
   script:
     - pip3 install GitPython
     - pip3 install pytest
@@ -480,7 +480,7 @@ alpine:latest@container-forced-rebuild:
   stage: container_clean
   image: golang:alpine
   before_script:
-    - apk add python3 git
+    - apk add python3 py-pip git
     - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
     # Go to your Profile, Settings, Access Tokens
