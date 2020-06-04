@@ -165,9 +165,9 @@ check-commit:
   stage: prep
   before_script:
     - apk add python3 py-pip git
-  script:
     - pip3 install GitPython
     - pip3 install pytest
+  script:
     - |
       pytest --junitxml=results.xml \
              --tb=line \
