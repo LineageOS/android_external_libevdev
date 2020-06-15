@@ -97,30 +97,44 @@ check-ci-script:
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
 
+#
+# Verify that commit messages are as expected, signed-off, etc.
+#
+
 check-commit:
   image: golang:alpine
   stage: prep
   before_script:
     - apk add python3 py-pip git
-    - pip3 install GitPython
-    - pip3 install pytest
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - |
-      pytest --junitxml=results.xml \
-             --tb=line \
-             --assert=plain \
-             ./.gitlab-ci/check-commit.py
+    - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
-    - master@libevdev/libevdev
+    - master@libinput/libinput
   variables:
     GIT_DEPTH: 100
   artifacts:
-    expire_in: 1 week
-    when: on_failure
-    paths:
-      - results.xml
     reports:
       junit: results.xml
+
+#
+# Verify that the merge request has the allow-collaboration checkbox ticked
+#
+
+check-merge-request:
+  image: golang:alpine
+  stage: prep
+  before_script:
+    - apk add python3 py-pip git
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
+  script:
+    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
+  artifacts:
+    when: on_failure
+    reports:
+      junit: results.xml
+  allow_failure: true
+
 
 {% for distro in distributions %}
 .{{ distro.name }}.packages:
