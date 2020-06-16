@@ -110,7 +110,7 @@ check-commit:
   script:
     - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
-    - master@libinput/libinput
+    - master@libevdev/libevdev
   variables:
     GIT_DEPTH: 100
   artifacts:
