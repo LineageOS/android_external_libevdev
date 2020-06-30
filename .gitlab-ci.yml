@@ -40,6 +40,7 @@ stages:
   - meson            # distribution builds with meson
   - tarballs         # tarball builds
   - container_clean  # clean up unused container images
+  - merge-check      # check for a merge request
 
 variables:
   # The upstrem repository we will check for images
@@ -186,7 +187,7 @@ check-commit:
 
 check-merge-request:
   image: golang:alpine
-  stage: prep
+  stage: merge-check
   before_script:
     - apk add python3 py-pip git
     - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
