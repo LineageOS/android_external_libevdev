@@ -1742,7 +1742,7 @@ libevdev_event_value_get_name(unsigned int type,
 	if (type != EV_ABS || code != ABS_MT_TOOL_TYPE)
 		return NULL;
 
-	if (value > MT_TOOL_MAX)
+	if (value < 0 || value > MT_TOOL_MAX)
 		return NULL;
 
 	return mt_tool_map[value];
