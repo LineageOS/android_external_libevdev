@@ -38,10 +38,11 @@ config_h.set('_GNU_SOURCE', '1')
 pkgconfig = import('pkgconfig')
 dep_lm = cc.find_library('m')
 
-# event-names.h
-input_h = join_paths(meson.source_root(), 'include', 'linux', 'input.h')
-input_event_codes_h = join_paths(meson.source_root(), 'include', 'linux', 'input-event-codes.h')
+input_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'input.h')
+uinput_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'uinput.h')
+input_event_codes_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'input-event-codes.h')
 
+# event-names.h
 make_event_names = find_program('libevdev/make-event-names.py')
 event_names_h = configure_file(input: 'libevdev/libevdev.h',
 			       output: 'event-names.h',
@@ -63,9 +64,11 @@ src_libevdev = [
 	'libevdev/libevdev-uinput-int.h',
 	'libevdev/libevdev.c',
 	'libevdev/libevdev-names.c',
-	'include/linux/input-event-codes.h',
 	'include/linux/input.h',
-	'include/linux/uinput.h'
+	'include/linux/uinput.h',
+	input_event_codes_h,
+	input_h,
+	uinput_h
 ]
 
 mapfile = join_paths(dir_src, 'libevdev.sym')

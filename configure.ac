@@ -61,6 +61,15 @@ if test "x$lt_cv_prog_gnu_ld" = "xyes"; then
 fi
 AC_SUBST([GNU_LD_FLAGS], $with_ldflags)
 
+case "${host_os}" in
+    freebsd*)
+AC_SUBST([OS], [freebsd])
+        ;;
+    *)
+AC_SUBST([OS], [linux])
+        ;;
+esac
+
 AC_CHECK_LIB([m], [round])
 
 PKG_PROG_PKG_CONFIG()
