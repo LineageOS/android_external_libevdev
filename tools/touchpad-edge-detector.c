@@ -23,7 +23,6 @@
 
 #include "config.h"
 
-#include <sys/signalfd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -40,6 +39,8 @@
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
+
+static int signalled = 0;
 
 static int
 usage(void) {
@@ -102,26 +103,26 @@ handle_event(struct dimensions *d, const struct input_event *ev) {
 	return 0;
 }
 
+static void
+signal_handler(__attribute__((__unused__)) int signal)
+{
+	signalled++;
+}
+
 static int
 mainloop(struct libevdev *dev, struct dimensions *dim) {
-	struct pollfd fds[2];
-	sigset_t mask;
+	struct pollfd fds;
 
-	fds[0].fd = libevdev_get_fd(dev);
-	fds[0].events = POLLIN;
+	fds.fd = libevdev_get_fd(dev);
+	fds.events = POLLIN;
 
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	fds[1].fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	fds[1].events = POLLIN;
+	signal(SIGINT, signal_handler);
 
-	sigprocmask(SIG_BLOCK, &mask, NULL);
-
-	while (poll(fds, 2, -1)) {
+	while (poll(&fds, 1, -1)) {
 		struct input_event ev;
 		int rc;
 
-		if (fds[1].revents)
+		if (signalled)
 			break;
 
 		do {
