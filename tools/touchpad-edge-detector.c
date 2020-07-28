@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <math.h>
 #include <poll.h>
@@ -43,8 +44,8 @@
 static int signalled = 0;
 
 static int
-usage(void) {
-	printf("Usage: %s 12x34 /dev/input/eventX\n", program_invocation_short_name);
+usage(const char *progname) {
+	printf("Usage: %s 12x34 /dev/input/eventX\n", progname);
 	printf("\n");
 	printf("This tool reads the touchpad events from the kernel and calculates\n "
 	       "the minimum and maximum for the x and y coordinates, respectively.\n"
@@ -236,11 +237,11 @@ int main (int argc, char **argv) {
 	struct size size;
 
 	if (argc < 3)
-		return usage();
+		return usage(basename(argv[0]));
 
 	if (sscanf(argv[1], "%dx%d", &size.w, &size.h) != 2 ||
 	    size.w <= 0 || size.h <= 0)
-		return usage();
+		return usage(basename(argv[0]));
 
 	if (size.w < 30 || size.h < 30) {
 		fprintf(stderr,
@@ -252,7 +253,7 @@ int main (int argc, char **argv) {
 
 	path = argv[2];
 	if (path[0] == '-')
-		return usage();
+		return usage(basename(argv[0]));
 
 	fd = open(path, O_RDONLY|O_NONBLOCK);
 	if (fd < 0) {

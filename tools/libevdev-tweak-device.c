@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <getopt.h>
+#include <libgen.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -39,7 +40,7 @@
 #include "libevdev/libevdev.h"
 
 static void
-usage(void)
+usage(const char *progname)
 {
 	printf("%s --abs <axis> [--min min] [--max max] [--res res] [--fuzz fuzz] [--flat flat] /dev/input/eventXYZ\n"
 	       "\tChange the absinfo struct for the named axis\n"
@@ -47,9 +48,9 @@ usage(void)
 	       "\tChange the x/y resolution on the given device\n"
 	       "%s --led <led> --on|--off /dev/input/eventXYZ\n"
 	       "\tEnable or disable the named LED\n",
-	       program_invocation_short_name,
-	       program_invocation_short_name,
-	       program_invocation_short_name);
+	       progname,
+	       progname,
+	       progname);
 }
 
 enum mode {
@@ -415,7 +416,7 @@ main(int argc, char **argv)
 			rc = EXIT_SUCCESS;
 			/* fallthrough */
 		case MODE_NONE:
-			usage();
+			usage(basename(argv[0]));
 			goto out;
 		case MODE_ABS:
 			rc = parse_options_abs(argc, argv, &changes, &axis,
@@ -439,7 +440,7 @@ main(int argc, char **argv)
 
 	if (optind >= argc) {
 		rc = EXIT_FAILURE;
-		usage();
+		usage(basename(argv[0]));
 		goto out;
 	}
 

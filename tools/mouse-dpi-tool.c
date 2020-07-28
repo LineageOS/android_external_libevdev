@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <poll.h>
 #include <signal.h>
@@ -51,8 +52,8 @@ struct measurements {
 };
 
 static int
-usage(void) {
-	printf("Usage: %s /dev/input/event0\n", program_invocation_short_name);
+usage(const char *progname) {
+	printf("Usage: %s /dev/input/event0\n", progname);
 	printf("\n");
 	printf("This tool reads relative events from the kernel and calculates\n"
 	       "the distance covered and maximum frequency of the incoming events.\n"
@@ -262,11 +263,11 @@ main (int argc, char **argv) {
 	struct measurements measurements = {0};
 
 	if (argc < 2)
-		return usage();
+		return usage(basename(argv[0]));
 
 	path = argv[1];
 	if (path[0] == '-')
-		return usage();
+		return usage(basename(argv[0]));
 
 	fd = open(path, O_RDONLY|O_NONBLOCK);
 	if (fd < 0) {
