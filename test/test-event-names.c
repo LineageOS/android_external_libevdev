@@ -175,7 +175,7 @@ START_TEST(test_code_sw_name)
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_RFKILL_ALL), "SW_RFKILL_ALL");
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_LINEIN_INSERT), "SW_LINEIN_INSERT");
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_PEN_INSERTED), "SW_PEN_INSERTED");
-	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_MAX), "SW_PEN_INSERTED");
+	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_MAX), "SW_MACHINE_COVER");
 }
 END_TEST
 

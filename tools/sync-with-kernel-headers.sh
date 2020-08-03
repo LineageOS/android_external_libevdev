@@ -21,10 +21,11 @@ if ! [ -d .git ]; then
 	exit 1
 fi
 
-files="linux/input.h linux/input-event-codes.h"
 
+file="linux/input.h"
+git cat-file -p "$TAG:include/uapi/$file" > "include/linux/linux/$(basename $file)"
 
-for file in $files; do
-	git cat-file -p "$TAG:include/uapi/$file" > "include/$file"
-done
+file="linux/input-event-codes.h"
+git cat-file -p "$TAG:include/uapi/$file" > "include/linux/linux/$(basename $file)"
+git cat-file -p "$TAG:include/uapi/$file" > "include/linux/freebsd/$(basename $file)"
 
