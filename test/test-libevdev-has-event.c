@@ -117,6 +117,14 @@ START_TEST(test_event_codes)
 			continue;
 		}
 
+#ifdef __FreeBSD__
+		/* Force feedback events are not supported by FreeBSD */
+		if (*evbit == EV_FF) {
+			evbit++;
+			continue;
+		}
+#endif
+
 		max = libevdev_event_type_get_max(*evbit);
 
 		for (code = 1; code < max; code += 10) {
