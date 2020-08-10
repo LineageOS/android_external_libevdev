@@ -38,8 +38,13 @@
 static int
 is_debugger_attached(void)
 {
+	int rc = 1;
+	/*
+	 * FreeBSD does not support PTRACE_ATTACH, disable attaching a debugger
+	 * on FreeBSD by skipping the rest of the function and just return 1.
+	 */
+#ifndef __FreeBSD__
 	int status;
-	int rc;
 	int pid = fork();
 
 	if (pid == -1)
@@ -52,14 +57,14 @@ is_debugger_attached(void)
 			ptrace(PTRACE_CONT, NULL, NULL);
 			ptrace(PTRACE_DETACH, ppid, NULL, NULL);
 			rc = 0;
-		} else
-			rc = 1;
+		}
 		_exit(rc);
 	} else {
 		waitpid(pid, &status, 0);
 		rc = WEXITSTATUS(status);
 	}
 
+#endif /* !__FreeBSD__ */
 	return rc;
 }
 
