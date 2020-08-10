@@ -559,6 +559,7 @@ START_TEST(test_set_clock_id)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
+	int clockid;
 	int rc;
 
 	test_create_device(&uidev, &dev,
@@ -577,7 +578,13 @@ START_TEST(test_set_clock_id)
 	rc = libevdev_set_clock_id(dev, CLOCK_MONOTONIC);
 	ck_assert_int_eq(rc, 0);
 
-	rc = libevdev_set_clock_id(dev, CLOCK_MONOTONIC_RAW);
+#ifdef __FreeBSD__
+	clockid = CLOCK_MONOTONIC_FAST;
+#else
+	clockid = CLOCK_MONOTONIC_RAW;
+#endif
+
+	rc = libevdev_set_clock_id(dev, clockid);
 	ck_assert_int_eq(rc, -EINVAL);
 
 	uinput_device_free(uidev);
