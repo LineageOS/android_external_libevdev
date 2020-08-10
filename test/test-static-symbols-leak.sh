@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Hack to check for leaking symbols in the static library.
 # See https://bugs.freedesktop.org/show_bug.cgi?id=82785

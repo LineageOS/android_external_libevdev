@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: ./generate-gcov-report.sh <rel-target-dir> <srcdir> [<srcdir> ... ]"
