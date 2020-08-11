@@ -164,6 +164,93 @@ START_TEST(test_uinput_create_device_from_fd)
 }
 END_TEST
 
+#ifdef __FreeBSD__
+START_TEST(test_uinput_check_devnode_bsd)
+{
+	struct libevdev *dev;
+	struct libevdev_uinput *uidev, *uidev2;
+	const char *devnode, *devnode2;
+	int fd, fd2;
+	int rc;
+
+	dev = libevdev_new();
+	ck_assert(dev != NULL);
+	libevdev_set_name(dev, TEST_DEVICE_NAME);
+	libevdev_enable_event_type(dev, EV_SYN);
+	libevdev_enable_event_type(dev, EV_REL);
+	libevdev_enable_event_code(dev, EV_REL, REL_X, NULL);
+	libevdev_enable_event_code(dev, EV_REL, REL_Y, NULL);
+
+	fd = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd, -1);
+	fd2 = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd2, -1);
+
+	rc = libevdev_uinput_create_from_device(dev, fd, &uidev);
+	ck_assert_int_eq(rc, 0);
+
+	/* create a second one */
+	libevdev_set_name(dev, TEST_DEVICE_NAME " 2");
+	rc = libevdev_uinput_create_from_device(dev, fd2, &uidev2);
+	ck_assert_int_eq(rc, 0);
+
+	devnode = libevdev_uinput_get_devnode(uidev);
+	ck_assert(devnode != NULL);
+
+	/* get syspath twice returns same pointer */
+	devnode2 = libevdev_uinput_get_devnode(uidev);
+	ck_assert(devnode == devnode2);
+
+	/* second dev has different devnode */
+	devnode2 = libevdev_uinput_get_devnode(uidev2);
+	ck_assert(strcmp(devnode, devnode2) != 0);
+
+	libevdev_uinput_destroy(uidev2);
+	libevdev_uinput_destroy(uidev);
+
+	close(fd2);
+	close(fd);
+
+	libevdev_free(dev);
+}
+END_TEST
+
+START_TEST(test_uinput_check_syspath_bsd)
+{
+	struct libevdev *dev;
+	struct libevdev_uinput *uidev;
+	const char *syspath;
+	int fd;
+	int rc;
+
+	dev = libevdev_new();
+	ck_assert(dev != NULL);
+	libevdev_set_name(dev, TEST_DEVICE_NAME);
+	libevdev_enable_event_type(dev, EV_SYN);
+	libevdev_enable_event_type(dev, EV_REL);
+	libevdev_enable_event_code(dev, EV_REL, REL_X, NULL);
+	libevdev_enable_event_code(dev, EV_REL, REL_Y, NULL);
+
+	fd = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd, -1);
+
+	rc = libevdev_uinput_create_from_device(dev, fd, &uidev);
+	ck_assert_int_eq(rc, 0);
+
+	syspath = libevdev_uinput_get_syspath(uidev);
+	/* FreeBSD should always return NULL for libevdev_unput_get_syspath() */
+	ck_assert(syspath == NULL);
+
+	libevdev_uinput_destroy(uidev);
+
+	close(fd);
+
+	libevdev_free(dev);
+}
+END_TEST
+
+#else /* !__FreeBSD__ */
+
 START_TEST(test_uinput_check_syspath_time)
 {
 	struct libevdev *dev;
@@ -268,6 +355,8 @@ START_TEST(test_uinput_check_syspath_name)
 	close(fd2);
 }
 END_TEST
+
+#endif /* __FreeBSD __ */
 
 START_TEST(test_uinput_events)
 {
@@ -375,8 +464,13 @@ TEST_SUITE_ROOT_PRIVILEGES(uinput_suite)
 	add_test(s, test_uinput_create_device);
 	add_test(s, test_uinput_create_device_invalid);
 	add_test(s, test_uinput_create_device_from_fd);
+#ifdef __FreeBSD__
+	add_test(s, test_uinput_check_devnode_bsd);
+	add_test(s, test_uinput_check_syspath_bsd);
+#else
 	add_test(s, test_uinput_check_syspath_time);
 	add_test(s, test_uinput_check_syspath_name);
+#endif
 
 	add_test(s, test_uinput_events);
 
