@@ -180,6 +180,35 @@ libevdev_uinput_get_fd(const struct libevdev_uinput *uinput_dev)
 	return uinput_dev->fd;
 }
 
+#ifdef __FreeBSD__
+/*
+ * FreeBSD does not have anything similar to sysfs.
+ * Set libevdev_uinput->syspath to NULL unconditionally.
+ * Look up the device nodes directly instead of via sysfs, as this matches what
+ * is returned by the UI_GET_SYSNAME ioctl() on FreeBSD.  
+ */
+static int
+fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
+{
+#define DEV_INPUT_DIR "/dev/input/"
+	int rc;
+	char buf[sizeof(DEV_INPUT_DIR) + 64] = DEV_INPUT_DIR;
+
+	rc = ioctl(uinput_dev->fd,
+	           UI_GET_SYSNAME(sizeof(buf) - strlen(DEV_INPUT_DIR)),
+		   &buf[strlen(DEV_INPUT_DIR)]);
+	if (rc == -1)
+		return -1;
+
+	uinput_dev->syspath = NULL;
+	uinput_dev->devnode = strdup(buf);
+
+	return 0;
+#undef DEV_INPUT_DIR
+}
+
+#else /* !__FreeBSD__ */
+
 static int is_event_device(const struct dirent *dent) {
 	return strncmp("event", dent->d_name, 5) == 0;
 }
@@ -291,6 +320,7 @@ fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 	return uinput_dev->devnode ? 0 : -1;
 #undef SYS_INPUT_DIR
 }
+#endif /* __FreeBSD__*/
 
 static int
 uinput_create_write(const struct libevdev *dev, int fd)
