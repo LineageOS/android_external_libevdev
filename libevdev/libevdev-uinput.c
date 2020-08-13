@@ -38,8 +38,6 @@
 #include "libevdev-uinput-int.h"
 #include "libevdev-util.h"
 
-#define SYS_INPUT_DIR "/sys/devices/virtual/input/"
-
 #ifndef UINPUT_IOCTL_BASE
 #define UINPUT_IOCTL_BASE       'U'
 #endif
@@ -217,6 +215,7 @@ static int is_input_device(const struct dirent *dent) {
 static int
 fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 {
+#define SYS_INPUT_DIR "/sys/devices/virtual/input/"
 	struct dirent **namelist;
 	int ndev, i;
 	int rc;
@@ -290,6 +289,7 @@ fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 	free(namelist);
 
 	return uinput_dev->devnode ? 0 : -1;
+#undef SYS_INPUT_DIR
 }
 
 static int
