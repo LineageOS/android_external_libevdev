@@ -129,7 +129,9 @@ handle_event(struct measurements *m, const struct input_event *ev)
 		}
 
 		return 0;
-	} else if (ev->type != EV_REL)
+	}
+
+	if (ev->type != EV_REL)
 		return 0;
 
 	switch(ev->code) {
@@ -168,12 +170,15 @@ mainloop(struct libevdev *dev, struct measurements *m) {
 			if (rc == LIBEVDEV_READ_STATUS_SYNC) {
 				fprintf(stderr, "Error: cannot keep up\n");
 				return 1;
-			} else if (rc != -EAGAIN && rc < 0) {
+			}
+
+			if (rc != -EAGAIN && rc < 0) {
 				fprintf(stderr, "Error: %s\n", strerror(-rc));
 				return 1;
-			} else if (rc == LIBEVDEV_READ_STATUS_SUCCESS) {
-				handle_event(m, &ev);
 			}
+
+			if (rc == LIBEVDEV_READ_STATUS_SUCCESS)
+				handle_event(m, &ev);
 		} while (rc != -EAGAIN);
 	}
 

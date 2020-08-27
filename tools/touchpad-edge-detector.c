@@ -84,9 +84,10 @@ print_current_values(const struct dimensions *d)
 
 static int
 handle_event(struct dimensions *d, const struct input_event *ev) {
-	if (ev->type == EV_SYN) {
+	if (ev->type == EV_SYN)
 		return print_current_values(d);
-	} else if (ev->type != EV_ABS)
+
+	if (ev->type != EV_ABS)
 		return 0;
 
 	switch(ev->code) {
@@ -132,12 +133,16 @@ mainloop(struct libevdev *dev, struct dimensions *dim) {
 			if (rc == LIBEVDEV_READ_STATUS_SYNC) {
 				fprintf(stderr, "Error: cannot keep up\n");
 				return 1;
-			} else if (rc != -EAGAIN && rc < 0) {
+			}
+
+			if (rc != -EAGAIN && rc < 0) {
 				fprintf(stderr, "Error: %s\n", strerror(-rc));
 				return 1;
-			} else if (rc == LIBEVDEV_READ_STATUS_SUCCESS) {
-				handle_event(dim, &ev);
+
 			}
+
+			if (rc == LIBEVDEV_READ_STATUS_SUCCESS)
+				handle_event(dim, &ev);
 		} while (rc != -EAGAIN);
 	}
 
