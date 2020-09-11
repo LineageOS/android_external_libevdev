@@ -273,11 +273,11 @@ check-merge-request:
 
 
 # This is the actual job
-fedora:31@qemu-prep:
-  extends: .fedora:31@qemu-prep
+fedora:32@qemu-prep:
+  extends: .fedora:32@qemu-prep
 
-fedora:31@qemu-forced-rebuild:
-  extends: .fedora:31@qemu-forced-rebuild
+fedora:32@qemu-forced-rebuild:
+  extends: .fedora:32@qemu-forced-rebuild
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -877,9 +877,9 @@ soname:
     exit 1 ;
   fi
 
-.qemu@fedora:31:
+.qemu@fedora:32:
   extends:
-    - .fedora:31
+    - .fedora:32
   stage: VM
   image: $CI_REGISTRY_IMAGE/$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
@@ -926,19 +926,19 @@ soname:
   retry:
     max: 2
     when: script_failure
-  needs: ['fedora:31@qemu-prep']
+  needs: ['fedora:32@qemu-prep']
 
 qemu:meson:
-  extends: .qemu@fedora:31
+  extends: .qemu@fedora:32
 
 qemu:meson:valgrind:
-  extends: .qemu@fedora:31
+  extends: .qemu@fedora:32
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 meson-from-tarball:
   extends:
-    - .fedora:31
+    - .fedora:32
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -956,11 +956,11 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:32@container-prep']
 
 autotools-from-tarball:
   extends:
-    - .fedora:31
+    - .fedora:32
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -978,4 +978,4 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:32@container-prep']
