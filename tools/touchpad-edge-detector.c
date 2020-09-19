@@ -34,7 +34,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/signalfd.h>
 #include <unistd.h>
 
 #include "libevdev/libevdev.h"
