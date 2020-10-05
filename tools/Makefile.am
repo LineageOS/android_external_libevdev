@@ -18,4 +18,8 @@ mouse_dpi_tool_LDADD = $(libevdev_ldadd)
 
 libevdev_tweak_device_SOURCES = libevdev-tweak-device.c
 libevdev_tweak_device_LDADD = $(libevdev_ldadd)
-libevdev_tweak_device_MANS = libevdev-tweak-device.1
+
+dist_man_MANS = \
+		libevdev-tweak-device.1 \
+		touchpad-edge-detector.1 \
+		$(NULL)

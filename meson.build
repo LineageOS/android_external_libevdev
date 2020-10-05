@@ -123,7 +123,8 @@ executable('libevdev-tweak-device',
 	   include_directories: [includes_include],
 	   dependencies: dep_libevdev,
 	   install: true)
-install_man('tools/libevdev-tweak-device.1')
+install_man('tools/libevdev-tweak-device.1',
+            'tools/touchpad-edge-detector.1')
 
 # tests
 dep_check = dependency('check', version: '>= 0.9.9',
