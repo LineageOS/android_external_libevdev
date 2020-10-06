@@ -22,7 +22,7 @@ AC_PREREQ([2.62])
 
 # change meson version too
 AC_INIT([libevdev],
-        [1.9.1],
+        [1.9.901],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=libevdev],
         [libevdev],
         [http://freedesktop.org/wiki/Software/libevdev/])
