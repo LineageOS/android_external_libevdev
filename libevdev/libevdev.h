@@ -166,6 +166,7 @@ extern "C" {
  * ===================
  * - Python: https://gitlab.freedesktop.org/libevdev/python-libevdev
  * - Haskell: http://hackage.haskell.org/package/evdev
+ * - Rust: https://crates.io/crates/evdev-rs
  *
  * Reporting bugs
  * ==============
