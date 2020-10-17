@@ -131,3 +131,10 @@ global:
 local:
 	*;
 } LIBEVDEV_1_6;
+
+LIBEVDEV_1_10 {
+global:
+	libevdev_disable_property;
+local:
+	*;
+} LIBEVDEV_1_7;

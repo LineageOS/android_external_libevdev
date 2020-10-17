@@ -313,6 +313,13 @@ START_TEST(test_set_input_props)
 	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_DIRECT), 0);
 	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_BUTTONPAD), 1);
 
+	/* Test disabling the properties too */
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_MAX + 1), -1);
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_DIRECT), 0);
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_BUTTONPAD), 0);
+	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_DIRECT), 0);
+	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_BUTTONPAD), 0);
+
 	uinput_device_free(uidev);
 	libevdev_free(dev);
 }

@@ -1389,6 +1389,16 @@ int libevdev_has_property(const struct libevdev *dev, unsigned int prop);
 int libevdev_enable_property(struct libevdev *dev, unsigned int prop);
 
 /**
+ * @ingroup kernel
+ *
+ * @param dev The evdev device
+ * @param prop The input property to disable, one of INPUT_PROP_...
+ *
+ * @return 0 on success or -1 on failure
+ */
+int libevdev_disable_property(struct libevdev *dev, unsigned int prop);
+
+/**
  * @ingroup bits
  *
  * @param dev The evdev device, already initialized with libevdev_set_fd()
