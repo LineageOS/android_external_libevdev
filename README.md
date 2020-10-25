@@ -7,9 +7,6 @@ interface to the callers, thus avoiding erroneous ioctls, etc.
 
 https://gitlab.freedesktop.org/libevdev/libevdev.git
 
-The eventual goal is that libevdev wraps all ioctls available to evdev
-devices, thus making direct access unnecessary.
-
 Go here for the API documentation:
 http://www.freedesktop.org/software/libevdev/doc/latest/
 
