@@ -141,7 +141,7 @@ A [good commit message](http://who-t.blogspot.com/2009/12/on-commit-messages.htm
 answer three questions:
 
 - Why is it necessary? It may fix a bug, it may add a feature, it may
-  improve performance, reliabilty, stability, or just be a change for the
+  improve performance, reliability, stability, or just be a change for the
   sake of correctness.
 - How does it address the issue? For short obvious patches this part can be
   omitted, but it should be a high level description of what the approach
