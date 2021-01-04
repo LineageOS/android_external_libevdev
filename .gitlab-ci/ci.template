@@ -311,12 +311,13 @@ fedora:32@qemu-forced-rebuild:
 #
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
+{% set custom_build_distro = distributions|selectattr("name", "equalto", "fedora")|first() %}
 .fedora-custom-build@autotools-template:
   extends:
-    - .fedora:31
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
     - .autotools-build@template
   stage: build
-  needs: ['fedora:31@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 no-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
@@ -358,7 +359,7 @@ enable-gcov:autotools:
     - .fedora:31
     - .meson-build@template
   stage: build
-  needs: ['fedora:31@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 no-valgrind:meson:
   extends: .fedora-custom-build@meson-template
@@ -412,7 +413,7 @@ static-build:meson:
 
 soname:
   extends:
-    - .fedora:31
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
   stage: build
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
@@ -421,7 +422,7 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  needs: ['fedora:31@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 #################################################################
 #                                                               #
