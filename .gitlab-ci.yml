@@ -4,7 +4,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha ca99d9418390fb5faaa7f2407b94c733d7ec6a37 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 18194044f0f984c8815bc9a1a146582f6bf15d41 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -77,64 +77,64 @@ variables:
   script:
     - .gitlab-ci/meson-build.sh
 
-.fedora:31:
+.fedora:33:
   extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
-    FDO_DISTRIBUTION_VERSION: '31'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
+    FDO_DISTRIBUTION_VERSION: '33'
 
 .fedora:32:
   extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: '32'
 
 .ubuntu:20.04:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: '20.04'
 
-.ubuntu:19.10:
+.ubuntu:20.10:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
-    FDO_DISTRIBUTION_VERSION: '19.10'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
+    FDO_DISTRIBUTION_VERSION: '20.10'
 
 .debian:stable:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: 'sid'
 
 .centos:7:
   extends: .fdo.distribution-image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: '7'
 
 .centos:8:
   extends: .fdo.distribution-image@centos
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: '8'
 
 .arch:rolling:
   extends: .fdo.distribution-image@arch
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
   extends: .fdo.distribution-image@alpine
   variables:
-    FDO_DISTRIBUTION_TAG: '2020-09-11.0'
+    FDO_DISTRIBUTION_TAG: '2021-01-04.1'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 
@@ -226,9 +226,9 @@ check-merge-request:
 
 
 # Pulls in the qemu container from upstream or rebuilds it if missing
-.fedora:31@qemu-prep:
+.fedora:33@qemu-prep:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .fedora.packages
     - .fdo.qemu-build@fedora
   stage: prep
@@ -236,13 +236,13 @@ check-merge-request:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-09-11.0
+    FDO_DISTRIBUTION_TAG: qemu-2021-01-04.1
   allow_failure: true
 
 # Always rebuilds the container
-.fedora:31@qemu-forced-rebuild:
+.fedora:33@qemu-forced-rebuild:
   extends:
-    - .fedora:31@qemu-prep
+    - .fedora:33@qemu-prep
   variables:
     FDO_FORCE_REBUILD: 1
   only:
@@ -259,7 +259,7 @@ check-merge-request:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2020-09-11.0
+    FDO_DISTRIBUTION_TAG: qemu-2021-01-04.1
   allow_failure: true
 
 # Always rebuilds the container
@@ -281,9 +281,9 @@ fedora:32@qemu-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
-fedora:31@container-prep:
+fedora:33@container-prep:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .fedora.packages
     - .fdo.container-build@fedora
   stage: prep
@@ -291,9 +291,9 @@ fedora:31@container-prep:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-fedora:31@container-forced-rebuild:
+fedora:33@container-forced-rebuild:
   extends:
-    - fedora:31@container-prep
+    - fedora:33@container-prep
   only:
     - schedules
   variables:
@@ -341,9 +341,9 @@ ubuntu:20.04@container-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
-ubuntu:19.10@container-prep:
+ubuntu:20.10@container-prep:
   extends:
-    - .ubuntu:19.10
+    - .ubuntu:20.10
     - .ubuntu.packages
     - .fdo.container-build@ubuntu
   stage: prep
@@ -351,9 +351,9 @@ ubuntu:19.10@container-prep:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-ubuntu:19.10@container-forced-rebuild:
+ubuntu:20.10@container-forced-rebuild:
   extends:
-    - ubuntu:19.10@container-prep
+    - ubuntu:20.10@container-prep
   only:
     - schedules
   variables:
@@ -511,12 +511,12 @@ alpine:latest@container-forced-rebuild:
   only:
     - schedules
 
-### fedora 31
-fedora:31@container-clean:
+### fedora 33
+fedora:33@container-clean:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .container-clean
-  needs: ["fedora:31@container-prep"]
+  needs: ["fedora:33@container-prep"]
 
 ### fedora 32
 fedora:32@container-clean:
@@ -532,12 +532,12 @@ ubuntu:20.04@container-clean:
     - .container-clean
   needs: ["ubuntu:20.04@container-prep"]
 
-### ubuntu 19.10
-ubuntu:19.10@container-clean:
+### ubuntu 20.10
+ubuntu:20.10@container-clean:
   extends:
-    - .ubuntu:19.10
+    - .ubuntu:20.10
     - .container-clean
-  needs: ["ubuntu:19.10@container-prep"]
+  needs: ["ubuntu:20.10@container-prep"]
 
 ### debian stable
 debian:stable@container-clean:
@@ -605,19 +605,19 @@ alpine:latest@container-clean:
     NINJA_ARGS: "dist"
 
 
-fedora:31@autotools-build:
+fedora:33@autotools-build:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .autotools-build@template
   stage: autotools
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:33@container-prep']
 
-fedora:31@meson-build:
+fedora:33@meson-build:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .meson-build@template
   stage: meson
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:33@container-prep']
 
 
 fedora:32@autotools-build:
@@ -650,19 +650,19 @@ ubuntu:20.04@meson-build:
   needs: ['ubuntu:20.04@container-prep']
 
 
-ubuntu:19.10@autotools-build:
+ubuntu:20.10@autotools-build:
   extends:
-    - .ubuntu:19.10
+    - .ubuntu:20.10
     - .autotools-build@template
   stage: autotools
-  needs: ['ubuntu:19.10@container-prep']
+  needs: ['ubuntu:20.10@container-prep']
 
-ubuntu:19.10@meson-build:
+ubuntu:20.10@meson-build:
   extends:
-    - .ubuntu:19.10
+    - .ubuntu:20.10
     - .meson-build@template
   stage: meson
-  needs: ['ubuntu:19.10@container-prep']
+  needs: ['ubuntu:20.10@container-prep']
 
 
 debian:stable@autotools-build:
@@ -753,10 +753,10 @@ alpine:latest@meson-build:
 # because they're supposed to fail equally on all
 .fedora-custom-build@autotools-template:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .autotools-build@template
   stage: build
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:33@container-prep']
 
 no-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
@@ -795,10 +795,10 @@ enable-gcov:autotools:
 
 .fedora-custom-build@meson-template:
   extends:
-    - .fedora:31
+    - .fedora:33
     - .meson-build@template
   stage: build
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:33@container-prep']
 
 no-valgrind:meson:
   extends: .fedora-custom-build@meson-template
@@ -852,7 +852,7 @@ static-build:meson:
 
 soname:
   extends:
-    - .fedora:31
+    - .fedora:33
   stage: build
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
@@ -861,7 +861,7 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  needs: ['fedora:31@container-prep']
+  needs: ['fedora:33@container-prep']
 
 #################################################################
 #                                                               #
@@ -888,7 +888,7 @@ soname:
     MESON_BUILDDIR: build_dir
   script:
     # start our vm, no args required
-    - /app/start_vm.sh
+    - /app/vmctl start
 
     - *check_tainted
 
@@ -898,16 +898,14 @@ soname:
     - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
     - echo "MESON_TEST_ARGS=\"$MESON_TEST_ARGS\"" >> sshenv
     - echo "NINJA_ARGS=\"$NINJA_ARGS\"" >> sshenv
-    - "scp -P 5555 sshenv localhost:~/$CI_PROJECT_NAME/.meson_environment"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
+    - "scp sshenv vm:~/$CI_PROJECT_NAME/.meson_environment"
+    - /app/vmctl exec "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
     # no matter the results of the tests, we want to fetch the logs
-    - scp -P 5555 -r localhost:$CI_PROJECT_NAME/"$MESON_BUILDDIR" .
+    - scp -r vm:$CI_PROJECT_NAME/"$MESON_BUILDDIR" .
 
     - *check_tainted
 
-    - ssh localhost -p 5555 halt || true
-    - sleep 2
-    - pkill qemu || true
+    - /app/vmctl stop
 
     - if [[ ! -e .success ]] ;
       then

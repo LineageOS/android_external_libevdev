@@ -3,13 +3,13 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2020-09-11.0'
+.default_tag: &default_tag '2021-01-04.1'
 
 distributions:
   - name: fedora
     tag: *default_tag
     versions:
-      - '31'
+      - '33'
       - '32'
     packages:
       - git
@@ -33,7 +33,7 @@ distributions:
     tag: *default_tag
     versions:
       - '20.04'
-      - '19.10'
+      - '20.10'
     packages:
       - git
       - gcc

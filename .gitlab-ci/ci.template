@@ -6,7 +6,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha ca99d9418390fb5faaa7f2407b94c733d7ec6a37 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 18194044f0f984c8815bc9a1a146582f6bf15d41 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
@@ -356,7 +356,7 @@ enable-gcov:autotools:
 
 .fedora-custom-build@meson-template:
   extends:
-    - .fedora:31
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
     - .meson-build@template
   stage: build
   needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
@@ -449,7 +449,7 @@ soname:
     MESON_BUILDDIR: build_dir
   script:
     # start our vm, no args required
-    - /app/start_vm.sh
+    - /app/vmctl start
 
     - *check_tainted
 
@@ -459,16 +459,14 @@ soname:
     - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
     - echo "MESON_TEST_ARGS=\"$MESON_TEST_ARGS\"" >> sshenv
     - echo "NINJA_ARGS=\"$NINJA_ARGS\"" >> sshenv
-    - "scp -P 5555 sshenv localhost:~/$CI_PROJECT_NAME/.meson_environment"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
+    - "scp sshenv vm:~/$CI_PROJECT_NAME/.meson_environment"
+    - /app/vmctl exec "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
     # no matter the results of the tests, we want to fetch the logs
-    - scp -P 5555 -r localhost:$CI_PROJECT_NAME/"$MESON_BUILDDIR" .
+    - scp -r vm:$CI_PROJECT_NAME/"$MESON_BUILDDIR" .
 
     - *check_tainted
 
-    - ssh localhost -p 5555 halt || true
-    - sleep 2
-    - pkill qemu || true
+    - /app/vmctl stop
 
     - if [[ ! -e .success ]] ;
       then
