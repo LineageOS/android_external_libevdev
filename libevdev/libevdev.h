@@ -1515,8 +1515,7 @@ const struct input_absinfo* libevdev_get_abs_info(const struct libevdev *dev, un
  * the event.
  *
  * If the device supports ABS_MT_SLOT, the value returned for any ABS_MT_*
- * event code is the value of the currently active slot. You should use
- * libevdev_get_slot_value() instead.
+ * event code is undefined. Use libevdev_get_slot_value() instead.
  *
  * @param dev The evdev device, already initialized with libevdev_set_fd()
  * @param type The event type for the code to query (EV_SYN, EV_REL, etc.)
