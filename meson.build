@@ -1,5 +1,5 @@
 project('libevdev', 'c',
-	version: '1.10.0', # change autotools version too
+	version: '1.10.1', # change autotools version too
 	license: 'MIT/Expat',
 	default_options: [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version: '>= 0.47.0')
