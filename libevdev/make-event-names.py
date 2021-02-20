@@ -70,10 +70,10 @@ def print_bits(bits, prefix):
     if not hasattr(bits, prefix):
         return
     print("static const char * const %s_map[%s_MAX + 1] = {" % (prefix, prefix.upper()))
-    for val, name in list(getattr(bits, prefix).items()):
+    for val, name in sorted(list(getattr(bits, prefix).items())):
         print("    [%s] = \"%s\"," % (name, name))
     if prefix == "key":
-        for val, name in list(getattr(bits, "btn").items()):
+        for val, name in sorted(list(getattr(bits, "btn").items())):
             print("    [%s] = \"%s\"," % (name, name))
     print("};")
     print("")
@@ -118,7 +118,7 @@ def print_lookup(bits, prefix):
     if not hasattr(bits, prefix):
         return
 
-    names = list(getattr(bits, prefix).items())
+    names = sorted(list(getattr(bits, prefix).items()))
     if prefix == "btn":
         names = names + btn_additional
 
