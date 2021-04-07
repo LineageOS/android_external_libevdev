@@ -2,6 +2,10 @@
 
 set -e
 
-make
-rsync --delete -avz doc/html/ freedesktop.org:/srv/www.freedesktop.org/www/software/libevdev/doc/latest
+builddir=_doc_build
 
+rm -rf "$builddir"
+meson setup "$builddir"
+ninja -C "$builddir"
+rsync --delete -avz "$builddir/html/" freedesktop.org:/srv/www.freedesktop.org/www/software/libevdev/doc/latest
+rm -rf "$builddir"
