@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2021-01-04.1'
+.default_tag: &default_tag '2021-05-19.1'
 
 distributions:
   - name: fedora
@@ -12,7 +12,7 @@ distributions:
     use_for_tarball_tests: true
     versions:
       - '33'
-      - '32'
+      - '34'
     packages:
       - git
       - gcc
@@ -33,7 +33,7 @@ distributions:
   - name: ubuntu
     tag: *default_tag
     versions:
-      - '20.04'
+      - '21.04'
       - '20.10'
     packages:
       - git
