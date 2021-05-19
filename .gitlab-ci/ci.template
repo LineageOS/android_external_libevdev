@@ -494,9 +494,11 @@ qemu:meson:valgrind:
     MESON_TEST_ARGS: '--setup=valgrind'
 {% endfor %}
 
+{% for distro in distributions if distro.use_for_tarball_tests %}
+{% set version = "{}".format(distro.versions|last()) %}
 meson-from-tarball:
   extends:
-    - .fedora:32
+    - .{{distro.name}}:{{version}}
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -514,11 +516,11 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:32@container-prep']
+  needs: ['{{distro.name}}:{{version}}@container-prep']
 
 autotools-from-tarball:
   extends:
-    - .fedora:32
+    - .{{distro.name}}:{{version}}
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -536,4 +538,5 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:32@container-prep']
+  needs: ['{{distro.name}}:{{version}}@container-prep']
+{% endfor %}

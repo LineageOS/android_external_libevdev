@@ -9,6 +9,7 @@ distributions:
   - name: fedora
     tag: *default_tag
     want_qemu: true
+    use_for_tarball_tests: true
     versions:
       - '33'
       - '32'
