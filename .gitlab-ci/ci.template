@@ -144,9 +144,8 @@ check-merge-request:
 
 {% endfor %}
 
-{% for distro in distributions %}
-{% if distro.want_qemu %}
-{% for version in distro.versions %}
+{% for distro in distributions if distro.want_qemu %}
+{% set version = "{}".format(distro.versions|last()) %}
 # Pulls in the qemu container from upstream or rebuilds it if missing
 .{{ distro.name }}:{{ version }}@qemu-prep:
   extends:
@@ -170,16 +169,13 @@ check-merge-request:
   only:
     - schedules
 
-{% endfor %}
-{% endif %}
-{% endfor %}
-
 # This is the actual job
-fedora:32@qemu-prep:
-  extends: .fedora:32@qemu-prep
+{{distro.name}}:{{version}}@qemu-prep:
+  extends: .{{distro.name}}:{{version}}@qemu-prep
 
-fedora:32@qemu-forced-rebuild:
-  extends: .fedora:32@qemu-forced-rebuild
+{{distro.name}}:{{version}}@qemu-forced-rebuild:
+  extends: .{{distro.name}}:{{version}}@qemu-forced-rebuild
+{% endfor %}
 
 {% for distro in distributions %}
 {% for version in distro.versions %}
@@ -438,9 +434,11 @@ soname:
     exit 1 ;
   fi
 
-.qemu@fedora:32:
+{% for distro in distributions if distro.want_qemu %}
+{% set version = "{}".format(distro.versions|last()) %}
+.qemu@{{distro.name}}:{{version}}:
   extends:
-    - .fedora:32
+    - .{{distro.name}}:{{version}}
   stage: VM
   image: $CI_REGISTRY_IMAGE/$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
@@ -485,15 +483,16 @@ soname:
   retry:
     max: 2
     when: script_failure
-  needs: ['fedora:32@qemu-prep']
+  needs: ['{{distro.name}}:{{version}}@qemu-prep']
 
 qemu:meson:
-  extends: .qemu@fedora:32
+  extends: .qemu@{{distro.name}}:{{version}}
 
 qemu:meson:valgrind:
-  extends: .qemu@fedora:32
+  extends: .qemu@{{distro.name}}:{{version}}
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+{% endfor %}
 
 meson-from-tarball:
   extends:

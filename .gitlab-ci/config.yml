@@ -8,6 +8,7 @@
 distributions:
   - name: fedora
     tag: *default_tag
+    want_qemu: true
     versions:
       - '33'
       - '32'
@@ -28,7 +29,6 @@ distributions:
       - doxygen
       - xz
       - clang-analyzer
-    want_qemu: true
   - name: ubuntu
     tag: *default_tag
     versions:

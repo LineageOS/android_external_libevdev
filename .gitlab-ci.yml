@@ -226,29 +226,6 @@ check-merge-request:
 
 
 # Pulls in the qemu container from upstream or rebuilds it if missing
-.fedora:33@qemu-prep:
-  extends:
-    - .fedora:33
-    - .fedora.packages
-    - .fdo.qemu-build@fedora
-  stage: prep
-  tags:
-    - kvm
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2021-01-04.1
-  allow_failure: true
-
-# Always rebuilds the container
-.fedora:33@qemu-forced-rebuild:
-  extends:
-    - .fedora:33@qemu-prep
-  variables:
-    FDO_FORCE_REBUILD: 1
-  only:
-    - schedules
-
-# Pulls in the qemu container from upstream or rebuilds it if missing
 .fedora:32@qemu-prep:
   extends:
     - .fedora:32
@@ -270,7 +247,6 @@ check-merge-request:
     FDO_FORCE_REBUILD: 1
   only:
     - schedules
-
 
 # This is the actual job
 fedora:32@qemu-prep:
