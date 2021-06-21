@@ -37,6 +37,7 @@ config_h.set('_GNU_SOURCE', '1')
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_lm = cc.find_library('m')
+dep_rt = cc.find_library('rt')
 
 input_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'input.h')
 uinput_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'uinput.h')
@@ -76,7 +77,7 @@ version_flag = '-Wl,--version-script,@0@'.format(mapfile)
 lib_libevdev = library('evdev',
 	src_libevdev,
 	include_directories: [includes_include],
-	dependencies: [],
+	dependencies: [dep_rt],
 	version: libevdev_so_version,
 	link_args: version_flag,
 	link_depends: mapfile,
