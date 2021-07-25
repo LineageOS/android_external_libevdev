@@ -6,7 +6,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha 18194044f0f984c8815bc9a1a146582f6bf15d41 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha bbe5232986c9b98eb1efe62484e07216f7d1a4df # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
@@ -428,7 +428,7 @@ soname:
 
 .check_tainted: &check_tainted |
   # make sure the kernel is not tainted
-  if [[ "$(ssh localhost -p 5555 cat /proc/sys/kernel/tainted)" -gt 0 ]];
+  if [[ "$(/app/vmctl exec cat /proc/sys/kernel/tainted)" -gt 0 ]];
   then
     echo tainted kernel ;
     exit 1 ;
@@ -451,7 +451,7 @@ soname:
 
     - *check_tainted
 
-    - "scp -P 5555 -r $PWD localhost:"
+    - "scp -r $PWD vm:"
     - echo "CI_JOB_ID=\"$CI_JOB_ID\"" > sshenv
     - echo "CI_JOB_NAME=\"$CI_JOB_NAME\"" >> sshenv
     - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
