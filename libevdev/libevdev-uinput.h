@@ -67,7 +67,7 @@ struct libevdev_uinput;
  * err = libevdev_uinput_write_event(uidev, EV_REL, REL_X, -1);
  * if (err != 0)
  *     return err;
- * libevdev_uinput_write_event(uidev, EV_SYN, SYN_REPORT, 0);
+ * err = libevdev_uinput_write_event(uidev, EV_SYN, SYN_REPORT, 0);
  * if (err != 0)
  *     return err;
  *
