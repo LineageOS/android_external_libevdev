@@ -109,7 +109,7 @@ struct libevdev_uinput;
  */
 
 enum libevdev_uinput_open_mode {
-	/* intentionally -2 to avoid to avoid code like the below from accidentally working:
+	/* intentionally -2 to avoid code like below from accidentally working:
 		fd = open("/dev/uinput", O_RDWR); // fails, fd is -1
 		libevdev_uinput_create_from_device(dev, fd, &uidev); // may hide the error */
 	LIBEVDEV_UINPUT_OPEN_MANAGED = -2  /**< let libevdev open and close @c /dev/uinput */
@@ -188,7 +188,7 @@ int libevdev_uinput_get_fd(const struct libevdev_uinput *uinput_dev);
  * @ingroup uinput
  *
  * Return the syspath representing this uinput device. If the UI_GET_SYSNAME
- * ioctl not available, libevdev makes an educated guess.
+ * ioctl is not available, libevdev makes an educated guess.
  * The UI_GET_SYSNAME ioctl is available since Linux 3.15.
  *
  * The syspath returned is the one of the input node itself
@@ -197,8 +197,8 @@ int libevdev_uinput_get_fd(const struct libevdev_uinput *uinput_dev);
  *
  * @note This function may return NULL if UI_GET_SYSNAME is not available.
  * In that case, libevdev uses ctime and the device name to guess devices.
- * To avoid false positives, wait at least wait at least 1.5s between
- * creating devices that have the same name.
+ * To avoid false positives, wait at least 1.5s between creating devices that
+ * have the same name.
  *
  * @note FreeBSD does not have sysfs, on FreeBSD this function always returns
  * NULL.
@@ -221,7 +221,7 @@ const char* libevdev_uinput_get_syspath(struct libevdev_uinput *uinput_dev);
  * @note This function may return NULL. libevdev may have to guess the
  * syspath and the device node. See libevdev_uinput_get_syspath() for details.
  *
- * @note On FreeBSD, this function can not return NULL.  libudev uses the
+ * @note On FreeBSD, this function can not return NULL. libudev uses the
  * UI_GET_SYSNAME ioctl to get the device node on this platform and if that
  * fails, the call to libevdev_uinput_create_from_device() fails.
  *
