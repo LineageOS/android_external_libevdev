@@ -634,7 +634,7 @@ extern "C" {
  *         return ENOMEM;
  *
  * err = libevdev_set_fd(dev, fd);
- * if (err < 0) {
+ * if (err < 0)
  *         printf("Failed (errno %d): %s\n", -err, strerror(-err));
  *
  * libevdev_free(dev);
