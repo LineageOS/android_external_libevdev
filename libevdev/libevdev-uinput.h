@@ -42,14 +42,13 @@ struct libevdev_uinput;
  *
  * @code
  * int err;
- * int fd, new_fd, uifd;
+ * int fd, uifd;
  * struct libevdev *dev;
  * struct libevdev_uinput *uidev;
- * struct input_event ev[2];
  *
  * fd = open("/dev/input/event0", O_RDONLY);
  * if (fd < 0)
- *     return err;
+ *     return -errno;
  *
  * err = libevdev_new_from_fd(fd, &dev);
  * if (err != 0)
