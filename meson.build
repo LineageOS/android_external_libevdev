@@ -109,6 +109,11 @@ executable('libevdev-events',
 	   include_directories: [includes_include],
 	   dependencies: dep_libevdev,
 	   install: false)
+executable('libevdev-list-codes',
+	   sources: ['tools/libevdev-list-codes.c'],
+	   include_directories: [includes_include],
+	   dependencies: dep_libevdev,
+	   install: false)
 executable('touchpad-edge-detector',
 	   sources: ['tools/touchpad-edge-detector.c'],
 	   include_directories: [includes_include],
