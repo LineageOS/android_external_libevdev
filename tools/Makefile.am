@@ -24,5 +24,6 @@ libevdev_tweak_device_LDADD = $(libevdev_ldadd)
 
 dist_man_MANS = \
 		libevdev-tweak-device.1 \
+		mouse-dpi-tool.1 \
 		touchpad-edge-detector.1 \
 		$(NULL)
