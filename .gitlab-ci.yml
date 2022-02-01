@@ -4,7 +4,7 @@
 #                                      #
 ########################################
 
-.templates_sha: &template_sha bbe5232986c9b98eb1efe62484e07216f7d1a4df # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 0c312d9c7255f46e741d43bcd1930f09cd12efe7 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -15,10 +15,6 @@ include:
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/arch.yml'
-  # Centos container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/centos.yml'
   # Debian container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
@@ -77,64 +73,52 @@ variables:
   script:
     - .gitlab-ci/meson-build.sh
 
-.fedora:33:
-  extends: .fdo.distribution-image@fedora
-  variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
-    FDO_DISTRIBUTION_VERSION: '33'
-
 .fedora:34:
   extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: '34'
+
+.fedora:35:
+  extends: .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_VERSION: '35'
 
 .ubuntu:21.04:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: '21.04'
 
-.ubuntu:20.10:
+.ubuntu:21.10:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
-    FDO_DISTRIBUTION_VERSION: '20.10'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_VERSION: '21.10'
 
 .debian:stable:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: 'sid'
-
-.centos:7:
-  extends: .fdo.distribution-image@centos
-  variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
-    FDO_DISTRIBUTION_VERSION: '7'
-
-.centos:8:
-  extends: .fdo.distribution-image@centos
-  variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
-    FDO_DISTRIBUTION_VERSION: '8'
 
 .arch:rolling:
   extends: .fdo.distribution-image@arch
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
   extends: .fdo.distribution-image@alpine
   variables:
-    FDO_DISTRIBUTION_TAG: '2021-07-26.0'
+    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 
@@ -212,10 +196,6 @@ check-merge-request:
   variables:
     FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
 
-.centos.packages:
-  variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils xz'
-
 .arch.packages:
   variables:
     FDO_DISTRIBUTION_PACKAGES: 'git gcc meson automake autoconf libtool make pkgconfig python3 check valgrind binutils doxygen'
@@ -226,9 +206,9 @@ check-merge-request:
 
 
 # Pulls in the qemu container from upstream or rebuilds it if missing
-.fedora:34@qemu-prep:
+.fedora:35@qemu-prep:
   extends:
-    - .fedora:34
+    - .fedora:35
     - .fedora.packages
     - .fdo.qemu-build@fedora
   stage: prep
@@ -236,44 +216,24 @@ check-merge-request:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2021-07-26.0
+    FDO_DISTRIBUTION_TAG: qemu-2022-02-02.0
   allow_failure: true
 
 # Always rebuilds the container
-.fedora:34@qemu-forced-rebuild:
+.fedora:35@qemu-forced-rebuild:
   extends:
-    - .fedora:34@qemu-prep
+    - .fedora:35@qemu-prep
   variables:
     FDO_FORCE_REBUILD: 1
   only:
     - schedules
 
 # This is the actual job
-fedora:34@qemu-prep:
-  extends: .fedora:34@qemu-prep
+fedora:35@qemu-prep:
+  extends: .fedora:35@qemu-prep
 
-fedora:34@qemu-forced-rebuild:
-  extends: .fedora:34@qemu-forced-rebuild
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-fedora:33@container-prep:
-  extends:
-    - .fedora:33
-    - .fedora.packages
-    - .fdo.container-build@fedora
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-fedora:33@container-forced-rebuild:
-  extends:
-    - fedora:33@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
+fedora:35@qemu-forced-rebuild:
+  extends: .fedora:35@qemu-forced-rebuild
 
 
 # Pulls in the container from upstream or rebuilds it if missing
@@ -290,6 +250,26 @@ fedora:34@container-prep:
 fedora:34@container-forced-rebuild:
   extends:
     - fedora:34@container-prep
+  only:
+    - schedules
+  variables:
+    FDO_FORCE_REBUILD: 1
+
+
+# Pulls in the container from upstream or rebuilds it if missing
+fedora:35@container-prep:
+  extends:
+    - .fedora:35
+    - .fedora.packages
+    - .fdo.container-build@fedora
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+
+# Always rebuilds the container
+fedora:35@container-forced-rebuild:
+  extends:
+    - fedora:35@container-prep
   only:
     - schedules
   variables:
@@ -317,9 +297,9 @@ ubuntu:21.04@container-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
-ubuntu:20.10@container-prep:
+ubuntu:21.10@container-prep:
   extends:
-    - .ubuntu:20.10
+    - .ubuntu:21.10
     - .ubuntu.packages
     - .fdo.container-build@ubuntu
   stage: prep
@@ -327,9 +307,9 @@ ubuntu:20.10@container-prep:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-ubuntu:20.10@container-forced-rebuild:
+ubuntu:21.10@container-forced-rebuild:
   extends:
-    - ubuntu:20.10@container-prep
+    - ubuntu:21.10@container-prep
   only:
     - schedules
   variables:
@@ -370,46 +350,6 @@ debian:sid@container-prep:
 debian:sid@container-forced-rebuild:
   extends:
     - debian:sid@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-centos:7@container-prep:
-  extends:
-    - .centos:7
-    - .centos.packages
-    - .fdo.container-build@centos
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-centos:7@container-forced-rebuild:
-  extends:
-    - centos:7@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-centos:8@container-prep:
-  extends:
-    - .centos:8
-    - .centos.packages
-    - .fdo.container-build@centos
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-centos:8@container-forced-rebuild:
-  extends:
-    - centos:8@container-prep
   only:
     - schedules
   variables:
@@ -487,19 +427,19 @@ alpine:latest@container-forced-rebuild:
   only:
     - schedules
 
-### fedora 33
-fedora:33@container-clean:
-  extends:
-    - .fedora:33
-    - .container-clean
-  needs: ["fedora:33@container-prep"]
-
 ### fedora 34
 fedora:34@container-clean:
   extends:
     - .fedora:34
     - .container-clean
   needs: ["fedora:34@container-prep"]
+
+### fedora 35
+fedora:35@container-clean:
+  extends:
+    - .fedora:35
+    - .container-clean
+  needs: ["fedora:35@container-prep"]
 
 ### ubuntu 21.04
 ubuntu:21.04@container-clean:
@@ -508,12 +448,12 @@ ubuntu:21.04@container-clean:
     - .container-clean
   needs: ["ubuntu:21.04@container-prep"]
 
-### ubuntu 20.10
-ubuntu:20.10@container-clean:
+### ubuntu 21.10
+ubuntu:21.10@container-clean:
   extends:
-    - .ubuntu:20.10
+    - .ubuntu:21.10
     - .container-clean
-  needs: ["ubuntu:20.10@container-prep"]
+  needs: ["ubuntu:21.10@container-prep"]
 
 ### debian stable
 debian:stable@container-clean:
@@ -528,20 +468,6 @@ debian:sid@container-clean:
     - .debian:sid
     - .container-clean
   needs: ["debian:sid@container-prep"]
-
-### centos 7
-centos:7@container-clean:
-  extends:
-    - .centos:7
-    - .container-clean
-  needs: ["centos:7@container-prep"]
-
-### centos 8
-centos:8@container-clean:
-  extends:
-    - .centos:8
-    - .container-clean
-  needs: ["centos:8@container-prep"]
 
 ### arch rolling
 arch:rolling@container-clean:
@@ -581,21 +507,6 @@ alpine:latest@container-clean:
     NINJA_ARGS: "dist"
 
 
-fedora:33@autotools-build:
-  extends:
-    - .fedora:33
-    - .autotools-build@template
-  stage: autotools
-  needs: ['fedora:33@container-prep']
-
-fedora:33@meson-build:
-  extends:
-    - .fedora:33
-    - .meson-build@template
-  stage: meson
-  needs: ['fedora:33@container-prep']
-
-
 fedora:34@autotools-build:
   extends:
     - .fedora:34
@@ -609,6 +520,21 @@ fedora:34@meson-build:
     - .meson-build@template
   stage: meson
   needs: ['fedora:34@container-prep']
+
+
+fedora:35@autotools-build:
+  extends:
+    - .fedora:35
+    - .autotools-build@template
+  stage: autotools
+  needs: ['fedora:35@container-prep']
+
+fedora:35@meson-build:
+  extends:
+    - .fedora:35
+    - .meson-build@template
+  stage: meson
+  needs: ['fedora:35@container-prep']
 
 
 ubuntu:21.04@autotools-build:
@@ -626,19 +552,19 @@ ubuntu:21.04@meson-build:
   needs: ['ubuntu:21.04@container-prep']
 
 
-ubuntu:20.10@autotools-build:
+ubuntu:21.10@autotools-build:
   extends:
-    - .ubuntu:20.10
+    - .ubuntu:21.10
     - .autotools-build@template
   stage: autotools
-  needs: ['ubuntu:20.10@container-prep']
+  needs: ['ubuntu:21.10@container-prep']
 
-ubuntu:20.10@meson-build:
+ubuntu:21.10@meson-build:
   extends:
-    - .ubuntu:20.10
+    - .ubuntu:21.10
     - .meson-build@template
   stage: meson
-  needs: ['ubuntu:20.10@container-prep']
+  needs: ['ubuntu:21.10@container-prep']
 
 
 debian:stable@autotools-build:
@@ -669,28 +595,6 @@ debian:sid@meson-build:
     - .meson-build@template
   stage: meson
   needs: ['debian:sid@container-prep']
-
-
-centos:7@autotools-build:
-  extends:
-    - .centos:7
-    - .autotools-build@template
-  stage: autotools
-  variables:
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:7@container-prep']
-
-
-
-centos:8@autotools-build:
-  extends:
-    - .centos:8
-    - .autotools-build@template
-  stage: autotools
-  variables:
-    MAKE_ARGS: ''  # disable distcheck, requires doxygen
-  needs: ['centos:8@container-prep']
-
 
 
 arch:rolling@autotools-build:
@@ -729,10 +633,10 @@ alpine:latest@meson-build:
 # because they're supposed to fail equally on all
 .fedora-custom-build@autotools-template:
   extends:
-    - .fedora:33
+    - .fedora:34
     - .autotools-build@template
   stage: build
-  needs: ['fedora:33@container-prep']
+  needs: ['fedora:34@container-prep']
 
 no-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
@@ -771,10 +675,10 @@ enable-gcov:autotools:
 
 .fedora-custom-build@meson-template:
   extends:
-    - .fedora:33
+    - .fedora:34
     - .meson-build@template
   stage: build
-  needs: ['fedora:33@container-prep']
+  needs: ['fedora:34@container-prep']
 
 no-valgrind:meson:
   extends: .fedora-custom-build@meson-template
@@ -828,7 +732,7 @@ static-build:meson:
 
 soname:
   extends:
-    - .fedora:33
+    - .fedora:34
   stage: build
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
@@ -837,7 +741,7 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  needs: ['fedora:33@container-prep']
+  needs: ['fedora:34@container-prep']
 
 #################################################################
 #                                                               #
@@ -853,9 +757,9 @@ soname:
     exit 1 ;
   fi
 
-.qemu@fedora:34:
+.qemu@fedora:35:
   extends:
-    - .fedora:34
+    - .fedora:35
   stage: VM
   image: $CI_REGISTRY_IMAGE/$FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION:qemu-$FDO_DISTRIBUTION_TAG
   tags:
@@ -900,19 +804,19 @@ soname:
   retry:
     max: 2
     when: script_failure
-  needs: ['fedora:34@qemu-prep']
+  needs: ['fedora:35@qemu-prep']
 
 qemu:meson:
-  extends: .qemu@fedora:34
+  extends: .qemu@fedora:35
 
 qemu:meson:valgrind:
-  extends: .qemu@fedora:34
+  extends: .qemu@fedora:35
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 meson-from-tarball:
   extends:
-    - .fedora:34
+    - .fedora:35
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -930,11 +834,11 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:34@container-prep']
+  needs: ['fedora:35@container-prep']
 
 autotools-from-tarball:
   extends:
-    - .fedora:34
+    - .fedora:35
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -952,4 +856,4 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:34@container-prep']
+  needs: ['fedora:35@container-prep']

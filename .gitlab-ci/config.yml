@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2021-07-26.0'
+.default_tag: &default_tag '2022-02-02.0'
 
 distributions:
   - name: fedora
@@ -11,8 +11,8 @@ distributions:
     want_qemu: true
     use_for_tarball_tests: true
     versions:
-      - '33'
       - '34'
+      - '35'
     packages:
       - git
       - gcc
@@ -34,7 +34,7 @@ distributions:
     tag: *default_tag
     versions:
       - '21.04'
-      - '20.10'
+      - '21.10'
     packages:
       - git
       - gcc
@@ -72,30 +72,6 @@ distributions:
       - binutils
       - doxygen
       - xz-utils
-  - name: centos
-    tag: *default_tag
-    versions:
-      - '7'
-      - '8'
-    packages:
-      - git
-      - gcc
-      - gcc-c++
-      - automake
-      - autoconf
-      - libtool
-      - make
-      - pkgconfig
-      - python3
-      - check-devel
-      - valgrind
-      - binutils
-      - xz
-    build:
-      meson: False
-      extra_variables:
-        # note: the variable value includes the comment because we want that in the gitlab-ci file
-        MAKE_ARGS: "''  # disable distcheck, requires doxygen"
   - name: arch
     tag: *default_tag
     versions:
