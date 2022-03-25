@@ -130,7 +130,8 @@ executable('libevdev-tweak-device',
 	   dependencies: dep_libevdev,
 	   install: true)
 install_man('tools/libevdev-tweak-device.1',
-            'tools/touchpad-edge-detector.1')
+	    'tools/touchpad-edge-detector.1',
+	    'tools/mouse-dpi-tool.1')
 
 # tests
 dep_check = dependency('check', version: '>= 0.9.9',
