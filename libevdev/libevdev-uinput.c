@@ -468,7 +468,13 @@ libevdev_uinput_write_event(const struct libevdev_uinput *uinput_dev,
 			    unsigned int code,
 			    int value)
 {
-	struct input_event ev = { {0,0}, type, code, value };
+	struct input_event ev = {
+		.input_event_sec = 0,
+		.input_event_usec = 0,
+		.type = type,
+		.code = code,
+		.value = value
+	};
 	int fd = libevdev_uinput_get_fd(uinput_dev);
 	int rc, max;
 
