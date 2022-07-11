@@ -41,7 +41,6 @@ dep_lm = cc.find_library('m')
 dep_rt = cc.find_library('rt')
 
 input_h = dir_root / 'include' / 'linux' / host_machine.system() / 'input.h'
-uinput_h = dir_root / 'include' / 'linux' / host_machine.system() / 'uinput.h'
 input_event_codes_h = dir_root / 'include' / 'linux' / host_machine.system() / 'input-event-codes.h'
 
 # event-names.h
@@ -68,9 +67,6 @@ src_libevdev = [
 	'libevdev/libevdev-names.c',
 	'include/linux/input.h',
 	'include/linux/uinput.h',
-	input_event_codes_h,
-	input_h,
-	uinput_h
 ]
 
 mapfile = dir_src / 'libevdev.sym'
