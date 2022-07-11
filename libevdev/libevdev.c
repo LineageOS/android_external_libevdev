@@ -44,7 +44,8 @@ struct slot_change_state {
 };
 
 static int sync_mt_state(struct libevdev *dev,
-			 struct slot_change_state *changes_out);
+			 struct slot_change_state changes_out[dev->num_slots]);
+
 static int
 update_key_state(struct libevdev *dev, const struct input_event *e);
 
