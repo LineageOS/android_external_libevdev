@@ -116,10 +116,11 @@ START_TEST(test_event_codes)
 				test_create_abs_device(&uidev, &dev,
 						       1, &abs,
 						       -1);
-			} else
+			} else {
 				test_create_device(&uidev, &dev,
 						   *evbit, code,
 						   -1);
+			}
 
 			ck_assert_msg(libevdev_has_event_type(dev, *evbit), "for event type %d\n", *evbit);
 			ck_assert_msg(libevdev_has_event_code(dev, *evbit, code), "for type %d code %d", *evbit, code);

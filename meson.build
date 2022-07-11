@@ -219,7 +219,7 @@ if dep_check.found()
 						'--gen-suppressions=all',
 						'--error-exitcode=3',
 						'--suppressions=' + valgrind_suppressions_file ],
-				env:  valgrind_env,
+				env: valgrind_env,
 				timeout_multiplier: 100)
 	else
 		message('valgrind not found, disabling valgrind test suite')
