@@ -194,7 +194,7 @@ if dep_check.found()
 				   include_directories: [includes_include],
 				   dependencies: [dep_libevdev, dep_check],
 				   install: false)
-	test('test-libevdev', test_libevdev, suite: 'library')
+	test('test-libevdev', test_libevdev, suite: 'library', env: ['CK_DEFAULT_TIMEOUT=10'])
 
 	test_kernel = executable('test-kernel',
 				 sources: src_common + [
