@@ -2,12 +2,13 @@ project('libevdev', 'c',
 	version: '1.12.1', # change autotools version too
 	license: 'MIT/Expat',
 	default_options: [ 'c_std=gnu99', 'warning_level=2' ],
-	meson_version: '>= 0.47.0')
+	meson_version: '>= 0.56.0')
 
 libevdev_version = meson.project_version().split('.')
 
-dir_src         = join_paths(meson.source_root(), 'libevdev')
-dir_src_test    = join_paths(meson.source_root(), 'test')
+dir_root        = meson.project_source_root()
+dir_src         = join_paths(dir_root, 'libevdev')
+dir_src_test    = join_paths(dir_root, 'test')
 
 # Include directories
 includes_include = include_directories('include')
@@ -39,9 +40,9 @@ pkgconfig = import('pkgconfig')
 dep_lm = cc.find_library('m')
 dep_rt = cc.find_library('rt')
 
-input_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'input.h')
-uinput_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'uinput.h')
-input_event_codes_h = join_paths(meson.source_root(), 'include', 'linux', host_machine.system(), 'input-event-codes.h')
+input_h = join_paths(dir_root, 'include', 'linux', host_machine.system(), 'input.h')
+uinput_h = join_paths(dir_root, 'include', 'linux', host_machine.system(), 'uinput.h')
+input_event_codes_h = join_paths(dir_root, 'include', 'linux', host_machine.system(), 'input-event-codes.h')
 
 # event-names.h
 make_event_names = find_program('libevdev/make-event-names.py')
@@ -264,8 +265,8 @@ if doxygen.found()
 	doc_config.set('PACKAGE_NAME', meson.project_name())
 	doc_config.set('PACKAGE_VERSION', meson.project_version())
 	doc_config.set('builddir', meson.current_build_dir())
-	doc_config.set('top_srcdir', meson.source_root())
-	doc_config.set('srcdir', join_paths(meson.source_root(), 'doc'))
+	doc_config.set('top_srcdir', dir_root)
+	doc_config.set('srcdir', join_paths(dir_root, 'doc'))
 
 	doxyfile = configure_file(input: 'doc/libevdev.doxygen.in',
 				  output: 'libevdev.doxygen',
