@@ -163,7 +163,7 @@ extern "C" {
  * License information
  * ===================
  * libevdev is licensed under the
- * [X11 license](http://cgit.freedesktop.org/libevdev/tree/COPYING).
+ * [MIT license](http://cgit.freedesktop.org/libevdev/tree/COPYING).
  *
  * Bindings
  * ===================
