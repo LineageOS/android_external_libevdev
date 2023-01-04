@@ -69,49 +69,49 @@ variables:
 .fedora:34:
   extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: '34'
 
 .fedora:35:
   extends: .fdo.distribution-image@fedora
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: '35'
 
-.ubuntu:21.04:
+.ubuntu:22.04:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
-    FDO_DISTRIBUTION_VERSION: '21.04'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
+    FDO_DISTRIBUTION_VERSION: '22.04'
 
-.ubuntu:21.10:
+.ubuntu:22.10:
   extends: .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
-    FDO_DISTRIBUTION_VERSION: '21.10'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
+    FDO_DISTRIBUTION_VERSION: '22.10'
 
 .debian:stable:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: 'stable'
 
 .debian:sid:
   extends: .fdo.distribution-image@debian
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: 'sid'
 
 .arch:rolling:
   extends: .fdo.distribution-image@arch
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: 'rolling'
 
 .alpine:latest:
   extends: .fdo.distribution-image@alpine
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-02-02.0'
+    FDO_DISTRIBUTION_TAG: '2023-01-04.5'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 
@@ -209,7 +209,7 @@ check-merge-request:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_TAG: qemu-2022-02-02.0
+    FDO_DISTRIBUTION_TAG: qemu-2023-01-04.5
   allow_failure: true
 
 # Always rebuilds the container
@@ -270,9 +270,9 @@ fedora:35@container-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
-ubuntu:21.04@container-prep:
+ubuntu:22.04@container-prep:
   extends:
-    - .ubuntu:21.04
+    - .ubuntu:22.04
     - .ubuntu.packages
     - .fdo.container-build@ubuntu
   stage: prep
@@ -280,9 +280,9 @@ ubuntu:21.04@container-prep:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-ubuntu:21.04@container-forced-rebuild:
+ubuntu:22.04@container-forced-rebuild:
   extends:
-    - ubuntu:21.04@container-prep
+    - ubuntu:22.04@container-prep
   only:
     - schedules
   variables:
@@ -290,9 +290,9 @@ ubuntu:21.04@container-forced-rebuild:
 
 
 # Pulls in the container from upstream or rebuilds it if missing
-ubuntu:21.10@container-prep:
+ubuntu:22.10@container-prep:
   extends:
-    - .ubuntu:21.10
+    - .ubuntu:22.10
     - .ubuntu.packages
     - .fdo.container-build@ubuntu
   stage: prep
@@ -300,9 +300,9 @@ ubuntu:21.10@container-prep:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-ubuntu:21.10@container-forced-rebuild:
+ubuntu:22.10@container-forced-rebuild:
   extends:
-    - ubuntu:21.10@container-prep
+    - ubuntu:22.10@container-prep
   only:
     - schedules
   variables:
@@ -434,19 +434,19 @@ fedora:35@container-clean:
     - .container-clean
   needs: ["fedora:35@container-prep"]
 
-### ubuntu 21.04
-ubuntu:21.04@container-clean:
+### ubuntu 22.04
+ubuntu:22.04@container-clean:
   extends:
-    - .ubuntu:21.04
+    - .ubuntu:22.04
     - .container-clean
-  needs: ["ubuntu:21.04@container-prep"]
+  needs: ["ubuntu:22.04@container-prep"]
 
-### ubuntu 21.10
-ubuntu:21.10@container-clean:
+### ubuntu 22.10
+ubuntu:22.10@container-clean:
   extends:
-    - .ubuntu:21.10
+    - .ubuntu:22.10
     - .container-clean
-  needs: ["ubuntu:21.10@container-prep"]
+  needs: ["ubuntu:22.10@container-prep"]
 
 ### debian stable
 debian:stable@container-clean:
@@ -530,34 +530,34 @@ fedora:35@meson-build:
   needs: ['fedora:35@container-prep']
 
 
-ubuntu:21.04@autotools-build:
+ubuntu:22.04@autotools-build:
   extends:
-    - .ubuntu:21.04
+    - .ubuntu:22.04
     - .autotools-build@template
   stage: autotools
-  needs: ['ubuntu:21.04@container-prep']
+  needs: ['ubuntu:22.04@container-prep']
 
-ubuntu:21.04@meson-build:
+ubuntu:22.04@meson-build:
   extends:
-    - .ubuntu:21.04
+    - .ubuntu:22.04
     - .meson-build@template
   stage: meson
-  needs: ['ubuntu:21.04@container-prep']
+  needs: ['ubuntu:22.04@container-prep']
 
 
-ubuntu:21.10@autotools-build:
+ubuntu:22.10@autotools-build:
   extends:
-    - .ubuntu:21.10
+    - .ubuntu:22.10
     - .autotools-build@template
   stage: autotools
-  needs: ['ubuntu:21.10@container-prep']
+  needs: ['ubuntu:22.10@container-prep']
 
-ubuntu:21.10@meson-build:
+ubuntu:22.10@meson-build:
   extends:
-    - .ubuntu:21.10
+    - .ubuntu:22.10
     - .meson-build@template
   stage: meson
-  needs: ['ubuntu:21.10@container-prep']
+  needs: ['ubuntu:22.10@container-prep']
 
 
 debian:stable@autotools-build:
