@@ -3,13 +3,14 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2023-01-04.5'
+.default_tag: &default_tag '2023-01-05.0'
 
 distributions:
   - name: fedora
     tag: *default_tag
-    want_qemu: true
     use_for_tarball_tests: true
+    # only one distro for qemu tests
+    use_for_qemu_tests: true
     versions:
       - '34'
       - '35'
@@ -30,6 +31,14 @@ distributions:
       - doxygen
       - xz
       - clang-analyzer
+      # below packages are for the qemu runs, so optional
+      - systemd-udev
+      - qemu-img
+      - qemu-system-x86-core
+      - qemu-system-aarch64-core
+      - jq
+      - python3-click
+      - python3-rich
   - name: ubuntu
     tag: *default_tag
     versions:
@@ -111,3 +120,7 @@ distributions:
       - doxygen
       - xz
       - linux-headers
+
+b2c:
+  version: v0.9.8
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v5.19/bzImage
