@@ -64,7 +64,7 @@ variables:
   extends:
     - .default_artifacts
   script:
-    - .gitlab-ci/meson-build.sh
+    - .gitlab-ci/meson-build.sh --run-test
 
 .fedora:34:
   extends: .fdo.distribution-image@fedora
@@ -496,8 +496,6 @@ alpine:latest@container-clean:
     - .meson_build
   stage: build
   dependencies: []
-  variables:
-    NINJA_ARGS: "dist"
 
 
 fedora:34@autotools-build:
