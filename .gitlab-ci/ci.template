@@ -40,9 +40,9 @@ variables:
       - _build/test/test-suite.log
       - $MESON_BUILDDIR/meson-logs/
     expire_in: 1 week
-    when: on_failure
+    when: always
     reports:
-      junit: $MESON_BUILDDIR/junit-*.xml
+      junit: $MESON_BUILDDIR/*junit*.xml
 
 .autotools_build:
   extends:
