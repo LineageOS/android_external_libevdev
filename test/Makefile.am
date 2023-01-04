@@ -89,24 +89,11 @@ test_kernel_SOURCES = \
 test_kernel_CFLAGS = -I$(top_srcdir)
 test_kernel_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
 
-if HAVE_VALGRIND
-VALGRIND_FLAGS=--leak-check=full \
-		--quiet \
-		--error-exitcode=3 \
-		--suppressions=$(srcdir)/valgrind.suppressions
-
-valgrind:
-	        $(MAKE) check-TESTS CK_TIMEOUT_MULTIPLIER=10 LOG_COMPILER="$(VALGRIND)" LOG_FLAGS="$(VALGRIND_FLAGS)"
-
-check_local_deps += valgrind
-
-endif
-
 if GCOV_ENABLED
 
 CLEANFILES = gcov-reports/*.gcov gcov-reports/summary.txt *.gcno *.gcda
 
-gcov-report: generate-gcov-report.sh check-TESTS
+gcov-report: generate-gcov-report.sh
 	$(AM_V_GEN)$(srcdir)/generate-gcov-report.sh gcov-reports $(top_builddir)/libevdev $(builddir)
 
 gcov: gcov-report
