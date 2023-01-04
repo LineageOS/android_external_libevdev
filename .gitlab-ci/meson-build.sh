@@ -1,8 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+set -x
 if [[ -f .meson_environment ]]; then
 	. .meson_environment
 fi
+
+# If test args are set, we assume we want to run the tests
+MESON_RUN_TEST="$MESON_TEST_ARGS"
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		--skip-setup)
+			shift
+			MESON_SKIP_SETUP="1"
+			;;
+		--skip-build)
+			shift
+			MESON_SKIP_BUILD="1"
+			;;
+		--skip-test)
+			shift
+			MESON_RUN_TEST=""
+			;;
+		--run-test)
+			shift
+			MESON_RUN_TEST="1"
+			;;
+		*)
+			echo "Unknow commandline argument $1"
+			exit 1
+			;;
+	esac
+done
 
 if [[ -z "$MESON_BUILDDIR" ]]; then
 	echo "\$MESON_BUILDDIR undefined."
@@ -20,6 +49,10 @@ if [[ -z "$CI_JOB_ID" ]] || [[ -z "$CI_JOB_NAME" ]]; then
 	echo " CI_JOB_NAME=$CI_JOB_NAME"
 fi
 
+if [[ -n "$FDO_CI_CONCURRENT" ]]; then
+	NINJA_ARGS="-j$FDO_CI_CONCURRENT $NINJA_ARGS"
+	export MESON_TESTTHREADS="$FDO_CI_CONCURRENT"
+fi
 
 echo "*************************************************"
 echo "builddir: $MESON_BUILDDIR"
@@ -30,20 +63,16 @@ echo "*************************************************"
 
 set -e
 
-rm -rf "$MESON_BUILDDIR"
-meson "$MESON_BUILDDIR" $MESON_ARGS
+if [[ -z "$MESON_SKIP_SETUP" ]]; then
+	rm -rf "$MESON_BUILDDIR"
+	meson setup "$MESON_BUILDDIR" $MESON_ARGS
+fi
 meson configure "$MESON_BUILDDIR"
-ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
 
-if [[ ! -z "$SKIP_MESON_TEST" ]]; then
-	echo "Skipping meson test"
-	exit 0
+if [[ -z "$MESON_SKIP_BUILD" ]]; then
+	ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
 fi
 
-# we still want to generate the reports, even if meson test fails
-set +e
-meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS --print-errorlogs
-exit_code=$?
-set -e
-
-exit $exit_code
+if [[ -n "$MESON_RUN_TEST" ]]; then
+	meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS --print-errorlogs
+fi
