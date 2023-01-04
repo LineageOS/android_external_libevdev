@@ -793,10 +793,6 @@ soname:
       - console.out
     reports:
       junit: $MESON_BUILDDIR/junit-*.xml
-
-  retry:
-    max: 2
-    when: script_failure
   needs: ['fedora:35@qemu-prep']
 
 qemu:meson:
