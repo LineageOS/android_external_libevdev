@@ -30,7 +30,6 @@ stages:
 variables:
   # The upstrem repository we will check for images
   FDO_UPSTREAM_REPO: libevdev/libevdev
-  LIBEVDEV_SKIP_ROOT_TESTS: 1
   GIT_DEPTH: 1
   MESON_BUILDDIR: 'build dir'
 
@@ -55,12 +54,16 @@ variables:
     - make check
     - if ! [[ -z "$MAKE_ARGS" ]]; then make $MAKE_ARGS; fi
     - popd > /dev/null
+  variables:
+    LIBEVDEV_SKIP_ROOT_TESTS: 1
 
 .meson_build:
   extends:
     - .default_artifacts
   script:
     - .gitlab-ci/meson-build.sh --run-test
+  variables:
+    MESON_TEST_ARGS: '--no-suite=needs-uinput'
 
 {# Generate templates for every distribution/version combination we want, any
   job can then just extends: .name:version and the images will sort
