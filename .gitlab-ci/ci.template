@@ -152,7 +152,7 @@ check-merge-request:
   extends:
     - .{{ distro.name }}:{{ version }}
     - .{{ distro.name}}.packages
-    - .fdo.qemu-build@fedora
+    - .fdo.qemu-build@{{distro.name}}
   stage: prep
   tags:
     - kvm
