@@ -842,4 +842,7 @@ autotools-from-tarball:
     - popd > /dev/null
     - popd > /dev/null
     - ls -lR $INSTALLDIR
+  variables:
+    LIBEVDEV_SKIP_ROOT_TESTS: 1
+
   needs: ['fedora:35@container-prep']

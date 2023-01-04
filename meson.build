@@ -162,7 +162,7 @@ if dep_check.found()
 				      include_directories: [includes_include],
 				      dependencies: [dep_libevdev, dep_check],
 				      install: false)
-	test('test-event-codes', test_event_codes, suite: 'library')
+	test('test-event-codes', test_event_codes, suite: ['library', 'needs-uinput'])
 
 	test_internals = executable('test-internals',
 				    sources: src_common + [
@@ -171,7 +171,7 @@ if dep_check.found()
 				    include_directories: [includes_include],
 				    dependencies: [dep_libevdev, dep_check],
 				    install: false)
-	test('test-internals', test_internals, suite: 'library')
+	test('test-internals', test_internals, suite: ['library', 'needs-uinput'])
 
 	test_uinput = executable('test-uinput',
 				 sources: src_common + [
@@ -180,7 +180,7 @@ if dep_check.found()
 				 include_directories: [includes_include],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
-	test('test-uinput', test_uinput, suite: 'library')
+	test('test-uinput', test_uinput, suite: ['library', 'needs-uinput'])
 
 	test_libevdev = executable('test-libevdev',
 				   sources: src_common + [
@@ -191,7 +191,7 @@ if dep_check.found()
 				   include_directories: [includes_include],
 				   dependencies: [dep_libevdev, dep_check],
 				   install: false)
-	test('test-libevdev', test_libevdev, suite: 'library', env: ['CK_DEFAULT_TIMEOUT=10'])
+	test('test-libevdev', test_libevdev, suite: ['library', 'needs-uinput'], env: ['CK_DEFAULT_TIMEOUT=10'])
 
 	test_kernel = executable('test-kernel',
 				 sources: src_common + [
@@ -200,7 +200,7 @@ if dep_check.found()
 				 include_directories: [includes_include],
 				 dependencies: [dep_libevdev, dep_check],
 				 install: false)
-	test('test-kernel', test_kernel, suite: 'kernel')
+	test('test-kernel', test_kernel, suite: ['kernel', 'needs-uinput'])
 
 
 	valgrind = find_program('valgrind', required: false)
