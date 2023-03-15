@@ -31,6 +31,11 @@ stages:
   - container_clean  # clean up unused container images
   - merge-check      # check for a merge request
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'push'
+
 variables:
   # The upstrem repository we will check for images
   FDO_UPSTREAM_REPO: libevdev/libevdev
