@@ -108,7 +108,7 @@ int main(void)
 		srunner_add_suite(sr, t->setup());
 	}
 
-	srunner_run_all(sr, CK_NORMAL);
+	srunner_run_all(sr, CK_ENV);
 
 	failed = srunner_ntests_failed(sr);
 	srunner_free(sr);
