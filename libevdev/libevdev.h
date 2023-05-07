@@ -502,6 +502,10 @@ extern "C" {
  * <dd>currently not supported</dd>
  * <dt>EVIOCSKEYCODE:</dt>
  * <dd>currently not supported</dd>
+ * <dt>EVIOCGKEYCODE_V2:</dt>
+ * <dd>currently not supported</dd>
+ * <dt>EVIOCSKEYCODE_V2:</dt>
+ * <dd>currently not supported</dd>
  * <dt>EVIOCGNAME:</dt>
  * <dd>supported, see libevdev_get_name()</dd>
  * <dt>EVIOCGPHYS:</dt>
@@ -540,6 +544,10 @@ extern "C" {
  * <dt>EVIOCREVOKE:</dt>
  * <dd>currently not supported, see
  * http://lists.freedesktop.org/archives/input-tools/2014-January/000688.html</dd>
+ * <dt>EVIOCGMASK:</dt>
+ * <dd>currently not supported</dd>
+ * <dt>EVIOCSMASK:</dt>
+ * <dd>currently not supported</dd>
  * </dl>
  *
  */
