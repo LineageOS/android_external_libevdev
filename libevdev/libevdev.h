@@ -500,10 +500,6 @@ extern "C" {
  * <dd>supported, see libevdev_enable_event_code()</dd>
  * <dt>EVIOCGKEYCODE:</dt>
  * <dd>currently not supported</dd>
- * <dt>EVIOCGKEYCODE:</dt>
- * <dd>currently not supported</dd>
- * <dt>EVIOCSKEYCODE:</dt>
- * <dd>currently not supported</dd>
  * <dt>EVIOCSKEYCODE:</dt>
  * <dd>currently not supported</dd>
  * <dt>EVIOCGNAME:</dt>
