@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2023-02-15.0'
+.default_tag: &default_tag '2023-05-08.0'
 
 distributions:
   - name: fedora
@@ -12,8 +12,8 @@ distributions:
     # only one distro for qemu tests
     use_for_qemu_tests: true
     versions:
-      - '36'
       - '37'
+      - '38'
     packages:
       - git
       - gcc
@@ -42,7 +42,7 @@ distributions:
   - name: ubuntu
     tag: *default_tag
     versions:
-      - '22.04'
+      - '23.04'
       - '22.10'
     packages:
       - git
