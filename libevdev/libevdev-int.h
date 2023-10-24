@@ -1,29 +1,12 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
 #ifndef LIBEVDEV_INT_H
 #define LIBEVDEV_INT_H
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -53,11 +36,6 @@ enum SyncState {
 	SYNC_NONE,
 	SYNC_NEEDED,
 	SYNC_IN_PROGRESS,
-};
-
-struct mt_sync_state {
-	int code;
-	int val[];
 };
 
 /**
@@ -112,15 +90,6 @@ struct libevdev {
 
 	struct timeval last_event_time;
 
-	struct {
-		struct mt_sync_state *mt_state;
-		size_t mt_state_sz;		 /* in bytes */
-		unsigned long *slot_update;
-		size_t slot_update_sz;		 /* in bytes */
-		unsigned long *tracking_id_changes;
-		size_t tracking_id_changes_sz;	 /* in bytes */
-	} mt_sync;
-
 	struct logdata log;
 };
 
@@ -143,6 +112,16 @@ _libevdev_log_msg(const struct libevdev *dev,
 extern enum libevdev_log_priority
 _libevdev_log_priority(const struct libevdev *dev);
 
+static inline void
+init_event(struct libevdev *dev, struct input_event *ev, int type, int code, int value)
+{
+	ev->input_event_sec = dev->last_event_time.tv_sec;
+	ev->input_event_usec = dev->last_event_time.tv_usec;
+	ev->type = type;
+	ev->code = code;
+	ev->value = value;
+}
+
 /**
  * @return a pointer to the next element in the queue, or NULL if the queue
  * is full.
@@ -154,6 +133,18 @@ queue_push(struct libevdev *dev)
 		return NULL;
 
 	return &dev->queue[dev->queue_next++];
+}
+
+static inline bool
+queue_push_event(struct libevdev *dev, unsigned int type,
+		 unsigned int code, int value)
+{
+	struct input_event *ev = queue_push(dev);
+
+	if (ev)
+		init_event(dev, ev, type, code, value);
+
+	return ev != NULL;
 }
 
 /**

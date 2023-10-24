@@ -1,28 +1,14 @@
+# SPDX-License-Identifier: MIT
+#
 # Copyright © 2013 Red Hat, Inc.
 #
-# Permission to use, copy, modify, distribute, and sell this software and its
-# documentation for any purpose is hereby granted without fee, provided that
-# the above copyright notice appear in all copies and that both that copyright
-# notice and this permission notice appear in supporting documentation, and
-# that the name of the copyright holders not be used in advertising or
-# publicity pertaining to distribution of the software without specific,
-# written prior permission.  The copyright holders make no representations
-# about the suitability of this software for any purpose.  It is provided "as
-# is" without express or implied warranty.
-#
-# THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
-# EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
-# DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
-# OF THIS SOFTWARE.
 
 AC_PREREQ([2.62])
 
+# change meson version too
 AC_INIT([libevdev],
-        [1.8.0],
-        [https://bugs.freedesktop.org/enter_bug.cgi?product=libevdev],
+        [1.13.1],
+        [https://gitlab.freedesktop.org/libevdev/libevdev/issues/],
         [libevdev],
         [http://freedesktop.org/wiki/Software/libevdev/])
 
@@ -34,14 +20,8 @@ AC_USE_SYSTEM_EXTENSIONS
 
 AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz subdir-objects])
 
-# Before making a release, the LIBEVDEV_LT_VERSION string should be
-# modified.
-# The string is of the form C:R:A.
-# - If interfaces have been changed or added, but binary compatibility has
-#   been preserved, change to C+1:0:A+1
-# - If binary compatibility has been broken (eg removed or changed interfaces)
-#   change to C+1:0:0
-# - If the interface is the same as the previous version, change to C:R+1:A
+# DO NOT MODIFY THIS
+# Use symbol versioning instead.
 LIBEVDEV_LT_VERSION=5:0:3
 AC_SUBST(LIBEVDEV_LT_VERSION)
 
@@ -66,16 +46,22 @@ if test "x$lt_cv_prog_gnu_ld" = "xyes"; then
 fi
 AC_SUBST([GNU_LD_FLAGS], $with_ldflags)
 
+case "${host_os}" in
+    freebsd*)
+AC_SUBST([OS], [freebsd])
+        ;;
+    *)
+AC_SUBST([OS], [linux])
+        ;;
+esac
+
 AC_CHECK_LIB([m], [round])
 
 PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES(CHECK, [check >= 0.9.9], [HAVE_CHECK="yes"], [HAVE_CHECK="no"])
-if test "x$HAVE_CHECK" = "xyes"; then
-	AC_PATH_PROG(VALGRIND, [valgrind])
-else
+if test "x$HAVE_CHECK" != "xyes"; then
 	AC_MSG_WARN([check not found - skipping building unit tests])
 fi
-AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
 AM_CONDITIONAL(ENABLE_RUNTIME_TESTS, [test "x$HAVE_CHECK" = "xyes"])
 AM_CONDITIONAL(ENABLE_STATIC_LINK_TEST, [test "x$enable_static" = "xyes"])
 
@@ -126,8 +112,27 @@ AC_SUBST([GCOV_CFLAGS])
 AC_SUBST([GCOV_LDFLAGS])
 AC_MSG_RESULT([$enable_gcov])
 
+AC_MSG_CHECKING([whether to build with coverity support])
+AC_ARG_ENABLE([coverity],
+	      [AS_HELP_STRING([--enable-coverity],
+			      [Whether to build with coverity support (default: disabled)])],
+	      [],
+	      [enable_coverity=no],
+	      )
+AS_IF([test "x$enable_coverity" != "xno"],
+      [
+       AC_DEFINE([_Float128], [__uint128_t], [Override for coverity])
+       AC_DEFINE([_Float32], [int], [Override for coverity])
+       AC_DEFINE([_Float32x], [int], [Override for coverity])
+       AC_DEFINE([_Float64], [long], [Override for coverity])
+       AC_DEFINE([_Float64x], [long], [Override for coverity])
+       enable_coverity=yes
+       ],
+)
+AC_MSG_RESULT([$enable_coverity])
+
+
 AM_PATH_PYTHON([2.6])
-AC_PATH_PROG(CAT, [cat])
 
 # nm to check for leaking symbols in the static library
 AC_PATH_PROG(NM, [nm])
@@ -164,5 +169,6 @@ AC_MSG_RESULT([
 	       Build documentation		${have_doxygen}
 	       Enable unit-tests		${HAVE_CHECK}
 	       Enable profiling			${enable_gcov}
+	       Enable coverity support		${enable_coverity}
 	       Static library symbol check	${static_symbol_leaks_test}
 	       ])

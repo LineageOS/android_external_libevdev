@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <unistd.h>
@@ -559,6 +542,7 @@ START_TEST(test_set_clock_id)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
+	int clockid;
 	int rc;
 
 	test_create_device(&uidev, &dev,
@@ -577,7 +561,13 @@ START_TEST(test_set_clock_id)
 	rc = libevdev_set_clock_id(dev, CLOCK_MONOTONIC);
 	ck_assert_int_eq(rc, 0);
 
-	rc = libevdev_set_clock_id(dev, CLOCK_MONOTONIC_RAW);
+#ifdef __FreeBSD__
+	clockid = CLOCK_MONOTONIC_FAST;
+#else
+	clockid = CLOCK_MONOTONIC_RAW;
+#endif
+
+	rc = libevdev_set_clock_id(dev, clockid);
 	ck_assert_int_eq(rc, -EINVAL);
 
 	uinput_device_free(uidev);
@@ -687,38 +677,28 @@ TEST_SUITE_ROOT_PRIVILEGES(libevdev_init_test)
 {
 	Suite *s = suite_create("libevdev init tests");
 
-	TCase *tc = tcase_create("device init");
-	tcase_add_test(tc, test_new_device);
-	tcase_add_test(tc, test_free_device);
-	tcase_add_test(tc, test_init_from_invalid_fd);
-	tcase_add_test(tc, test_init_and_change_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_new_device);
+	add_test(s, test_free_device);
+	add_test(s, test_init_from_invalid_fd);
+	add_test(s, test_init_and_change_fd);
 
-	tc = tcase_create("log init");
-	tcase_add_test(tc, test_log_init);
-	tcase_add_test(tc, test_log_priority);
-	tcase_add_test(tc, test_log_set_get_priority);
-	tcase_add_test(tc, test_log_default_priority);
-	tcase_add_test(tc, test_log_data);
-	tcase_add_test(tc, test_device_log_init);
-	suite_add_tcase(s, tc);
+	add_test(s, test_log_init);
+	add_test(s, test_log_priority);
+	add_test(s, test_log_set_get_priority);
+	add_test(s, test_log_default_priority);
+	add_test(s, test_log_data);
+	add_test(s, test_device_log_init);
 
-	tc = tcase_create("device fd init");
-	tcase_add_test(tc, test_device_init);
-	tcase_add_test(tc, test_device_init_from_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_init);
+	add_test(s, test_device_init_from_fd);
 
-	tc = tcase_create("device grab");
-	tcase_add_test(tc, test_device_grab);
-	tcase_add_test(tc, test_device_grab_invalid_fd);
-	tcase_add_test(tc, test_device_grab_change_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_grab);
+	add_test(s, test_device_grab_invalid_fd);
+	add_test(s, test_device_grab_change_fd);
 
-	tc = tcase_create("clock id");
-	tcase_add_test(tc, test_set_clock_id);
-	tcase_add_test(tc, test_set_clock_id_invalid_fd);
-	tcase_add_test(tc, test_clock_id_events);
-	suite_add_tcase(s, tc);
+	add_test(s, test_set_clock_id);
+	add_test(s, test_set_clock_id_invalid_fd);
+	add_test(s, test_clock_id_events);
 
 	return s;
 }

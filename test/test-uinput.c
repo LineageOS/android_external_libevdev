@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <linux/input.h>
 #include <errno.h>
 #include <unistd.h>
@@ -69,7 +52,7 @@ START_TEST(test_uinput_create_device)
 		if (max == -1)
 			continue;
 
-		for (code = 0; code < max; code++) {
+		for (code = 0; code < (unsigned int)max; code++) {
 			ck_assert_int_eq(libevdev_has_event_code(dev, type, code),
 					 libevdev_has_event_code(dev2, type, code));
 		}
@@ -150,7 +133,7 @@ START_TEST(test_uinput_create_device_from_fd)
 		if (max == -1)
 			continue;
 
-		for (code = 0; code < max; code++) {
+		for (code = 0; code < (unsigned int)max; code++) {
 			ck_assert_int_eq(libevdev_has_event_code(dev, type, code),
 					 libevdev_has_event_code(dev2, type, code));
 		}
@@ -163,6 +146,93 @@ START_TEST(test_uinput_create_device_from_fd)
 	close(fd2);
 }
 END_TEST
+
+#ifdef __FreeBSD__
+START_TEST(test_uinput_check_devnode_bsd)
+{
+	struct libevdev *dev;
+	struct libevdev_uinput *uidev, *uidev2;
+	const char *devnode, *devnode2;
+	int fd, fd2;
+	int rc;
+
+	dev = libevdev_new();
+	ck_assert(dev != NULL);
+	libevdev_set_name(dev, TEST_DEVICE_NAME);
+	libevdev_enable_event_type(dev, EV_SYN);
+	libevdev_enable_event_type(dev, EV_REL);
+	libevdev_enable_event_code(dev, EV_REL, REL_X, NULL);
+	libevdev_enable_event_code(dev, EV_REL, REL_Y, NULL);
+
+	fd = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd, -1);
+	fd2 = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd2, -1);
+
+	rc = libevdev_uinput_create_from_device(dev, fd, &uidev);
+	ck_assert_int_eq(rc, 0);
+
+	/* create a second one */
+	libevdev_set_name(dev, TEST_DEVICE_NAME " 2");
+	rc = libevdev_uinput_create_from_device(dev, fd2, &uidev2);
+	ck_assert_int_eq(rc, 0);
+
+	devnode = libevdev_uinput_get_devnode(uidev);
+	ck_assert(devnode != NULL);
+
+	/* get syspath twice returns same pointer */
+	devnode2 = libevdev_uinput_get_devnode(uidev);
+	ck_assert(devnode == devnode2);
+
+	/* second dev has different devnode */
+	devnode2 = libevdev_uinput_get_devnode(uidev2);
+	ck_assert(strcmp(devnode, devnode2) != 0);
+
+	libevdev_uinput_destroy(uidev2);
+	libevdev_uinput_destroy(uidev);
+
+	close(fd2);
+	close(fd);
+
+	libevdev_free(dev);
+}
+END_TEST
+
+START_TEST(test_uinput_check_syspath_bsd)
+{
+	struct libevdev *dev;
+	struct libevdev_uinput *uidev;
+	const char *syspath;
+	int fd;
+	int rc;
+
+	dev = libevdev_new();
+	ck_assert(dev != NULL);
+	libevdev_set_name(dev, TEST_DEVICE_NAME);
+	libevdev_enable_event_type(dev, EV_SYN);
+	libevdev_enable_event_type(dev, EV_REL);
+	libevdev_enable_event_code(dev, EV_REL, REL_X, NULL);
+	libevdev_enable_event_code(dev, EV_REL, REL_Y, NULL);
+
+	fd = open(UINPUT_NODE, O_RDWR);
+	ck_assert_int_gt(fd, -1);
+
+	rc = libevdev_uinput_create_from_device(dev, fd, &uidev);
+	ck_assert_int_eq(rc, 0);
+
+	syspath = libevdev_uinput_get_syspath(uidev);
+	/* FreeBSD should always return NULL for libevdev_unput_get_syspath() */
+	ck_assert(syspath == NULL);
+
+	libevdev_uinput_destroy(uidev);
+
+	close(fd);
+
+	libevdev_free(dev);
+}
+END_TEST
+
+#else /* !__FreeBSD__ */
 
 START_TEST(test_uinput_check_syspath_time)
 {
@@ -269,6 +339,8 @@ START_TEST(test_uinput_check_syspath_name)
 }
 END_TEST
 
+#endif /* __FreeBSD __ */
+
 START_TEST(test_uinput_events)
 {
 	struct libevdev *dev;
@@ -372,21 +444,20 @@ TEST_SUITE_ROOT_PRIVILEGES(uinput_suite)
 {
 	Suite *s = suite_create("libevdev uinput device tests");
 
-	TCase *tc = tcase_create("device creation");
-	tcase_add_test(tc, test_uinput_create_device);
-	tcase_add_test(tc, test_uinput_create_device_invalid);
-	tcase_add_test(tc, test_uinput_create_device_from_fd);
-	tcase_add_test(tc, test_uinput_check_syspath_time);
-	tcase_add_test(tc, test_uinput_check_syspath_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_create_device);
+	add_test(s, test_uinput_create_device_invalid);
+	add_test(s, test_uinput_create_device_from_fd);
+#ifdef __FreeBSD__
+	add_test(s, test_uinput_check_devnode_bsd);
+	add_test(s, test_uinput_check_syspath_bsd);
+#else
+	add_test(s, test_uinput_check_syspath_time);
+	add_test(s, test_uinput_check_syspath_name);
+#endif
 
-	tc = tcase_create("device events");
-	tcase_add_test(tc, test_uinput_events);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_events);
 
-	tc = tcase_create("device properties");
-	tcase_add_test(tc, test_uinput_properties);
-	suite_add_tcase(s, tc);
+	add_test(s, test_uinput_properties);
 
 	return s;
 }

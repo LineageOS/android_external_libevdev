@@ -89,26 +89,11 @@ test_kernel_SOURCES = \
 test_kernel_CFLAGS = -I$(top_srcdir)
 test_kernel_LDADD = $(CHECK_LIBS) $(top_builddir)/libevdev/libevdev.la
 
-if HAVE_VALGRIND
-VALGRIND_FLAGS=--leak-check=full \
-		--quiet \
-		--error-exitcode=3 \
-		--suppressions=$(srcdir)/valgrind.suppressions
-
-valgrind:
-	        $(MAKE) check-TESTS CK_TIMEOUT_MULTIPLIER=10 LOG_COMPILER="$(VALGRIND)" LOG_FLAGS="$(VALGRIND_FLAGS)"
-
-check_local_deps += valgrind
-
-endif
-
-EXTRA_DIST = valgrind.suppressions  generate-gcov-report.sh
-
 if GCOV_ENABLED
 
 CLEANFILES = gcov-reports/*.gcov gcov-reports/summary.txt *.gcno *.gcda
 
-gcov-report: generate-gcov-report.sh check-TESTS
+gcov-report: generate-gcov-report.sh
 	$(AM_V_GEN)$(srcdir)/generate-gcov-report.sh gcov-reports $(top_builddir)/libevdev $(builddir)
 
 gcov: gcov-report
@@ -132,25 +117,14 @@ endif # GCOV_ENABLED
 endif # ENABLE_RUNTIME_TESTS
 
 if ENABLE_STATIC_SYMBOL_LEAKS_TEST
-# Hack to check for leaking symbols in the static library.
-# See https://bugs.freedesktop.org/show_bug.cgi?id=82785
-# Note the spaces in the expressions! After the first grep, each line
-# is " T symbol_name"
-static-symbol-leaks: test-static-link
-	$(AM_V_GEN)(\
-		$(NM) --extern-only $(builddir)/test-static-link | \
-			grep -o -e " T .*" | \
-			grep -v -e " main$$" \
-				-e " atexit" \
-				-e " *gcov.*" \
-				-e " _.*" \
-				-e " libevdev_*" && \
-				echo "Leaking symbols found" && \
-				exit 1 || exit 0 \
-	)
+static-symbol-leaks: test-static-link test-static-symbols-leak.sh
+	$(AM_V_GEN) $(srcdir)/test-static-symbols-leak.sh $(builddir)
 
 check_local_deps += static-symbol-leaks
+
 endif # HAVE_NM
+
+EXTRA_DIST = valgrind.suppressions  generate-gcov-report.sh test-static-symbols-leak.sh
 
 check-local: $(check_local_deps)
 

@@ -1,46 +1,29 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2014 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#define _GNU_SOURCE
-#include <config.h>
+#include "config.h"
 
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <getopt.h>
+#include <libgen.h>
 #include <limits.h>
+#include <linux/input.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <linux/input.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "libevdev.h"
+#include "libevdev/libevdev.h"
 
 static void
-usage(void)
+usage(const char *progname)
 {
 	printf("%s --abs <axis> [--min min] [--max max] [--res res] [--fuzz fuzz] [--flat flat] /dev/input/eventXYZ\n"
 	       "\tChange the absinfo struct for the named axis\n"
@@ -48,9 +31,9 @@ usage(void)
 	       "\tChange the x/y resolution on the given device\n"
 	       "%s --led <led> --on|--off /dev/input/eventXYZ\n"
 	       "\tEnable or disable the named LED\n",
-	       program_invocation_short_name,
-	       program_invocation_short_name,
-	       program_invocation_short_name);
+	       progname,
+	       progname,
+	       progname);
 }
 
 enum mode {
@@ -416,7 +399,7 @@ main(int argc, char **argv)
 			rc = EXIT_SUCCESS;
 			/* fallthrough */
 		case MODE_NONE:
-			usage();
+			usage(basename(argv[0]));
 			goto out;
 		case MODE_ABS:
 			rc = parse_options_abs(argc, argv, &changes, &axis,
@@ -440,7 +423,7 @@ main(int argc, char **argv)
 
 	if (optind >= argc) {
 		rc = EXIT_FAILURE;
-		usage();
+		usage(basename(argv[0]));
 		goto out;
 	}
 

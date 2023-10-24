@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2019 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include "test-common.h"
 
 START_TEST(test_info)
@@ -71,7 +54,11 @@ START_TEST(test_bits)
 		for (unsigned code = 0; code <= max; code++) {
 			struct libevdev *d = libevdev_new();
 			const struct input_absinfo abs = {
-				10, 20, 30, 40, 50
+				.minimum = 10,
+				.maximum = 20,
+				.fuzz = 30,
+				.flat = 40,
+				.resolution = 50,
 			};
 			const void *data = NULL;
 
@@ -162,16 +149,13 @@ END_TEST
 TEST_SUITE(event_name_suite)
 {
 	Suite *s = suite_create("Context manipulation");
-	TCase *tc;
 
-	tc = tcase_create("Device info");
-	tcase_add_test(tc, test_info);
-	tcase_add_test(tc, test_properties);
-	tcase_add_test(tc, test_bits);
-	tcase_add_test(tc, test_mt_slots_enable_disable);
-	tcase_add_test(tc, test_mt_slots_increase_decrease);
-	tcase_add_test(tc, test_mt_tracking_id);
-	suite_add_tcase(s, tc);
+	add_test(s, test_info);
+	add_test(s, test_properties);
+	add_test(s, test_bits);
+	add_test(s, test_mt_slots_enable_disable);
+	add_test(s, test_mt_slots_increase_decrease);
+	add_test(s, test_mt_tracking_id);
 
 	return s;
 }

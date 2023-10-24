@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <check.h>
 #include <errno.h>
 #include <stdio.h>
@@ -38,8 +21,13 @@
 static int
 is_debugger_attached(void)
 {
+	int rc = 1;
+	/*
+	 * FreeBSD does not support PTRACE_ATTACH, disable attaching a debugger
+	 * on FreeBSD by skipping the rest of the function and just return 1.
+	 */
+#ifndef __FreeBSD__
 	int status;
-	int rc;
 	int pid = fork();
 
 	if (pid == -1)
@@ -52,14 +40,14 @@ is_debugger_attached(void)
 			ptrace(PTRACE_CONT, NULL, NULL);
 			ptrace(PTRACE_DETACH, ppid, NULL, NULL);
 			rc = 0;
-		} else
-			rc = 1;
+		}
 		_exit(rc);
 	} else {
 		waitpid(pid, &status, 0);
 		rc = WEXITSTATUS(status);
 	}
 
+#endif /* !__FreeBSD__ */
 	return rc;
 }
 
@@ -120,7 +108,7 @@ int main(void)
 		srunner_add_suite(sr, t->setup());
 	}
 
-	srunner_run_all(sr, CK_NORMAL);
+	srunner_run_all(sr, CK_ENV);
 
 	failed = srunner_ntests_failed(sr);
 	srunner_free(sr);

@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 David Herrmann <dh.herrmann@gmail.com>
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include "test-common.h"
 
 START_TEST(test_type_names)
@@ -264,30 +247,22 @@ TEST_SUITE(event_code_suite)
 {
 	Suite *s = suite_create("Event codes");
 
-	TCase *tc = tcase_create("type tests");
-	tcase_add_test(tc, test_type_names);
-	tcase_add_test(tc, test_type_names_invalid);
-	tcase_add_test(tc, test_type_name_lookup);
-	tcase_add_test(tc, test_type_name_lookup_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_type_names);
+	add_test(s, test_type_names_invalid);
+	add_test(s, test_type_name_lookup);
+	add_test(s, test_type_name_lookup_invalid);
 
-	tc = tcase_create("code tests");
-	tcase_add_test(tc, test_code_names);
-	tcase_add_test(tc, test_code_name_lookup);
-	tcase_add_test(tc, test_code_names_invalid);
-	tcase_add_test(tc, test_code_name_lookup_invalid);
-	tcase_add_test(tc, test_code_names_max);
-	suite_add_tcase(s, tc);
+	add_test(s, test_code_names);
+	add_test(s, test_code_name_lookup);
+	add_test(s, test_code_names_invalid);
+	add_test(s, test_code_name_lookup_invalid);
+	add_test(s, test_code_names_max);
 
-	tc = tcase_create("value tests");
-	tcase_add_test(tc, test_value_names);
-	tcase_add_test(tc, test_value_names_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_value_names);
+	add_test(s, test_value_names_invalid);
 
-	tc = tcase_create("property tests");
-	tcase_add_test(tc, test_properties);
-	tcase_add_test(tc, test_properties_invalid);
-	suite_add_tcase(s, tc);
+	add_test(s, test_properties);
+	add_test(s, test_properties_invalid);
 
 	return s;
 }

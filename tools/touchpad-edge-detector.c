@@ -1,54 +1,37 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2014 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software
- * and its documentation for any purpose is hereby granted without
- * fee, provided that the above copyright notice appear in all copies
- * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the name of Red Hat
- * not be used in advertising or publicity pertaining to distribution
- * of the software without specific, written prior permission.  Red
- * Hat makes no representations about the suitability of this software
- * for any purpose.  It is provided "as is" without express or implied
- * warranty.
- *
- * THE AUTHORS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
- * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
-#include <libevdev/libevdev.h>
-#include <sys/signalfd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <math.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "libevdev/libevdev.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+static int signalled = 0;
+
 static int
-usage(void) {
-	printf("Usage: %s 12x34 /dev/input/event0\n", program_invocation_short_name);
+usage(const char *progname) {
+	printf("Usage: %s 12x34 /dev/input/eventX\n", progname);
 	printf("\n");
 	printf("This tool reads the touchpad events from the kernel and calculates\n "
 	       "the minimum and maximum for the x and y coordinates, respectively.\n"
-	       "The first argument is the physical size of the touchpad in mm.\n");
+	       "The first argument is the physical size of the touchpad in mm (WIDTHxHEIGHT).\n");
 	return 1;
 }
 
@@ -82,9 +65,10 @@ print_current_values(const struct dimensions *d)
 
 static int
 handle_event(struct dimensions *d, const struct input_event *ev) {
-	if (ev->type == EV_SYN) {
+	if (ev->type == EV_SYN)
 		return print_current_values(d);
-	} else if (ev->type != EV_ABS)
+
+	if (ev->type != EV_ABS)
 		return 0;
 
 	switch(ev->code) {
@@ -103,26 +87,26 @@ handle_event(struct dimensions *d, const struct input_event *ev) {
 	return 0;
 }
 
+static void
+signal_handler(__attribute__((__unused__)) int signal)
+{
+	signalled++;
+}
+
 static int
 mainloop(struct libevdev *dev, struct dimensions *dim) {
-	struct pollfd fds[2];
-	sigset_t mask;
+	struct pollfd fds;
 
-	fds[0].fd = libevdev_get_fd(dev);
-	fds[0].events = POLLIN;
+	fds.fd = libevdev_get_fd(dev);
+	fds.events = POLLIN;
 
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	fds[1].fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	fds[1].events = POLLIN;
+	signal(SIGINT, signal_handler);
 
-	sigprocmask(SIG_BLOCK, &mask, NULL);
-
-	while (poll(fds, 2, -1)) {
+	while (poll(&fds, 1, -1)) {
 		struct input_event ev;
 		int rc;
 
-		if (fds[1].revents)
+		if (signalled)
 			break;
 
 		do {
@@ -130,12 +114,16 @@ mainloop(struct libevdev *dev, struct dimensions *dim) {
 			if (rc == LIBEVDEV_READ_STATUS_SYNC) {
 				fprintf(stderr, "Error: cannot keep up\n");
 				return 1;
-			} else if (rc != -EAGAIN && rc < 0) {
+			}
+
+			if (rc != -EAGAIN && rc < 0) {
 				fprintf(stderr, "Error: %s\n", strerror(-rc));
 				return 1;
-			} else if (rc == LIBEVDEV_READ_STATUS_SUCCESS) {
-				handle_event(dim, &ev);
+
 			}
+
+			if (rc == LIBEVDEV_READ_STATUS_SUCCESS)
+				handle_event(dim, &ev);
 		} while (rc != -EAGAIN);
 	}
 
@@ -169,8 +157,6 @@ dmi_matchstr(struct libevdev *dev, char *match, size_t sz)
 
 	modalias[strlen(modalias) - 1] = '\0'; /* drop \n */
 	snprintf(match, sz, "name:%s:%s", libevdev_get_name(dev), modalias);
-
-	return;
 }
 
 static void
@@ -236,11 +222,11 @@ int main (int argc, char **argv) {
 	struct size size;
 
 	if (argc < 3)
-		return usage();
+		return usage(basename(argv[0]));
 
 	if (sscanf(argv[1], "%dx%d", &size.w, &size.h) != 2 ||
 	    size.w <= 0 || size.h <= 0)
-		return usage();
+		return usage(basename(argv[0]));
 
 	if (size.w < 30 || size.h < 30) {
 		fprintf(stderr,
@@ -252,7 +238,7 @@ int main (int argc, char **argv) {
 
 	path = argv[2];
 	if (path[0] == '-')
-		return usage();
+		return usage(basename(argv[0]));
 
 	fd = open(path, O_RDONLY|O_NONBLOCK);
 	if (fd < 0) {
