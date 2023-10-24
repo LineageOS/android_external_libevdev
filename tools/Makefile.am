@@ -1,4 +1,4 @@
-noinst_PROGRAMS = libevdev-events
+noinst_PROGRAMS = libevdev-events libevdev-list-codes
 bin_PROGRAMS = \
 	       touchpad-edge-detector \
 	       mouse-dpi-tool \
@@ -10,6 +10,9 @@ libevdev_ldadd = $(top_builddir)/libevdev/libevdev.la
 libevdev_events_SOURCES = libevdev-events.c
 libevdev_events_LDADD = $(libevdev_ldadd)
 
+libevdev_list_codes_SOURCES = libevdev-list-codes.c
+libevdev_list_codes_LDADD = $(libevdev_ldadd)
+
 touchpad_edge_detector_SOURCES = touchpad-edge-detector.c
 touchpad_edge_detector_LDADD = $(libevdev_ldadd)
 
@@ -18,4 +21,9 @@ mouse_dpi_tool_LDADD = $(libevdev_ldadd)
 
 libevdev_tweak_device_SOURCES = libevdev-tweak-device.c
 libevdev_tweak_device_LDADD = $(libevdev_ldadd)
-libevdev_tweak_device_MANS = libevdev-tweak-device.1
+
+dist_man_MANS = \
+		libevdev-tweak-device.1 \
+		mouse-dpi-tool.1 \
+		touchpad-edge-detector.1 \
+		$(NULL)

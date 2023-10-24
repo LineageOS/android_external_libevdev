@@ -18,3 +18,10 @@
    fun:ioctl
    fun:test_revoke*
 }
+{
+   <bash_memleak>
+   Memcheck:Leak
+   ...
+   fun:reader_loop
+   fun:main
+}

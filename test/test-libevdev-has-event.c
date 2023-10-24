@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include <linux/input.h>
 #include <errno.h>
 #include <unistd.h>
@@ -117,6 +100,14 @@ START_TEST(test_event_codes)
 			continue;
 		}
 
+#ifdef __FreeBSD__
+		/* Force feedback events are not supported by FreeBSD */
+		if (*evbit == EV_FF) {
+			evbit++;
+			continue;
+		}
+#endif
+
 		max = libevdev_event_type_get_max(*evbit);
 
 		for (code = 1; code < max; code += 10) {
@@ -125,10 +116,11 @@ START_TEST(test_event_codes)
 				test_create_abs_device(&uidev, &dev,
 						       1, &abs,
 						       -1);
-			} else
+			} else {
 				test_create_device(&uidev, &dev,
 						   *evbit, code,
 						   -1);
+			}
 
 			ck_assert_msg(libevdev_has_event_type(dev, *evbit), "for event type %d\n", *evbit);
 			ck_assert_msg(libevdev_has_event_code(dev, *evbit, code), "for type %d code %d", *evbit, code);
@@ -249,7 +241,7 @@ START_TEST(test_input_props)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	int rc, i;
-	struct input_absinfo abs = {0, 0, 2, 0, 0};
+	struct input_absinfo abs = { .value = 0, .minimum = 0, .maximum = 2};
 
 	uidev = uinput_device_new(TEST_DEVICE_NAME);
 	rc = uinput_device_set_abs_bit(uidev, ABS_X, &abs);
@@ -282,7 +274,7 @@ START_TEST(test_set_input_props)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	int rc, fd;
-	struct input_absinfo abs = {0, 0, 2, 0, 0};
+	struct input_absinfo abs = { .value = 0, .minimum = 0, .maximum = 2};
 
 	dev = libevdev_new();
 	ck_assert_int_eq(libevdev_enable_property(dev, INPUT_PROP_MAX + 1), -1);
@@ -305,6 +297,13 @@ START_TEST(test_set_input_props)
 	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_DIRECT), 0);
 	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_BUTTONPAD), 1);
 
+	/* Test disabling the properties too */
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_MAX + 1), -1);
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_DIRECT), 0);
+	ck_assert_int_eq(libevdev_disable_property(dev, INPUT_PROP_BUTTONPAD), 0);
+	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_DIRECT), 0);
+	ck_assert_int_eq(libevdev_has_property(dev, INPUT_PROP_BUTTONPAD), 0);
+
 	uinput_device_free(uidev);
 	libevdev_free(dev);
 }
@@ -318,12 +317,14 @@ START_TEST(test_slot_init_value)
 	const int nabs = 6;
 	int i;
 	int fd;
-	struct input_absinfo abs[] = { { ABS_X, 0, 1000 },
-				       { ABS_Y, 0, 1000 },
-				       { ABS_MT_POSITION_X, 0, 1000 },
-				       { ABS_MT_POSITION_Y, 0, 1000 },
-				       { ABS_MT_TRACKING_ID, -1, 2 },
-				       { ABS_MT_SLOT, 0, 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 1000 },
+		{ .value = ABS_MT_TRACKING_ID, .minimum = -1, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = 1 }
+	};
 
 	uidev = uinput_device_new(TEST_DEVICE_NAME);
 
@@ -371,10 +372,12 @@ START_TEST(test_no_slots)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-					{ ABS_Y, 0, 2 },
-					{ ABS_MT_POSITION_X, 0, 2 },
-					{ ABS_MT_POSITION_Y, 0, 2 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 4, abs,
 			       -1);
@@ -392,11 +395,13 @@ START_TEST(test_slot_number)
 	struct uinput_device* uidev;
 	struct libevdev *dev;
 	const int nslots = 4;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-					{ ABS_Y, 0, 2 },
-					{ ABS_MT_POSITION_X, 0, 2 },
-					{ ABS_MT_POSITION_Y, 0, 2 },
-					{ ABS_MT_SLOT, 0, nslots - 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = nslots - 1 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 5, abs,
 			       -1);
@@ -415,12 +420,14 @@ START_TEST(test_invalid_mt_device)
 	struct libevdev *dev;
 	const int nslots = 4;
 	int value;
-	struct input_absinfo abs[] = {  { ABS_X, 0, 2 },
-		{ ABS_Y, 0, 2 },
-		{ ABS_MT_POSITION_X, 0, 2 },
-		{ ABS_MT_POSITION_Y, 0, 2 },
-		{ ABS_MT_SLOT - 1, 0, 2 },
-		{ ABS_MT_SLOT, 0, nslots - 1 }};
+	struct input_absinfo abs[] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_X, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_POSITION_Y, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT - 1, .minimum = 0, .maximum = 2 },
+		{ .value = ABS_MT_SLOT, .minimum = 0, .maximum = nslots - 1 }
+	};
 
 	test_create_abs_device(&uidev, &dev, 6, abs,
 			       -1);
@@ -732,7 +739,7 @@ START_TEST(test_device_enable_bit)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev, *dev2;
-	struct input_absinfo abs = {ABS_X, 0, 2};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 2 };
 	int rc;
 
 	test_create_abs_device(&uidev, &dev, 1, &abs,
@@ -776,7 +783,7 @@ START_TEST(test_device_enable_bit_invalid)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs = {ABS_X, 0, 1};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 1 };
 
 	test_create_abs_device(&uidev, &dev, 1, &abs,
 			       -1);
@@ -802,7 +809,10 @@ START_TEST(test_device_disable_bit)
 	struct uinput_device* uidev;
 	struct libevdev *dev, *dev2;
 	int rc;
-	struct input_absinfo abs[2] = {{ABS_X, 0, 1}, {ABS_Y, 0, 1}};
+	struct input_absinfo abs[2] = {
+		{ .value = ABS_X, .minimum = 0, .maximum = 1 },
+		{ .value = ABS_Y, .minimum = 0, .maximum = 1 },
+	};
 
 	test_create_abs_device(&uidev, &dev,
 			       2, abs,
@@ -848,7 +858,7 @@ START_TEST(test_device_disable_bit_invalid)
 {
 	struct uinput_device* uidev;
 	struct libevdev *dev;
-	struct input_absinfo abs = {ABS_X, 0, 1};
+	struct input_absinfo abs = { .value = ABS_X, .minimum = 0, .maximum = 1 };
 
 	test_create_abs_device(&uidev, &dev, 1, &abs, -1);
 
@@ -1146,56 +1156,40 @@ TEST_SUITE_ROOT_PRIVILEGES(has_events)
 {
 	Suite *s = suite_create("libevdev_has_event tests");
 
-	TCase *tc = tcase_create("event type");
-	tcase_add_test(tc, test_ev_bit_limits);
-	tcase_add_test(tc, test_has_ev_bit);
-	suite_add_tcase(s, tc);
+	add_test(s, test_ev_bit_limits);
+	add_test(s, test_has_ev_bit);
 
-	tc = tcase_create("event codes");
-	tcase_add_test(tc, test_event_codes);
-	tcase_add_test(tc, test_event_code_limits);
-	suite_add_tcase(s, tc);
+	add_test(s, test_event_codes);
+	add_test(s, test_event_code_limits);
 
-	tc = tcase_create("ev_rep");
-	tcase_add_test(tc, test_ev_rep);
-	tcase_add_test(tc, test_ev_rep_values);
-	suite_add_tcase(s, tc);
+	add_test(s, test_ev_rep);
+	add_test(s, test_ev_rep_values);
 
-	tc = tcase_create("input properties");
-	tcase_add_test(tc, test_input_props);
-	tcase_add_test(tc, test_set_input_props);
-	suite_add_tcase(s, tc);
+	add_test(s, test_input_props);
+	add_test(s, test_set_input_props);
 
-	tc = tcase_create("multitouch info");
-	tcase_add_test(tc, test_no_slots);
-	tcase_add_test(tc, test_slot_number);
-	tcase_add_test(tc, test_slot_init_value);
-	tcase_add_test(tc, test_invalid_mt_device);
-	suite_add_tcase(s, tc);
+	add_test(s, test_no_slots);
+	add_test(s, test_slot_number);
+	add_test(s, test_slot_init_value);
+	add_test(s, test_invalid_mt_device);
 
-	tc = tcase_create("device info");
-	tcase_add_test(tc, test_device_name);
-	tcase_add_test(tc, test_device_set_name);
-	tcase_add_test(tc, test_device_set_ids);
-	tcase_add_test(tc, test_device_get_abs_info);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_name);
+	add_test(s, test_device_set_name);
+	add_test(s, test_device_set_ids);
+	add_test(s, test_device_get_abs_info);
 
-	tc = tcase_create("device bit manipulation");
-	tcase_add_test(tc, test_device_set_abs);
-	tcase_add_test(tc, test_device_enable_bit);
-	tcase_add_test(tc, test_device_enable_bit_invalid);
-	tcase_add_test(tc, test_device_disable_bit);
-	tcase_add_test(tc, test_device_disable_bit_invalid);
-	tcase_add_test(tc, test_device_kernel_change_axis);
-	tcase_add_test(tc, test_device_kernel_change_axis_invalid);
-	tcase_add_test(tc, test_device_kernel_set_abs_invalid_fd);
-	suite_add_tcase(s, tc);
+	add_test(s, test_device_set_abs);
+	add_test(s, test_device_enable_bit);
+	add_test(s, test_device_enable_bit_invalid);
+	add_test(s, test_device_disable_bit);
+	add_test(s, test_device_disable_bit_invalid);
+	add_test(s, test_device_kernel_change_axis);
+	add_test(s, test_device_kernel_change_axis_invalid);
+	add_test(s, test_device_kernel_set_abs_invalid_fd);
 
-	tc = tcase_create("led manipulation");
-	tcase_add_test(tc, test_led_valid);
-	tcase_add_test(tc, test_led_invalid);
-	tcase_add_test(tc, test_led_same);
-	suite_add_tcase(s, tc);
+	add_test(s, test_led_valid);
+	add_test(s, test_led_invalid);
+	add_test(s, test_led_same);
 
 	return s;
 }

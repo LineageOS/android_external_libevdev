@@ -1,26 +1,9 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
+#include "config.h"
 #include "test-common.h"
 
 START_TEST(test_limits)
@@ -175,7 +158,7 @@ START_TEST(test_code_sw_name)
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_RFKILL_ALL), "SW_RFKILL_ALL");
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_LINEIN_INSERT), "SW_LINEIN_INSERT");
 	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_PEN_INSERTED), "SW_PEN_INSERTED");
-	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_MAX), "SW_PEN_INSERTED");
+	ck_assert_str_eq(libevdev_event_code_get_name(EV_SW, SW_MAX), "SW_MACHINE_COVER");
 }
 END_TEST
 
@@ -227,6 +210,7 @@ START_TEST(test_value_name)
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PALM), "MT_TOOL_PALM");
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_PEN), "MT_TOOL_PEN");
 	ck_assert_str_eq(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, MT_TOOL_MAX), "MT_TOOL_MAX");
+	ck_assert(libevdev_event_value_get_name(EV_ABS, ABS_MT_TOOL_TYPE, -1) == NULL);
 }
 END_TEST
 
@@ -304,40 +288,27 @@ TEST_SUITE(event_name_suite)
 {
 	Suite *s = suite_create("Event names");
 
-	TCase *tc = tcase_create("type limits");
-	tcase_add_test(tc, test_limits);
-	tcase_add_test(tc, test_event_type_max);
-	suite_add_tcase(s, tc);
+	add_test(s, test_limits);
+	add_test(s, test_event_type_max);
 
-	tc = tcase_create("type names");
-	tcase_add_test(tc, test_type_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_type_name);
 
-	tc = tcase_create("code names");
-	tcase_add_test(tc, test_code_abs_name);
-	tcase_add_test(tc, test_code_rel_name);
-	tcase_add_test(tc, test_code_key_name);
-	tcase_add_test(tc, test_code_led_name);
-	tcase_add_test(tc, test_code_snd_name);
-	tcase_add_test(tc, test_code_rep_name);
-	tcase_add_test(tc, test_code_msc_name);
-	tcase_add_test(tc, test_code_sw_name);
-	tcase_add_test(tc, test_code_ff_name);
-	tcase_add_test(tc, test_code_syn_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_code_abs_name);
+	add_test(s, test_code_rel_name);
+	add_test(s, test_code_key_name);
+	add_test(s, test_code_led_name);
+	add_test(s, test_code_snd_name);
+	add_test(s, test_code_rep_name);
+	add_test(s, test_code_msc_name);
+	add_test(s, test_code_sw_name);
+	add_test(s, test_code_ff_name);
+	add_test(s, test_code_syn_name);
 
-	tc = tcase_create("value names");
-	tcase_add_test(tc, test_value_name);
-	suite_add_tcase(s, tc);
+	add_test(s, test_value_name);
+	add_test(s, test_prop_name);
 
-	tc = tcase_create("prop names");
-	tcase_add_test(tc, test_prop_name);
-	suite_add_tcase(s, tc);
-
-	tc = tcase_create("event values");
-	tcase_add_test(tc, test_event_type);
-	tcase_add_test(tc, test_event_code);
-	suite_add_tcase(s, tc);
+	add_test(s, test_event_type);
+	add_test(s, test_event_code);
 
 	return s;
 }

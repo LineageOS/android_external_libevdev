@@ -1,3 +1,5 @@
+{# You're looking at the template here, so you can ignore the below
+   warning. This is the right file to edit #}
 ########################################
 #                                      #
 # THIS FILE IS GENERATED, DO NOT EDIT  #
@@ -10,16 +12,10 @@ include:
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file:
-      # Alpine container builder template
-      - '/templates/alpine.yml'
-      # Arch container builder template
-      - '/templates/arch.yml'
-      # Debian container builder template
-      - '/templates/debian.yml'
-      # Fedora container builder template
-      - '/templates/fedora.yml'
-      # Ubuntu container builder template
-      - '/templates/ubuntu.yml'
+  {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
+      # {{ distribution.capitalize() }} container builder template
+      - '/templates/{{distribution}}.yml'
+  {% endfor %}
 
 stages:
   - prep             # rebuild the container images if there is a change
@@ -74,54 +70,19 @@ variables:
   variables:
     MESON_TEST_ARGS: '--no-suite=needs-uinput'
 
-.fedora:37:
-  extends: .fdo.distribution-image@fedora
+{# Generate templates for every distribution/version combination we want, any
+  job can then just extends: .name:version and the images will sort
+  themselves out. #}
+{% for distro in distributions %}
+{% for version in distro.versions %}
+.{{distro.name}}:{{version}}:
+  extends: .fdo.distribution-image@{{distro.name}}
   variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: '37'
+    FDO_DISTRIBUTION_TAG: '{{distro.tag}}'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
 
-.fedora:38:
-  extends: .fdo.distribution-image@fedora
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: '38'
-
-.ubuntu:23.04:
-  extends: .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: '23.04'
-
-.ubuntu:22.10:
-  extends: .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: '22.10'
-
-.debian:stable:
-  extends: .fdo.distribution-image@debian
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: 'stable'
-
-.debian:sid:
-  extends: .fdo.distribution-image@debian
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: 'sid'
-
-.arch:rolling:
-  extends: .fdo.distribution-image@arch
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: 'rolling'
-
-.alpine:latest:
-  extends: .fdo.distribution-image@alpine
-  variables:
-    FDO_DISTRIBUTION_TAG: '2023-05-08.0'
-    FDO_DISTRIBUTION_VERSION: 'latest'
-
+{% endfor %}
+{% endfor %}
 
 
 #################################################################
@@ -185,187 +146,37 @@ check-merge-request:
   allow_failure: true
 
 
-.fedora.packages:
+{% for distro in distributions %}
+.{{ distro.name }}.packages:
   variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc gcc-c++ meson automake autoconf libtool make pkgconfig python3 check-devel valgrind binutils doxygen xz clang-analyzer systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich'
+    FDO_DISTRIBUTION_PACKAGES: '{{ ' '.join(distro.packages)}}'
 
-.ubuntu.packages:
-  variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
+{% endfor %}
 
-.debian.packages:
-  variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkg-config python3 check valgrind binutils doxygen xz-utils'
-
-.arch.packages:
-  variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc meson automake autoconf libtool make pkgconfig python3 check valgrind binutils doxygen'
-
-.alpine.packages:
-  variables:
-    FDO_DISTRIBUTION_PACKAGES: 'git gcc g++ meson automake autoconf libtool make pkgconfig python3 check-dev valgrind binutils doxygen xz linux-headers'
-
-
+{% for distro in distributions %}
+{% for version in distro.versions %}
 
 # Pulls in the container from upstream or rebuilds it if missing
-fedora:37@container-prep:
+{{ distro.name }}:{{ version }}@container-prep:
   extends:
-    - .fedora:37
-    - .fedora.packages
-    - .fdo.container-build@fedora
+    - .{{ distro.name }}:{{ version }}
+    - .{{ distro.name}}.packages
+    - .fdo.container-build@{{ distro.name }}
   stage: prep
   variables:
     GIT_STRATEGY: none
 
 # Always rebuilds the container
-fedora:37@container-forced-rebuild:
+{{ distro.name }}:{{ version }}@container-forced-rebuild:
   extends:
-    - fedora:37@container-prep
+    - {{ distro.name }}:{{ version }}@container-prep
   only:
     - schedules
   variables:
     FDO_FORCE_REBUILD: 1
 
-
-# Pulls in the container from upstream or rebuilds it if missing
-fedora:38@container-prep:
-  extends:
-    - .fedora:38
-    - .fedora.packages
-    - .fdo.container-build@fedora
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-fedora:38@container-forced-rebuild:
-  extends:
-    - fedora:38@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-ubuntu:23.04@container-prep:
-  extends:
-    - .ubuntu:23.04
-    - .ubuntu.packages
-    - .fdo.container-build@ubuntu
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-ubuntu:23.04@container-forced-rebuild:
-  extends:
-    - ubuntu:23.04@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-ubuntu:22.10@container-prep:
-  extends:
-    - .ubuntu:22.10
-    - .ubuntu.packages
-    - .fdo.container-build@ubuntu
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-ubuntu:22.10@container-forced-rebuild:
-  extends:
-    - ubuntu:22.10@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-debian:stable@container-prep:
-  extends:
-    - .debian:stable
-    - .debian.packages
-    - .fdo.container-build@debian
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-debian:stable@container-forced-rebuild:
-  extends:
-    - debian:stable@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-debian:sid@container-prep:
-  extends:
-    - .debian:sid
-    - .debian.packages
-    - .fdo.container-build@debian
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-debian:sid@container-forced-rebuild:
-  extends:
-    - debian:sid@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-arch:rolling@container-prep:
-  extends:
-    - .arch:rolling
-    - .arch.packages
-    - .fdo.container-build@arch
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-arch:rolling@container-forced-rebuild:
-  extends:
-    - arch:rolling@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
-
-# Pulls in the container from upstream or rebuilds it if missing
-alpine:latest@container-prep:
-  extends:
-    - .alpine:latest
-    - .alpine.packages
-    - .fdo.container-build@alpine
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-
-# Always rebuilds the container
-alpine:latest@container-forced-rebuild:
-  extends:
-    - alpine:latest@container-prep
-  only:
-    - schedules
-  variables:
-    FDO_FORCE_REBUILD: 1
-
+{% endfor %}
+{% endfor %}
 
 #################################################################
 #                                                               #
@@ -398,62 +209,17 @@ alpine:latest@container-forced-rebuild:
   only:
     - schedules
 
-### fedora 37
-fedora:37@container-clean:
+{% for distro in distributions %}
+{% for version in distro.versions %}
+### {{ distro.name }} {{ version }}
+{{ distro.name }}:{{ version }}@container-clean:
   extends:
-    - .fedora:37
+    - .{{ distro.name }}:{{ version }}
     - .container-clean
-  needs: ["fedora:37@container-prep"]
+  needs: ["{{distro.name}}:{{version}}@container-prep"]
 
-### fedora 38
-fedora:38@container-clean:
-  extends:
-    - .fedora:38
-    - .container-clean
-  needs: ["fedora:38@container-prep"]
-
-### ubuntu 23.04
-ubuntu:23.04@container-clean:
-  extends:
-    - .ubuntu:23.04
-    - .container-clean
-  needs: ["ubuntu:23.04@container-prep"]
-
-### ubuntu 22.10
-ubuntu:22.10@container-clean:
-  extends:
-    - .ubuntu:22.10
-    - .container-clean
-  needs: ["ubuntu:22.10@container-prep"]
-
-### debian stable
-debian:stable@container-clean:
-  extends:
-    - .debian:stable
-    - .container-clean
-  needs: ["debian:stable@container-prep"]
-
-### debian sid
-debian:sid@container-clean:
-  extends:
-    - .debian:sid
-    - .container-clean
-  needs: ["debian:sid@container-prep"]
-
-### arch rolling
-arch:rolling@container-clean:
-  extends:
-    - .arch:rolling
-    - .container-clean
-  needs: ["arch:rolling@container-prep"]
-
-### alpine latest
-alpine:latest@container-clean:
-  extends:
-    - .alpine:latest
-    - .container-clean
-  needs: ["alpine:latest@container-prep"]
-
+{% endfor %}
+{% endfor %}
 
 #################################################################
 #                                                               #
@@ -475,137 +241,53 @@ alpine:latest@container-clean:
   stage: build
   dependencies: []
 
+{% for distro in distributions %}
+{% for version in distro.versions %}
 
-fedora:37@autotools-build:
+{{ distro.name }}:{{ version }}@autotools-build:
   extends:
-    - .fedora:37
+    - .{{ distro.name }}:{{ version }}
     - .autotools-build@template
   stage: autotools
-  needs: ['fedora:37@container-prep']
+  {# Where we have extra_variables defined, add them to the list #}
+  {% if distro.build is defined and distro.build.extra_variables is defined %}
+  variables:
+    {% for key, value in distro.build.extra_variables.items() %}
+    {{ key }}: {{ value }}
+    {% endfor %}
+  {% endif %}
+  needs: ['{{ distro.name }}:{{ version }}@container-prep']
 
-fedora:37@meson-build:
+{% if not distro.build is defined or distro.build.meson|default(True) %}
+{{ distro.name }}:{{ version }}@meson-build:
   extends:
-    - .fedora:37
+    - .{{ distro.name }}:{{ version }}
     - .meson-build@template
   stage: meson
-  needs: ['fedora:37@container-prep']
+  {# Where we have extra_variables defined, add them to the list #}
+  {% if distro.build is defined and distro.build.extra_variables is defined %}
+  variables:
+    {% for key, value in distro.build.extra_variables.items() %}
+    {{ key }}: {{ value }}
+    {% endfor %}
+  {% endif %}
+  needs: ['{{ distro.name }}:{{ version }}@container-prep']
+{% endif %}
 
-
-fedora:38@autotools-build:
-  extends:
-    - .fedora:38
-    - .autotools-build@template
-  stage: autotools
-  needs: ['fedora:38@container-prep']
-
-fedora:38@meson-build:
-  extends:
-    - .fedora:38
-    - .meson-build@template
-  stage: meson
-  needs: ['fedora:38@container-prep']
-
-
-ubuntu:23.04@autotools-build:
-  extends:
-    - .ubuntu:23.04
-    - .autotools-build@template
-  stage: autotools
-  needs: ['ubuntu:23.04@container-prep']
-
-ubuntu:23.04@meson-build:
-  extends:
-    - .ubuntu:23.04
-    - .meson-build@template
-  stage: meson
-  needs: ['ubuntu:23.04@container-prep']
-
-
-ubuntu:22.10@autotools-build:
-  extends:
-    - .ubuntu:22.10
-    - .autotools-build@template
-  stage: autotools
-  needs: ['ubuntu:22.10@container-prep']
-
-ubuntu:22.10@meson-build:
-  extends:
-    - .ubuntu:22.10
-    - .meson-build@template
-  stage: meson
-  needs: ['ubuntu:22.10@container-prep']
-
-
-debian:stable@autotools-build:
-  extends:
-    - .debian:stable
-    - .autotools-build@template
-  stage: autotools
-  needs: ['debian:stable@container-prep']
-
-debian:stable@meson-build:
-  extends:
-    - .debian:stable
-    - .meson-build@template
-  stage: meson
-  needs: ['debian:stable@container-prep']
-
-
-debian:sid@autotools-build:
-  extends:
-    - .debian:sid
-    - .autotools-build@template
-  stage: autotools
-  needs: ['debian:sid@container-prep']
-
-debian:sid@meson-build:
-  extends:
-    - .debian:sid
-    - .meson-build@template
-  stage: meson
-  needs: ['debian:sid@container-prep']
-
-
-arch:rolling@autotools-build:
-  extends:
-    - .arch:rolling
-    - .autotools-build@template
-  stage: autotools
-  needs: ['arch:rolling@container-prep']
-
-arch:rolling@meson-build:
-  extends:
-    - .arch:rolling
-    - .meson-build@template
-  stage: meson
-  needs: ['arch:rolling@container-prep']
-
-
-alpine:latest@autotools-build:
-  extends:
-    - .alpine:latest
-    - .autotools-build@template
-  stage: autotools
-  needs: ['alpine:latest@container-prep']
-
-alpine:latest@meson-build:
-  extends:
-    - .alpine:latest
-    - .meson-build@template
-  stage: meson
-  needs: ['alpine:latest@container-prep']
-
+{% endfor %}
+{% endfor %}
 
 # Build argument tests
 #
 # We only run the build option combinations on one image
 # because they're supposed to fail equally on all
+{% set custom_build_distro = distributions|selectattr("name", "equalto", "fedora")|first() %}
 .fedora-custom-build@autotools-template:
   extends:
-    - .fedora:37
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
     - .autotools-build@template
   stage: build
-  needs: ['fedora:37@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 no-valgrind:autotools:
   extends: .fedora-custom-build@autotools-template
@@ -644,10 +326,10 @@ enable-gcov:autotools:
 
 .fedora-custom-build@meson-template:
   extends:
-    - .fedora:37
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
     - .meson-build@template
   stage: build
-  needs: ['fedora:37@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 no-valgrind:meson:
   extends: .fedora-custom-build@meson-template
@@ -698,7 +380,7 @@ static-build:meson:
 
 soname:
   extends:
-    - .fedora:37
+    - .{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}
   stage: build
   script:
   - ./autogen.sh --prefix=$PWD/prefix-autotools/
@@ -707,7 +389,7 @@ soname:
   - meson "$MESON_BUILDDIR" --prefix=$PWD/prefix-meson/
   - ninja -C "$MESON_BUILDDIR" install
   - ls -l $PWD/prefix-meson/lib64/libevdev.so.2.3.0
-  needs: ['fedora:37@container-prep']
+  needs: ['{{custom_build_distro.name}}:{{custom_build_distro.versions|first()}}@container-prep']
 
 #################################################################
 #                                                               #
@@ -732,8 +414,8 @@ soname:
     - kvm
   variables:
     MESON_BUILDDIR: build_dir
-    B2C_KERNEL: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.1/bzImage
-    B2C_VERSION: v0.9.9
+    B2C_KERNEL: {{ b2c.kernel }}
+    B2C_VERSION: {{ b2c.version }}
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
     B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
@@ -741,20 +423,22 @@ soname:
     - .gitlab-ci/meson-build.sh --skip-test
 
     # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/v0.9.9/vm2c.py
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/{{b2c.version}}/vm2c.py
     - chmod +x /app/boot2container
 
     # runs the test suite only
     - /app/boot2container
 
+{% for distro in distributions if distro.use_for_qemu_tests %}
+{% set version = "{}".format(distro.versions|last()) %}
 qemu:meson:
   stage: VM
   extends:
-    - .fdo.distribution-image@fedora
-    - .fedora:38
+    - .fdo.distribution-image@{{distro.name}}
+    - .{{distro.name}}:{{version}}
     - .build-in-b2c@template
   needs:
-    - "fedora:38@container-prep"
+    - "{{distro.name}}:{{version}}@container-prep"
 
 qemu:meson:valgrind:
   extends:
@@ -762,10 +446,13 @@ qemu:meson:valgrind:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
+{% endfor %}
 
+{% for distro in distributions if distro.use_for_tarball_tests %}
+{% set version = "{}".format(distro.versions|last()) %}
 meson-from-tarball:
   extends:
-    - .fedora:38
+    - .{{distro.name}}:{{version}}
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -783,11 +470,11 @@ meson-from-tarball:
     - ninja -C "$MESON_BUILDDIR" install
     - popd > /dev/null
     - ls -lR $INSTALLDIR
-  needs: ['fedora:38@container-prep']
+  needs: ['{{distro.name}}:{{version}}@container-prep']
 
 autotools-from-tarball:
   extends:
-    - .fedora:38
+    - .{{distro.name}}:{{version}}
   stage: tarballs
   script:
     - export INSTALLDIR="$PWD/_inst"
@@ -808,4 +495,5 @@ autotools-from-tarball:
   variables:
     LIBEVDEV_SKIP_ROOT_TESTS: 1
 
-  needs: ['fedora:38@container-prep']
+  needs: ['{{distro.name}}:{{version}}@container-prep']
+{% endfor %}

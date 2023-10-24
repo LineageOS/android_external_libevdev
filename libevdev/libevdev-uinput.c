@@ -1,44 +1,25 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright © 2013 Red Hat, Inc.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
  */
 
-#include <config.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
+#include "config.h"
 #include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/uinput.h>
+#include <poll.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <linux/uinput.h>
+#include <unistd.h>
 
-#include "libevdev.h"
 #include "libevdev-int.h"
-#include "libevdev-uinput.h"
 #include "libevdev-uinput-int.h"
+#include "libevdev-uinput.h"
 #include "libevdev-util.h"
-
-#define SYS_INPUT_DIR "/sys/devices/virtual/input/"
+#include "libevdev.h"
 
 #ifndef UINPUT_IOCTL_BASE
 #define UINPUT_IOCTL_BASE       'U'
@@ -182,6 +163,35 @@ libevdev_uinput_get_fd(const struct libevdev_uinput *uinput_dev)
 	return uinput_dev->fd;
 }
 
+#ifdef __FreeBSD__
+/*
+ * FreeBSD does not have anything similar to sysfs.
+ * Set libevdev_uinput->syspath to NULL unconditionally.
+ * Look up the device nodes directly instead of via sysfs, as this matches what
+ * is returned by the UI_GET_SYSNAME ioctl() on FreeBSD.
+ */
+static int
+fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
+{
+#define DEV_INPUT_DIR "/dev/input/"
+	int rc;
+	char buf[sizeof(DEV_INPUT_DIR) + 64] = DEV_INPUT_DIR;
+
+	rc = ioctl(uinput_dev->fd,
+	           UI_GET_SYSNAME(sizeof(buf) - strlen(DEV_INPUT_DIR)),
+		   &buf[strlen(DEV_INPUT_DIR)]);
+	if (rc == -1)
+		return -1;
+
+	uinput_dev->syspath = NULL;
+	uinput_dev->devnode = strdup(buf);
+
+	return 0;
+#undef DEV_INPUT_DIR
+}
+
+#else /* !__FreeBSD__ */
+
 static int is_event_device(const struct dirent *dent) {
 	return strncmp("event", dent->d_name, 5) == 0;
 }
@@ -217,6 +227,7 @@ static int is_input_device(const struct dirent *dent) {
 static int
 fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 {
+#define SYS_INPUT_DIR "/sys/devices/virtual/input/"
 	struct dirent **namelist;
 	int ndev, i;
 	int rc;
@@ -270,18 +281,19 @@ fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 				/* FIXME: could descend into bit comparison here */
 				log_info(NULL, "multiple identical devices found. syspath is unreliable\n");
 				break;
-			} else {
-				rc = snprintf(buf, sizeof(buf), "%s%s",
-					      SYS_INPUT_DIR,
-					      namelist[i]->d_name);
-				if (rc < 0 || (size_t)rc >= sizeof(buf)) {
-					log_error(NULL, "Invalid syspath, syspath is unreliable\n");
-					break;
-				}
-
-				uinput_dev->syspath = strdup(buf);
-				uinput_dev->devnode = fetch_device_node(buf);
 			}
+
+			rc = snprintf(buf, sizeof(buf), "%s%s",
+				      SYS_INPUT_DIR,
+				      namelist[i]->d_name);
+
+			if (rc < 0 || (size_t)rc >= sizeof(buf)) {
+				log_error(NULL, "Invalid syspath, syspath is unreliable\n");
+				break;
+			}
+
+			uinput_dev->syspath = strdup(buf);
+			uinput_dev->devnode = fetch_device_node(buf);
 		}
 	}
 
@@ -290,11 +302,12 @@ fetch_syspath_and_devnode(struct libevdev_uinput *uinput_dev)
 	free(namelist);
 
 	return uinput_dev->devnode ? 0 : -1;
+#undef SYS_INPUT_DIR
 }
+#endif /* __FreeBSD__*/
 
 static int
-uinput_create_write(const struct libevdev *dev, int fd,
-		    struct libevdev_uinput *new_device)
+uinput_create_write(const struct libevdev *dev, int fd)
 {
 	int rc;
 	struct uinput_user_dev uidev;
@@ -313,9 +326,9 @@ uinput_create_write(const struct libevdev *dev, int fd,
 		goto error;
 
 	rc = write(fd, &uidev, sizeof(uidev));
-	if (rc < 0)
+	if (rc < 0) {
 		goto error;
-	else if ((size_t)rc < sizeof(uidev)) {
+	} else if ((size_t)rc < sizeof(uidev)) {
 		errno = EINVAL;
 		goto error;
 	}
@@ -381,7 +394,7 @@ libevdev_uinput_create_from_device(const struct libevdev *dev, int fd, struct li
 	    uinput_version >= 5)
 		rc = uinput_create_DEV_SETUP(dev, fd, new_device);
 	else
-		rc = uinput_create_write(dev, fd, new_device);
+		rc = uinput_create_write(dev, fd);
 
 	if (rc != 0)
 		goto error;
@@ -455,7 +468,13 @@ libevdev_uinput_write_event(const struct libevdev_uinput *uinput_dev,
 			    unsigned int code,
 			    int value)
 {
-	struct input_event ev = { {0,0}, type, code, value };
+	struct input_event ev = {
+		.input_event_sec = 0,
+		.input_event_usec = 0,
+		.type = type,
+		.code = code,
+		.value = value
+	};
 	int fd = libevdev_uinput_get_fd(uinput_dev);
 	int rc, max;
 
